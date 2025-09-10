@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* Dark theme with orange and neon accents */
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --card: #1a1a1a;
+  --card-foreground: #ffffff;
+  --popover: #1a1a1a;
+  --popover-foreground: #ffffff;
+  --primary: #ff6b35; /* vibrant orange */
+  --primary-foreground: #000000;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #ffffff;
+  --muted: #1f1f1f;
+  --muted-foreground: #a3a3a3;
+  --accent: #00ff88; /* neon green accent */
+  --accent-foreground: #000000;
+  --destructive: #ff3b30;
+  --border: #333333;
+  --input: #1a1a1a;
+  --ring: #ff6b35;
+  --chart-1: #ff6b35;
+  --chart-2: #00ff88;
+  --chart-3: #ff0080;
+  --chart-4: #00d4ff;
+  --chart-5: #ffff00;
+  --sidebar: #1a1a1a;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ff6b35;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #00ff88;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #333333;
+  --sidebar-ring: #ff6b35;
+  
+  /* Custom neon colors */
+  --neon-orange: #ff6b35;
+  --neon-green: #00ff88;
+  --neon-pink: #ff0080;
+  --neon-blue: #00d4ff;
+  --neon-yellow: #ffff00;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Neon glow effects */
+.neon-glow {
+  box-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+}
+
+.neon-text {
+  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+}
+
+/* Gradient animations */
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 5px var(--neon-orange), 0 0 10px var(--neon-orange), 0 0 15px var(--neon-orange);
+  }
+  50% { 
+    box-shadow: 0 0 10px var(--neon-orange), 0 0 20px var(--neon-orange), 0 0 30px var(--neon-orange);
+  }
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 15s ease infinite;
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 2s ease-in-out infinite;
+}
+
+/* Custom gradient backgrounds */
+.bg-neon-gradient {
+  background: linear-gradient(135deg, var(--neon-orange), var(--neon-pink), var(--neon-blue));
+}
+
+.bg-dark-gradient {
+  background: linear-gradient(135deg, #0a0a0a, #1a1a1a, #2a2a2a);
+}
