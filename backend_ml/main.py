@@ -153,5 +153,11 @@ async def health_check():
 # ------------------- Entry -------------------
 if __name__ == "__main__":
     import uvicorn
+    # Local development only
     print(f"🚀 Starting ML API server on port {Config.ML_API_PORT}")
-    uvicorn.run("main:app", host="0.0.0.0", port=Config.ML_API_PORT, reload=True)
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=Config.ML_API_PORT,
+        reload=True   # Auto-reload for local dev
+    )
