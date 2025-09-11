@@ -42,9 +42,10 @@ export default function LoginPage() {
       } else {
         toast.error(result.error || "Invalid credentials. Please try again.");
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Login error:", err);
-      toast.error(err.message || "An unexpected error occurred. Please try again later.");
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred. Please try again later.";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

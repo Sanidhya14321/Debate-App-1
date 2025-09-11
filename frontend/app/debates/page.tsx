@@ -1,6 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
+// Type definitions
+interface DebateData {
+  _id: string;
+  topic: string;
+  joinedUsers: string[];
+  maxUsers?: number;
+  inviteCode?: string;
+}
+
+interface JoinPrivateResponse {
+  debate: {
+    _id: string;
+  };
+}
+
+interface CreateDebateResponse {
+  _id: string;
+  inviteCode?: string;
+}
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +52,7 @@ import {
 export default function DebatesPage() {
   useAuthGuard();
   const router = useRouter();
-  const [openDebates, setOpenDebates] = useState<any[]>([]);
+  const [openDebates, setOpenDebates] = useState<DebateData[]>([]);
   const [privateCode, setPrivateCode] = useState("");
   const [newTopic, setNewTopic] = useState("");
   const [description, setDescription] = useState("");
@@ -41,7 +61,10 @@ export default function DebatesPage() {
   const [creating, setCreating] = useState(false);
 
   const fetchOpenDebates = async () => {
-    try { const data = await apiFetch("/debates/open"); setOpenDebates(data); }
+    try { 
+      const data = await apiFetch("/debates/open"); 
+      setOpenDebates(data as DebateData[]); 
+    }
     catch { toast.error("Failed to fetch open debates"); }
   };
 
@@ -49,7 +72,7 @@ export default function DebatesPage() {
 
   const handleJoinOpen = async (id: string) => {
     try {
-      const data = await apiFetch(`/debates/${id}/join`, { method: "POST" });
+      await apiFetch(`/debates/${id}/join`, { method: "POST" });
       toast.success("Joined debate!");
       router.push(`/debates/${id}`);
     } catch { toast.error("Failed to join debate"); }
@@ -60,7 +83,7 @@ export default function DebatesPage() {
       const data = await apiFetch("/debates/join-private", {
         method: "POST",
         body: JSON.stringify({ inviteCode: privateCode }),
-      });
+      }) as JoinPrivateResponse;
       toast.success("Joined private debate!");
       router.push(`/debates/${data.debate._id}`);
     } catch { toast.error("Failed to join private debate"); }
@@ -80,14 +103,15 @@ export default function DebatesPage() {
           isPrivate,
           duration: parseInt(duration)
         }),
-      });
+      }) as CreateDebateResponse;
       
       toast.success(
         isPrivate ? `Private Debate Created! Code: ${data.inviteCode}` : "Debate Created!"
       );
       router.push(`/debates/${data._id}`);
-    } catch (err: any) { 
-      toast.error(err.message || "Failed to create debate"); 
+    } catch (err) { 
+      const errorMessage = err instanceof Error ? err.message : "Failed to create debate";
+      toast.error(errorMessage); 
     } finally {
       setCreating(false);
     }

@@ -61,15 +61,16 @@ export default function RegisterPage() {
     
     setLoading(true)
     try {
-      const data = await apiFetch("/auth/register", {
+      await apiFetch("/auth/register", {
         method: "POST",
         body: JSON.stringify({ username, email, password }),
       })
       
       toast.success("Registration successful! Please log in.")
       router.push("/login")
-    } catch (err: any) {
-      toast.error(err.message || "Registration failed")
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Registration failed";
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
