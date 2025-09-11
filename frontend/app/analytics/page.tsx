@@ -41,7 +41,7 @@ const COLOR_MAP = {
 export default function AnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('30d');
+  const [timeRange] = useState('30d');
 
   useEffect(() => {
     fetchAnalytics();

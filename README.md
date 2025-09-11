@@ -80,7 +80,7 @@ cd frontend && npm run dev
 3. **Access Application**
 - Frontend: http://localhost:3000
 - Node.js API: https://debate-app-1.onrender.com
-- ML API: https://Sanidhya14321/debate-app-ml.hf.space
+- ML API: https://debate-app-ml.hf.space
 
 ## 📁 Project Structure
 
@@ -113,7 +113,7 @@ debate-app/
 **Frontend (.env.local)**
 ```
 NEXT_PUBLIC_API_URL=https://debate-app-1.onrender.com
-NEXT_PUBLIC_ML_API_URL=https://Sanidhya14321/debate-app-ml.hf.space
+NEXT_PUBLIC_ML_API_URL=https://debate-app-ml.hf.space
 ```
 
 **Backend Node.js (.env)**
@@ -121,7 +121,7 @@ NEXT_PUBLIC_ML_API_URL=https://Sanidhya14321/debate-app-ml.hf.space
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/debate-app
 JWT_SECRET=your-super-secret-jwt-key-here
-ML_API_URL=https://Sanidhya14321/debate-app-ml.hf.space
+ML_API_URL=https://debate-app-ml.hf.space
 ```
 
 **Backend ML (.env)**
