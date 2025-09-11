@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 
 // General API rate limiter
 export const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   message: {
     error: 'Too many requests from this IP, please try again later.',
@@ -13,10 +13,10 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-// Strict limiter for auth endpoints
+// Strict limiter for auth endpoints (effectively disabled)
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs
+  windowMs:  60 * 1000, // 15 minutes
+  max: 1000, // Increased from 5 to effectively disable
   message: {
     error: 'Too many authentication attempts, please try again later.',
     retryAfter: '15 minutes'
@@ -26,7 +26,7 @@ export const authLimiter = rateLimit({
 
 // Debate creation limiter
 export const debateCreationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 1 * 60 * 1000, // 15 minutes
   max: 50, // limit each IP to 50 debate creations per 15 minutes
   message: {
     error: 'Too many debates created, please try again later.',
