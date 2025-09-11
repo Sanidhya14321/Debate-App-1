@@ -46,7 +46,7 @@ export class ConnectionMonitor {
 
       clearTimeout(timeoutId);
       return response.ok;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

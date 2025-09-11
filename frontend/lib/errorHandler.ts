@@ -67,7 +67,7 @@ export function handleApiError(error: unknown, context?: string): string {
   return message;
 }
 
-export function withErrorHandling<T extends any[], R>(
+export function withErrorHandling<T extends unknown[], R>(
   fn: (...args: T) => Promise<R>,
   context?: string
 ) {

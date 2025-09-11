@@ -42,7 +42,7 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
 
     if (!res.ok) {
       let errorMessage = "API error";
-      let errorCode = res.status;
+      const errorCode = res.status;
       
       try {
         const err = await res.json();
