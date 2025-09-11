@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import {
 
 type UserInfo = { username?: string; email: string };
 type Metric = { score: number; rating: string };
-type Score = { clarity: Metric; sentiment: Metric; vocab_richness: Metric; avg_word_len: Metric };
+type Score = { clarity: Metric; sentiment: Metric; vocab_richness: Metric; avg_word_len: Metric; length?: Metric };
 type Results = {
     winner: string;
     users: { A: UserInfo; B: UserInfo };
@@ -39,17 +39,20 @@ export default function DebateResultsPage() {
         try {
             const data = await apiFetch(`/debates/${id}/results`);
             setResults(data);
-        } catch (err: any) {
-            toast.error(err.message);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Failed to fetch results";
+            toast.error(errorMessage);
             setResults(null);
         } finally {
             setLoading(false);
         }
     };
 
+    const fetchResultsCallback = useCallback(fetchResults, [id]);
+
     useEffect(() => {
-        fetchResults();
-    }, [id]);
+        fetchResultsCallback();
+    }, [fetchResultsCallback]);
 
     if (loading) return <p className="mt-10 text-center">Loading results...</p>;
     if (!results) return <p className="mt-10 text-center text-red-500">No results available yet.</p>;
@@ -78,23 +81,23 @@ export default function DebateResultsPage() {
     const radarData = [
         {
             metric: "Clarity",
-            [getName("A")]: results?.scores?.A?.clarity ?? 0,
-            [getName("B")]: results?.scores?.B?.clarity ?? 0,
+            [getName("A")]: results?.scores?.A?.clarity?.score ?? 0,
+            [getName("B")]: results?.scores?.B?.clarity?.score ?? 0,
         },
         {
             metric: "Sentiment",
-            [getName("A")]: results?.scores?.A?.sentiment ?? 0,
-            [getName("B")]: results?.scores?.B?.sentiment ?? 0,
+            [getName("A")]: results?.scores?.A?.sentiment?.score ?? 0,
+            [getName("B")]: results?.scores?.B?.sentiment?.score ?? 0,
         },
         {
             metric: "Vocabulary Richness",
-            [getName("A")]: results?.scores?.A?.vocab_richness ?? 0,
-            [getName("B")]: results?.scores?.B?.vocab_richness ?? 0,
+            [getName("A")]: results?.scores?.A?.vocab_richness?.score ?? 0,
+            [getName("B")]: results?.scores?.B?.vocab_richness?.score ?? 0,
         },
         {
             metric: "Avg. Word Length",
-            [getName("A")]: results?.scores?.A?.avg_word_len ?? 0,
-            [getName("B")]: results?.scores?.B?.avg_word_len ?? 0,
+            [getName("A")]: results?.scores?.A?.avg_word_len?.score ?? 0,
+            [getName("B")]: results?.scores?.B?.avg_word_len?.score ?? 0,
         },
         {
             metric: "Total",
@@ -162,32 +165,31 @@ export default function DebateResultsPage() {
 
             {/* Player Scores */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {(["A", "B"] as const).map((side, idx) => (
+                {(["A", "B"] as const).map((side) => (
                     <Card key={side} className="shadow">
                         <CardHeader>
                             <CardTitle>{getName(side)}</CardTitle>
                         </CardHeader>
-                        {Object.keys(results?.scores || {}).map((side, idx) => {
+                        {Object.keys(results?.scores || {}).map((sideKey, idx) => {
+                            const side = sideKey as "A" | "B";
                             const score = results?.scores?.[side] || {};
                             const name = getName(side);
 
                             return (
-                                <Card key={side} className="shadow-md">
+                                <Card key={sideKey} className="shadow-md">
                                     <CardHeader>
                                         <CardTitle>{name}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
-                                        {renderMetric("Clarity", (score.clarity ?? 0) * 100, idx + 1)}
-                                        {renderMetric("Sentiment", ((score.sentiment ?? 0) + 1) * 50, idx + 2)}
-                                        {renderMetric("Vocabulary Richness", (score.vocab_richness ?? 0) * 100, idx + 3)}
-                                        {renderMetric("Average Word Length", Math.min((score.avg_word_len ?? 0) * 10, 100), idx + 4)}
-                                        {renderMetric("Length", Math.min((score.length ?? 0) / 5, 100), idx + 5)}
+                                        {renderMetric("Clarity", (score.clarity?.score ?? 0) * 100, idx + 1)}
+                                        {renderMetric("Sentiment", ((score.sentiment?.score ?? 0) + 1) * 50, idx + 2)}
+                                        {renderMetric("Vocabulary Richness", (score.vocab_richness?.score ?? 0) * 100, idx + 3)}
+                                        {renderMetric("Average Word Length", Math.min((score.avg_word_len?.score ?? 0) * 10, 100), idx + 4)}
+                                        {renderMetric("Length", Math.min((score.length?.score ?? 0) / 5, 100), idx + 5)}
                                     </CardContent>
                                 </Card>
                             );
                         })}
-
-
                     </Card>
                 ))}
             </div>

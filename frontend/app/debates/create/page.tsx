@@ -56,8 +56,9 @@ export default function CreateDebatePage() {
         isPrivate ? `Private Debate Created! Code: ${data.inviteCode}` : "Debate Created!"
       );
       router.push(`/debates/${data._id}`);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create debate");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to create debate";
+      toast.error(errorMessage);
     } finally {
       setCreating(false);
     }
