@@ -1,7 +1,7 @@
 // lib/socket.ts
 import { io, Socket } from 'socket.io-client';
 
-type DebateEventCallback<T = any> = (data: T) => void;
+type DebateEventCallback<T = unknown> = (data: T) => void;
 
 interface SocketAuth {
   token: string;
@@ -119,6 +119,11 @@ class SocketManager {
   // Remove event listeners
   off(event: string, callback?: DebateEventCallback): void {
     this.socket?.off(event, callback);
+  }
+
+  // Generic event handler for any Socket.IO events
+  on<T = unknown>(event: string, callback: (data: T) => void): void {
+    this.socket?.on(event, callback);
   }
 }
 
