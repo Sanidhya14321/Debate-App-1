@@ -1,5 +1,5 @@
 // lib/socket.ts
-import { io, Socket } from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 
 type DebateEventCallback<T = unknown> = (data: T) => void;
 
