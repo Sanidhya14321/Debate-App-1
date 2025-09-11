@@ -9,9 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { Trophy, Target, MessageSquare, Calendar, TrendingUp, Award, Edit } from "lucide-react";
+import { Trophy, Target, MessageSquare,TrendingUp, Award, Edit } from "lucide-react";
 
 interface UserStats {
   totalDebates: number;

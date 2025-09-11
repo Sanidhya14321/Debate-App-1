@@ -24,7 +24,6 @@ import {
   Clock,
   ArrowRight,
   Zap,
-  Star,
   Brain,
   Target,
   Sparkles

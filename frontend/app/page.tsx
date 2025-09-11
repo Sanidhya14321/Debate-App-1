@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { UI_CONFIG } from "@/lib/api";
 import { 
   MessageSquare, 
@@ -13,7 +13,6 @@ import {
   Zap, 
   Brain, 
   Target,
-  ArrowRight,
   Star,
   Globe,
   Shield,

@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { User, LogOut, Trophy, Settings, MessageSquare, Menu, X } from "lucide-react"
+import { User, LogOut, Trophy, Settings, Menu} from "lucide-react"
 
 export function Navigation() {
   const pathname = usePathname()

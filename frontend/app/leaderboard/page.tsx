@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Trophy, Users, Medal, Star, TrendingUp, Award, Crown, Zap } from "lucide-react";
+import { Trophy, Users, Medal, Star, TrendingUp, Award, Crown} from "lucide-react";
 
 interface LeaderboardUser {
   id: string

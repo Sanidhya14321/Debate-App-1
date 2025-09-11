@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { UI_CONFIG } from '@/lib/api';
-import { MessageSquare, Trophy, Target, Star, Clock } from 'lucide-react';
+import { MessageSquare, Trophy, Target, Star} from 'lucide-react';
 
 interface AnalyticsData {
   overview: {
