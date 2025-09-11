@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -11,30 +11,56 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Type definitions
+interface Debate {
+  id: string;
+  topic: string;
+  status: string;
+  isFinalized?: boolean;
+  participants: string[];
+  totalArguments: number;
+  result?: unknown;
+}
+
+interface ScoreObject {
+  total?: number;
+  [key: string]: number | undefined;
+}
+
+interface Argument {
+  id: string;
+  content: string;
+  score: number | string | ScoreObject;
+  username?: string;
+  email?: string;
+  createdAt: string;
+}
+
 export default function DebateRoomPage() {
   useAuthGuard();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  const [debate, setDebate] = useState<any>(null);
-  const [args, setArgs] = useState<any[]>([]);
+  const [debate, setDebate] = useState<Debate | null>(null);
+  const [args, setArgs] = useState<Argument[]>([]);
   const [newArg, setNewArg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fetchDebate = async () => {
+  const fetchDebate = useCallback(async () => {
     try {
       const [d, a] = await Promise.all([
         apiFetch(`/debates/${id}/status`),
         apiFetch(`/debates/${id}/arguments`),
       ]);
-      setDebate(d);
-      setArgs(a);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to fetch debate");
+      setDebate(d as Debate);
+      setArgs(a as Argument[]);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to fetch debate";
+      toast.error(errorMessage);
     }
-  };
+  }, [id]);
 
-  useEffect(() => { fetchDebate(); }, [id]);
+  useEffect(() => { fetchDebate(); }, [fetchDebate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,8 +74,9 @@ export default function DebateRoomPage() {
       });
       setNewArg("");
       fetchDebate();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to submit argument");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to submit argument";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -63,11 +90,12 @@ export default function DebateRoomPage() {
 
     setLoading(true);
     try {
-      const res = await apiFetch(`/debates/${id}/finalize`, { method: "POST" });
+      await apiFetch(`/debates/${id}/finalize`, { method: "POST" });
       toast.success("Debate finalized!");
       router.push(`/debates/${id}/results`);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to finalize debate");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to finalize debate";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -122,9 +150,10 @@ export default function DebateRoomPage() {
 
                         // Case 3: score is an object with metrics (clarity, sentiment, etc.)
                         if (typeof score === "object" && score !== null) {
+                          const scoreObj = score as ScoreObject;
                           // pick total if exists, otherwise average of metrics
-                          if ("total" in score) return Number(score.total).toFixed(2)
-                          const values = Object.values(score).filter((v) => typeof v === "number")
+                          if (scoreObj.total !== undefined) return scoreObj.total.toFixed(2)
+                          const values = Object.values(scoreObj).filter((v): v is number => typeof v === "number")
                           if (values.length > 0) {
                             const avg = values.reduce((a, b) => a + b, 0) / values.length
                             return avg.toFixed(2)
