@@ -5,7 +5,7 @@ import Result from "../models/Result.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-const ML_API_URL = process.env.ML_API_URL || "http://127.0.0.1:8000";
+const ML_API_URL = process.env.ML_API_URL || "https://Sanidhya14321/debate-app-ml.hf.space";
 
 // Create a private debate
 export const createPrivateDebate = async (req, res) => {

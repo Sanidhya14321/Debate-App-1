@@ -12,9 +12,11 @@ app = FastAPI(title="Debate ML API", version="1.0")
 # Enable CORS with proper security
 allowed_origins = [
     "http://localhost:3000",  # Frontend dev server
-    "http://localhost:5000",  # Backend server
+    "https://debate-app-1.onrender.com",  # Backend server
     "http://127.0.0.1:3000",
-    "http://127.0.0.1:5000"
+    "http://127.0.0.1:5000",
+    # Add your frontend deployment URL here when deployed
+    "*"  # Allow all origins for now - restrict in production
 ]
 
 app.add_middleware(

@@ -12,7 +12,7 @@ class SocketManager {
     }
 
     this.token = token;
-    this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
+    this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'https://debate-app-1.onrender.com', {
       auth: {
         token: token
       },
