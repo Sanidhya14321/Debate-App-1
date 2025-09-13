@@ -17,10 +17,12 @@ export function Navigation() {
 
   const publicLinks = [
     { href: "/", label: "Home" },
+    { href: "/about", label: "About" },
   ]
 
   const privateLinks = [
     { href: "/", label: "Home" },
+    { href: "/about", label: "About" },
     { href: "/debates", label: "Debates" },
     { href: "/leaderboard", label: "Leaderboard" },
     { href: "/tournaments", label: "Tournaments" },

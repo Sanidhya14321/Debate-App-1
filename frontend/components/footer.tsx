@@ -17,23 +17,23 @@ export default function Footer() {
             </p>
             <div className="flex space-x-4">
               <Link 
-                href="#" 
+                href="/contact" 
                 className="text-zinc-400 hover:text-[#ff6b35] transition-colors duration-200"
-                aria-label="Twitter"
+                aria-label="Contact Us"
               >
                 <Twitter className="w-6 h-6" />
               </Link>
               <Link 
-                href="#" 
+                href="/contact" 
                 className="text-zinc-400 hover:text-[#ff6b35] transition-colors duration-200"
-                aria-label="GitHub"
+                aria-label="Contact Us"
               >
                 <Github className="w-6 h-6" />
               </Link>
               <Link 
-                href="#" 
+                href="/contact" 
                 className="text-zinc-400 hover:text-[#ff6b35] transition-colors duration-200"
-                aria-label="Email"
+                aria-label="Contact Us"
               >
                 <Mail className="w-6 h-6" />
               </Link>
@@ -72,22 +72,22 @@ export default function Footer() {
             <h4 className="text-lg font-semibold text-white">Resources</h4>
             <ul className="space-y-3">
               <li>
-                <Link href="#" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
+                <Link href="/about" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
                   How It Works
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
+                <Link href="/about" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
                   Debate Guidelines
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
+                <Link href="/about" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
                   Scoring System
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
+                <Link href="/about" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
                   FAQ
                 </Link>
               </li>
@@ -99,22 +99,12 @@ export default function Footer() {
             <h4 className="text-lg font-semibold text-white">Company</h4>
             <ul className="space-y-3">
               <li>
-                <Link href="#" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
+                <Link href="/about" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
+                <Link href="/contact" className="text-zinc-400 hover:text-[#00ff88] transition-colors duration-200">
                   Contact
                 </Link>
               </li>
@@ -128,14 +118,14 @@ export default function Footer() {
             © 2024 DebAI. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm">
-            <Link href="#" className="text-zinc-400 hover:text-[#ff6b35] transition-colors duration-200">
-              Privacy
+            <Link href="/about" className="text-zinc-400 hover:text-[#ff6b35] transition-colors duration-200">
+              About
             </Link>
-            <Link href="#" className="text-zinc-400 hover:text-[#ff6b35] transition-colors duration-200">
-              Terms
+            <Link href="/contact" className="text-zinc-400 hover:text-[#ff6b35] transition-colors duration-200">
+              Contact
             </Link>
-            <Link href="#" className="text-zinc-400 hover:text-[#ff6b35] transition-colors duration-200">
-              Cookies
+            <Link href="/about" className="text-zinc-400 hover:text-[#ff6b35] transition-colors duration-200">
+              Company
             </Link>
           </div>
         </div>

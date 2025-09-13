@@ -188,15 +188,14 @@ export default function Home() {
             ].map((feature, index) => (
               <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate = {{opacity : 0 , y:0}}
-              whileInView="visible"
-              viewport={{ once: true }}
-              transition={{  duration: 0.8, delay: 0.5 + index / 3 }}
-              variants={{
-                visible: { opacity: 1, scale: 1 },
-                hidden: { opacity: 0, scale: 0 }
-              }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView="visible"
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                variants={{
+                  visible: { opacity: 1, y: 0 },
+                  hidden: { opacity: 0, y: 20 }
+                }}
               >
                 <Card className="p-10 text-center bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 group h-full">
                   <div className="mb-8">
@@ -289,7 +288,7 @@ export default function Home() {
           }}
           className="text-center"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-16 text-white">
+          <h2 className="text-4xl md:text-5xl font-bold mb-16 mt-16 text-white">
             What Debaters Say
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
