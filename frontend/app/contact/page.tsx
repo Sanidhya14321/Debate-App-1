@@ -63,7 +63,7 @@ export default function ContactPage() {
             Get In <span className="text-[#ff6b35]">Touch</span>
           </h1>
           <p className="text-xl text-zinc-400 max-w-3xl mx-auto leading-relaxed">
-            We'd love to hear from you! Whether you have questions, feedback, or just want to connect, 
+            We&apos;d love to hear from you! Whether you have questions, feedback, or just want to connect, 
             reach out to us through any of our channels.
           </p>
         </motion.div>
@@ -82,7 +82,7 @@ export default function ContactPage() {
             </div>
             <h2 className="text-4xl font-bold text-white mb-6">Choose Your Platform</h2>
             <p className="text-lg text-zinc-400 max-w-3xl mx-auto">
-              We're active on multiple platforms to make it easy for you to reach us wherever you are.
+              We&apos;re active on multiple platforms to make it easy for you to reach us wherever you are.
             </p>
           </div>
 

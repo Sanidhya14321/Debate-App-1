@@ -28,13 +28,34 @@ interface FinalizationEventData {
   userId: string;
 }
 
+interface ArgumentData {
+  id: string;
+  content: string;
+  author: string;
+  userId: string;
+  side: 'for' | 'against';
+  timestamp: string;
+  score: number | string | ScoreObject;
+  username?: string;
+  email?: string;
+  color?: string;
+  createdAt: string;
+}
+
 interface ArgumentEventData {
-  argument: any; // TODO: Type this properly based on your argument structure
+  argument: ArgumentData;
+}
+
+interface ResultsData {
+  winner: 'for' | 'against' | 'tie';
+  forScore: number;
+  againstScore: number;
+  arguments: ArgumentData[];
 }
 
 interface DebateEventData {
   debateId: string;
-  results: any; // TODO: Type this properly based on your results structure
+  results: ResultsData;
 }
 
 // Type definitions

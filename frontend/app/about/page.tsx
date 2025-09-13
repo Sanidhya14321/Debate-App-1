@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,13 @@ import {
   ChevronDown
 } from "lucide-react";
 
+interface AnimatedSectionProps {
+  children: ReactNode;
+  className?: string;
+  variants?: any;
+  id?: string;
+}
+
 // Animation variants
 const fadeInUp = {
   initial: { opacity: 0, y: 60 },
@@ -48,7 +55,7 @@ const scaleIn = {
 };
 
 // Intersection Observer Hook Component
-function AnimatedSection({ children, className = "", ...motionProps }: any) {
+function AnimatedSection({ children, className = "", variants, id, ...motionProps }: AnimatedSectionProps & any) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -58,6 +65,8 @@ function AnimatedSection({ children, className = "", ...motionProps }: any) {
       initial="initial"
       animate={isInView ? "animate" : "initial"}
       className={className}
+      variants={variants}
+      id={id}
       {...motionProps}
     >
       {children}
@@ -117,7 +126,7 @@ export default function AboutPage() {
               { label: "Guidelines", id: "guidelines" },
               { label: "Scoring", id: "scoring" },
               { label: "FAQ", id: "faq" }
-            ].map((item, index) => (
+            ].map((item) => (
               <Button
                 key={item.id}
                 variant="outline"
@@ -291,7 +300,7 @@ export default function AboutPage() {
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-3 text-2xl">
                     <CheckCircle className="w-8 h-8 text-[#00ff88]" />
-                    Do's
+                    Do&apos;s
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -324,7 +333,7 @@ export default function AboutPage() {
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-3 text-2xl">
                     <Target className="w-8 h-8 text-[#ff6b35]" />
-                    Don'ts
+                    Don&apos;ts
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -387,7 +396,7 @@ export default function AboutPage() {
               { icon: Brain, title: "Logic", desc: "Logical reasoning and evidence quality", weight: "30%", color: "#00ff88" },
               { icon: Star, title: "Vocabulary", desc: "Richness and appropriateness of language", weight: "20%", color: "#ff6b35" },
               { icon: Award, title: "Sentiment", desc: "Professional tone and respectful discourse", weight: "25%", color: "#00ff88" }
-            ].map((metric, index) => (
+            ].map((metric) => (
               <motion.div
                 key={metric.title}
                 variants={fadeInUp}
@@ -517,7 +526,7 @@ export default function AboutPage() {
                 desc: "We believe in the power of civil discourse and encourage respectful dialogue even on controversial topics.",
                 color: "#00ff88"
               }
-            ].map((value, index) => (
+            ].map((value) => (
               <motion.div
                 key={value.title}
                 variants={fadeInUp}
@@ -559,7 +568,7 @@ export default function AboutPage() {
               className="text-5xl font-bold text-white mb-8"
               variants={fadeInUp}
             >
-              Got Questions? We've Got Answers
+              Got Questions? We&apos;ve Got Answers
             </motion.h2>
             <motion.p
               className="text-xl text-zinc-400 max-w-4xl mx-auto"
@@ -593,7 +602,7 @@ export default function AboutPage() {
             <CardContent>
               <p className="text-xl text-zinc-300 leading-relaxed mb-8">
                 We envision a world where critical thinking and effective communication are fundamental skills that 
-                everyone can develop. Through AI-powered education, we're building a future where thoughtful discourse 
+                everyone can develop. Through AI-powered education, we&apos;re building a future where thoughtful discourse 
                 replaces polarization, and where every voice can be heard and respected.
               </p>
               <motion.div
