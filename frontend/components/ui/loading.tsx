@@ -19,10 +19,10 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   };
 
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-2", className)}>
-      <Loader2 className={cn("animate-spin text-primary", sizeClasses[size])} />
+    <div className={cn("flex flex-col items-center justify-center gap-3 py-4", className)}>
+      <Loader2 className={cn("animate-spin text-primary", sizeClasses[size], "mb-2")}/>
       {text && (
-        <p className="text-sm text-muted-foreground animate-pulse">{text}</p>
+        <p className="text-base text-muted-foreground animate-pulse text-center px-2">{text}</p>
       )}
     </div>
   );
@@ -40,15 +40,13 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
   className
 }) => {
   return (
-    <div className={cn("min-h-[400px] flex items-center justify-center p-4", className)}>
-      <div className="text-center space-y-4">
+    <div className={cn("min-h-[400px] flex items-center justify-center p-8 bg-dark-gradient", className)}>
+      <div className="w-full max-w-md mx-auto text-center space-y-6">
         <LoadingSpinner size="lg" />
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold">{title}</h2>
-          {description && (
-            <p className="text-muted-foreground max-w-md">{description}</p>
-          )}
-        </div>
+        <h2 className="text-2xl font-bold mb-2">{title}</h2>
+        {description && (
+          <p className="text-muted-foreground text-base max-w-md mx-auto">{description}</p>
+        )}
       </div>
     </div>
   );
@@ -70,7 +68,9 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
       {children}
       {isLoading && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <LoadingSpinner text={text} />
+          <div className="w-full max-w-md mx-auto">
+            <LoadingSpinner text={text} />
+          </div>
         </div>
       )}
     </div>

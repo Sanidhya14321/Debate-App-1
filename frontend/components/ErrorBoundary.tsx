@@ -53,10 +53,10 @@ interface FallbackProps {
 }
 
 const DefaultErrorFallback: React.FC<FallbackProps> = ({ error, retry }) => (
-  <div className="min-h-[400px] flex items-center justify-center p-4">
-    <Card className="w-full max-w-md">
+  <div className="min-h-[400px] flex items-center justify-center p-4 bg-dark-gradient">
+    <Card className="w-full max-w-md border-primary/30">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-destructive">
+        <CardTitle className="flex items-center gap-2 text-primary neon-glow">
           <AlertTriangle className="w-5 h-5" />
           Something went wrong
         </CardTitle>
@@ -65,7 +65,7 @@ const DefaultErrorFallback: React.FC<FallbackProps> = ({ error, retry }) => (
         <p className="text-muted-foreground">
           {error?.message || "An unexpected error occurred. Please try again."}
         </p>
-        <Button onClick={retry} className="w-full">
+        <Button onClick={retry} className="w-full bg-accent text-black font-semibold">
           <RefreshCw className="w-4 h-4 mr-2" />
           Try Again
         </Button>

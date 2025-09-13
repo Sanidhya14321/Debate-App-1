@@ -152,15 +152,15 @@ export default function DebateRoomPage() {
   };
 
   const getScoreColor = (scoreStr: string): string => {
-    const score = parseFloat(scoreStr);
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    if (score >= 40) return "text-orange-600";
-    return "text-red-600";
+  const score = parseFloat(scoreStr);
+  if (score >= 80) return "text-accent neon-glow"; // neon cyan
+  if (score >= 60) return "text-primary neon-glow"; // neon orange
+  if (score >= 40) return "text-[#ff0080] neon-glow"; // neon pink
+  return "text-destructive neon-glow";
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+  <div className="min-h-screen bg-dark-gradient">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         
         {/* Header Section */}
