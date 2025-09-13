@@ -9,7 +9,7 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || "secret123";
 
 // Create mock users and admin on startup if they don't exist
-const createInitialUsers = async () => {
+export const createInitialUsers = async () => {
   try {
     // Admin User
     let admin = await User.findOne({ email: 'admin@example.com' });
@@ -55,7 +55,6 @@ const createInitialUsers = async () => {
   }
 };
 
-createInitialUsers();
 
 export const registerUser = async (req, res, next) => {
   try {
