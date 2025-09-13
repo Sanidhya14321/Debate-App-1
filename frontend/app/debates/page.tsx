@@ -32,15 +32,15 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import { useAuthGuard } from "@/lib/auth";
-import { 
-  MessageSquare, 
-  Users, 
-  Plus, 
-  Search, 
-  Lock, 
-  Globe, 
-  Flame, 
-  Trophy, 
+import {
+  MessageSquare,
+  Users,
+  Plus,
+  Search,
+  Lock,
+  Globe,
+  Flame,
+  Trophy,
   Clock,
   ArrowRight,
   Zap,
@@ -61,9 +61,9 @@ export default function DebatesPage() {
   const [creating, setCreating] = useState(false);
 
   const fetchOpenDebates = async () => {
-    try { 
-      const data = await apiFetch("/debates/open"); 
-      setOpenDebates(data as DebateData[]); 
+    try {
+      const data = await apiFetch("/debates/open");
+      setOpenDebates(data as DebateData[]);
     }
     catch { toast.error("Failed to fetch open debates"); }
   };
@@ -92,26 +92,26 @@ export default function DebatesPage() {
   const handleCreateDebate = async () => {
     if (!newTopic.trim()) return toast.error("Topic cannot be empty");
     if (newTopic.trim().length < 5) return toast.error("Topic must be at least 5 characters");
-    
+
     setCreating(true);
     try {
       const data = await apiFetch("/debates", {
         method: "POST",
-        body: JSON.stringify({ 
-          topic: newTopic.trim(), 
+        body: JSON.stringify({
+          topic: newTopic.trim(),
           description: description.trim(),
           isPrivate,
           duration: parseInt(duration)
         }),
       }) as CreateDebateResponse;
-      
+
       toast.success(
         isPrivate ? `Private Debate Created! Code: ${data.inviteCode}` : "Debate Created!"
       );
       router.push(`/debates/${data._id}`);
-    } catch (err) { 
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to create debate";
-      toast.error(errorMessage); 
+      toast.error(errorMessage);
     } finally {
       setCreating(false);
     }
@@ -127,7 +127,7 @@ export default function DebatesPage() {
 
       <div className="relative container mx-auto px-4 py-16">
         {/* SECTION 1: DESCRIPTION */}
-        <motion.section 
+        <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -138,16 +138,16 @@ export default function DebatesPage() {
             <span className="text-sm font-medium text-white">Battle Arena</span>
             <Zap className="h-4 w-4 text-[#00ff88]" />
           </div>
-          
+
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
             DEBATE ARENA
           </h1>
-          
+
           <div className="max-w-4xl mx-auto mb-12">
             <p className="text-xl text-muted-foreground mb-8">
               Welcome to the ultimate AI-powered debate platform where ideas clash and minds evolve
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-full border border-[#ff6b35]/30">
@@ -158,7 +158,7 @@ export default function DebatesPage() {
                   <p className="text-sm text-muted-foreground">Advanced AI analyzes your arguments for sentiment, clarity, and persuasiveness in real-time</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-full border border-[#00ff88]/30">
                   <Target className="h-6 w-6 text-[#00ff88]" />
@@ -168,7 +168,7 @@ export default function DebatesPage() {
                   <p className="text-sm text-muted-foreground">Engage in live debates with structured rounds and instant feedback on your performance</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-full border border-[#ff0080]/30">
                   <Sparkles className="h-6 w-6 text-[#ff0080]" />
@@ -204,7 +204,7 @@ export default function DebatesPage() {
         </motion.section>
 
         {/* SECTION 2: CREATE PUBLIC/PRIVATE DEBATE */}
-        <motion.section 
+        <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
@@ -290,8 +290,8 @@ export default function DebatesPage() {
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {isPrivate 
-                          ? "Only users with invite code can join" 
+                        {isPrivate
+                          ? "Only users with invite code can join"
                           : "Anyone can join this debate"
                         }
                       </p>
@@ -335,13 +335,13 @@ export default function DebatesPage() {
             </CardHeader>
             <CardContent>
               <div className="flex gap-3">
-                <Input 
-                  placeholder="Enter invite code" 
-                  value={privateCode} 
+                <Input
+                  placeholder="Enter invite code"
+                  value={privateCode}
                   onChange={(e) => setPrivateCode(e.target.value)}
                   className="bg-background/50 border-border/50 focus:border-[#00ff88]/50 text-white placeholder:text-muted-foreground"
                 />
-                <Button 
+                <Button
                   onClick={handleJoinPrivate}
                   className="bg-gradient-to-r from-[#00ff88] to-[#00ff88]/80 hover:from-[#00ff88]/90 hover:to-[#00ff88]/70 text-black font-semibold"
                   disabled={!privateCode.trim()}
@@ -355,7 +355,7 @@ export default function DebatesPage() {
         </motion.section>
 
         {/* SECTION 3: OPEN DEBATES */}
-        <motion.section 
+        <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
@@ -366,60 +366,64 @@ export default function DebatesPage() {
             <div className="flex-1 h-px"></div>
           </div>
 
-          {openDebates.length === 0 ? (
-            <Card className="p-12 text-center bg-card/30 backdrop-blur-sm border-border/50">
-              <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold text-white mb-2">No Active Debates</h3>
-              <p className="text-muted-foreground mb-6">Be the first to start a debate and get the conversation going!</p>
-              <Button 
-                onClick={() => document.getElementById('topic')?.focus()}
-                className="bg-gradient-to-r from-[#ff6b35] to-[#ff6b35]/80 hover:from-[#ff6b35]/90 hover:to-[#ff6b35]/70 text-black font-semibold"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create First Debate
-              </Button>
-            </Card>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {openDebates.map((debate, idx) => (
-                <motion.div 
-                  key={debate._id} 
-                  initial={{ opacity: 0, y: 20 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  transition={{ delay: idx * 0.1 }}
+          <div 
+            className="w-2/3"
+          >
+            {openDebates.length === 0 ? (
+              <Card className="p-12 text-center bg-card/30 backdrop-blur-sm border-border/50">
+                <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-semibold text-white mb-2">No Active Debates</h3>
+                <p className="text-muted-foreground mb-6">Be the first to start a debate and get the conversation going!</p>
+                <Button
+                  onClick={() => document.getElementById('topic')?.focus()}
+                  className="bg-gradient-to-r from-[#ff6b35] to-[#ff6b35]/80 hover:from-[#ff6b35]/90 hover:to-[#ff6b35]/70 text-black font-semibold"
                 >
-                  <Card className="group hover:border-[#ff6b35]/50 transition-all duration-300 bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-lg hover:shadow-[#ff6b35]/20">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-lg font-semibold text-white group-hover:text-[#ff6b35] transition-colors line-clamp-2">
-                          {debate.topic}
-                        </CardTitle>
-                        <div className="flex items-center gap-1 text-[#00ff88] text-sm font-medium">
-                          <Users className="h-4 w-4" />
-                          {debate.joinedUsers.length}/{debate.maxUsers || 2}
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create First Debate
+                </Button>
+              </Card>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {openDebates.map((debate, idx) => (
+                  <motion.div
+                    key={debate._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                  >
+                    <Card className="group hover:border-[#ff6b35]/50 transition-all duration-300 bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-lg hover:shadow-[#ff6b35]/20">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <CardTitle className="text-lg font-semibold text-white group-hover:text-[#ff6b35] transition-colors line-clamp-2">
+                            {debate.topic}
+                          </CardTitle>
+                          <div className="flex items-center gap-1 text-[#00ff88] text-sm font-medium">
+                            <Users className="h-4 w-4" />
+                            {debate.joinedUsers.length}/{debate.maxUsers || 2}
+                          </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          <span>Just started</span>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            <span>Just started</span>
+                          </div>
+                          <Button
+                            onClick={() => handleJoinOpen(debate._id)}
+                            className="bg-gradient-to-r from-[#ff6b35] to-[#ff6b35]/80 hover:from-[#ff6b35]/90 hover:to-[#ff6b35]/70 text-black font-semibold group-hover:scale-105 transition-transform"
+                          >
+                            <ArrowRight className="h-4 w-4 mr-2" />
+                            Join Battle
+                          </Button>
                         </div>
-                        <Button 
-                          onClick={() => handleJoinOpen(debate._id)}
-                          className="bg-gradient-to-r from-[#ff6b35] to-[#ff6b35]/80 hover:from-[#ff6b35]/90 hover:to-[#ff6b35]/70 text-black font-semibold group-hover:scale-105 transition-transform"
-                        >
-                          <ArrowRight className="h-4 w-4 mr-2" />
-                          Join Battle
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
         </motion.section>
       </div>
     </div>
