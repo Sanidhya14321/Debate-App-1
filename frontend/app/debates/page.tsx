@@ -118,11 +118,11 @@ export default function DebatesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen from-background via-background to-muted/20">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#ff6b35]/20 to-[#00ff88]/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-[#ff0080]/20 to-[#00d4ff]/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
       <div className="relative container mx-auto px-4 py-16">
@@ -133,13 +133,13 @@ export default function DebatesPage() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#ff6b35]/20 to-[#00ff88]/20 border border-[#ff6b35]/30 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#ff6b35]/30 mb-6">
             <Flame className="h-4 w-4 text-[#ff6b35]" />
             <span className="text-sm font-medium text-white">Battle Arena</span>
             <Zap className="h-4 w-4 text-[#00ff88]" />
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-white via-[#ff6b35] to-[#00ff88] bg-clip-text text-transparent mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
             DEBATE ARENA
           </h1>
           
@@ -150,7 +150,7 @@ export default function DebatesPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-full bg-gradient-to-r from-[#ff6b35]/20 to-[#ff6b35]/10 border border-[#ff6b35]/30">
+                <div className="p-3 rounded-full border border-[#ff6b35]/30">
                   <Brain className="h-6 w-6 text-[#ff6b35]" />
                 </div>
                 <div>
@@ -160,7 +160,7 @@ export default function DebatesPage() {
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-full bg-gradient-to-r from-[#00ff88]/20 to-[#00ff88]/10 border border-[#00ff88]/30">
+                <div className="p-3 rounded-full border border-[#00ff88]/30">
                   <Target className="h-6 w-6 text-[#00ff88]" />
                 </div>
                 <div>
@@ -170,7 +170,7 @@ export default function DebatesPage() {
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-full bg-gradient-to-r from-[#ff0080]/20 to-[#ff0080]/10 border border-[#ff0080]/30">
+                <div className="p-3 rounded-full border border-[#ff0080]/30">
                   <Sparkles className="h-6 w-6 text-[#ff0080]" />
                 </div>
                 <div>
@@ -213,7 +213,7 @@ export default function DebatesPage() {
           <div className="flex items-center gap-3 mb-8">
             <Plus className="h-6 w-6 text-[#ff6b35]" />
             <h2 className="text-3xl font-bold text-white">Create New Debate</h2>
-            <div className="flex-1 h-px bg-gradient-to-r from-[#ff6b35]/50 to-transparent"></div>
+            <div className="flex-1 h-px"></div>
           </div>
 
           <Card className="max-w-4xl mx-auto  border-[#ff6b35]/30 backdrop-blur-sm">
@@ -363,7 +363,7 @@ export default function DebatesPage() {
           <div className="flex items-center gap-3 mb-8">
             <Globe className="h-6 w-6 text-[#ff6b35]" />
             <h2 className="text-3xl font-bold text-white">Public Arenas</h2>
-            <div className="flex-1 h-px bg-gradient-to-r from-[#ff6b35]/50 to-transparent"></div>
+            <div className="flex-1 h-px"></div>
           </div>
 
           {openDebates.length === 0 ? (

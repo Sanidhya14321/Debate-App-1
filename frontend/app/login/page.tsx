@@ -46,7 +46,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4">
+    <div className="min-h-screen flex items-center justify-center  p-4">
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -54,7 +54,7 @@ export default function LoginPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="border-white/10 shadow-2xl bg-black/90 backdrop-blur-sm">
+        <Card className="border-white/10 shadow-2xl bg-black/70 backdrop-blur-sm">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <motion.div 
