@@ -19,7 +19,10 @@ import {
   TrendingUp,
   Award,
   BarChart3,
-  Plus
+  Plus,
+  CheckCircle,
+  AlertTriangle,
+  Eye
 } from "lucide-react";
 
 export default function Home() {
@@ -274,6 +277,78 @@ export default function Home() {
                 </li>
               </ul>
             </Card>
+          </div>
+        </motion.section>
+
+        {/* Testimonials */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView="visible"
+          viewport={{ once: true }}
+          transition={{  duration: 0.8, delay: 0.4 }}
+          variants={{
+            visible: { opacity: 1, scale: 1 },
+            hidden: { opacity: 0, scale: 0 }
+          }}
+          className="text-center"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold mb-16 bg-gradient-to-r from-white via-[#ff6b35] to-[#00ff88] bg-clip-text text-transparent">
+            What Debaters Say
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Alex Chen",
+                role: "Philosophy Student",
+                avatar: "AC",
+                color: "#ff6b35",
+                quote: "DebAI has revolutionized how I practice argumentation. The AI feedback is incredibly insightful and has improved my debate skills tremendously."
+              },
+              {
+                name: "Sarah Rodriguez",
+                role: "Law School Graduate",
+                avatar: "SR", 
+                color: "#00ff88",
+                quote: "The real-time scoring system keeps me engaged and motivated. It's like having a debate coach available 24/7."
+              },
+              {
+                name: "Marcus Thompson",
+                role: "Policy Debate Coach",
+                avatar: "MT",
+                color: "#ff0080", 
+                quote: "I use DebAI with my students to help them understand argument structure and persuasive techniques. The analytics are fantastic."
+              }
+            ].map((testimonial, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView="visible"
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                variants={{
+                  visible: { opacity: 1, y: 0 },
+                  hidden: { opacity: 0, y: 20 }
+                }}
+              >
+                <Card className="p-8 bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div 
+                      className="w-12 h-12 rounded-full flex items-center justify-center text-black font-bold"
+                      style={{ backgroundColor: testimonial.color }}
+                    >
+                      {testimonial.avatar}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-white">{testimonial.name}</h4>
+                      <p className="text-sm text-gray-400">{testimonial.role}</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-300 italic leading-relaxed">
+                    "{testimonial.quote}"
+                  </p>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </motion.section>
       </main>

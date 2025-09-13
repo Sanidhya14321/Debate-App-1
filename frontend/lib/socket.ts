@@ -75,6 +75,19 @@ class SocketManager {
     this.socket?.emit('chat-message', payload);
   }
 
+  // Finalization methods
+  requestFinalization(debateId: string): void {
+    this.socket?.emit('request-finalization', debateId);
+  }
+
+  approveFinalization(debateId: string): void {
+    this.socket?.emit('approve-finalization', debateId);
+  }
+
+  rejectFinalization(debateId: string): void {
+    this.socket?.emit('reject-finalization', debateId);
+  }
+
   // Event listeners
   onDebateState(callback: DebateEventCallback): void {
     this.socket?.on('debate-state', callback);
@@ -114,6 +127,19 @@ class SocketManager {
 
   onDebateStatusUpdated(callback: DebateEventCallback): void {
     this.socket?.on('debate-status-updated', callback);
+  }
+
+  // New finalization events
+  onFinalizationRequested(callback: DebateEventCallback): void {
+    this.socket?.on('finalization-requested', callback);
+  }
+
+  onFinalizationApproved(callback: DebateEventCallback): void {
+    this.socket?.on('finalization-approved', callback);
+  }
+
+  onFinalizationRejected(callback: DebateEventCallback): void {
+    this.socket?.on('finalization-rejected', callback);
   }
 
   // Remove event listeners

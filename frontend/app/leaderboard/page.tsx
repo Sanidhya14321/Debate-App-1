@@ -47,9 +47,9 @@ export default function LeaderboardPage() {
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
-      case 1: return <Trophy className="h-6 w-6 text-yellow-500" />
-      case 2: return <Medal className="h-6 w-6 text-gray-400" />
-      case 3: return <Award className="h-6 w-6 text-amber-600" />
+      case 1: return <Trophy className="h-6 w-6 text-[#ff6b35]" />
+      case 2: return <Medal className="h-6 w-6 text-[#00ff88]" />
+      case 3: return <Award className="h-6 w-6 text-[#ff0080]" />
       default: return <span className="text-lg font-bold text-muted-foreground">#{rank}</span>
     }
   }
@@ -69,14 +69,14 @@ export default function LeaderboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
-          <Card className={`p-4 ${user.rank <= 3 ? 'bg-gradient-to-r from-primary/5 to-transparent border-primary/20' : ''}`}>
+          <Card className={`p-4 hover:border-[#ff6b35]/50 transition-all duration-300 bg-card/50 backdrop-blur-sm ${user.rank <= 3 ? 'border-[#ff6b35]/50 bg-gradient-to-r from-[#ff6b35]/10 to-transparent' : 'border-border/30'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center justify-center w-12 h-12">
                   {getRankIcon(user.rank)}
                 </div>
 
-                <Avatar className="h-12 w-12">
+                <Avatar className="h-12 w-12 border border-[#ff6b35]/30">
                   <AvatarFallback style={{ backgroundColor: user.color }} className="text-white font-bold">
                     {user.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -84,8 +84,11 @@ export default function LeaderboardPage() {
 
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-lg">{user.username}</h3>
-                    <Badge variant={getRankBadge(user.rank)}>
+                    <h3 className="font-semibold text-lg text-white">{user.username}</h3>
+                    <Badge 
+                      variant={getRankBadge(user.rank)}
+                      className={user.rank <= 3 ? "bg-[#ff6b35]/20 text-[#ff6b35] border-[#ff6b35]/50" : ""}
+                    >
                       Rank #{user.rank}
                     </Badge>
                   </div>
@@ -98,12 +101,12 @@ export default function LeaderboardPage() {
               </div>
 
               <div className="text-right">
-                <div className="text-2xl font-bold text-primary">{user.score}</div>
+                <div className="text-2xl font-bold text-[#ff6b35]">{user.score}</div>
                 <div className="text-sm text-muted-foreground">points</div>
                 {user.streak > 0 && (
                   <div className="flex items-center gap-1 mt-1">
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span className="text-xs text-green-500">{user.streak} streak</span>
+                    <TrendingUp className="h-3 w-3 text-[#00ff88]" />
+                    <span className="text-xs text-[#00ff88]">{user.streak} streak</span>
                   </div>
                 )}
               </div>
@@ -123,7 +126,7 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-dark-gradient">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#ff6b35]/20 to-[#00ff88]/20 rounded-full blur-3xl animate-pulse"></div>
@@ -162,16 +165,16 @@ export default function LeaderboardPage() {
             transition={{ duration: 0.6 }}
           >
             {/* Active Debaters */}
-            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center">
-              <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <div className="text-2xl font-bold">{globalLeaders.length}</div>
+            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-card/50 backdrop-blur-sm border-[#ff6b35]/30">
+              <Users className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
+              <div className="text-2xl font-bold text-white">{globalLeaders.length}</div>
               <div className="text-sm text-muted-foreground">Active Debaters</div>
             </Card>
 
             {/* Best Streak */}
-            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center">
-              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-500" />
-              <div className="text-2xl font-bold">
+            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-card/50 backdrop-blur-sm border-[#00ff88]/30">
+              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-[#00ff88]" />
+              <div className="text-2xl font-bold text-white">
                 {globalLeaders.length > 0
                   ? Math.max(...globalLeaders.map((u) => u.streak))
                   : 0}
@@ -179,9 +182,9 @@ export default function LeaderboardPage() {
               <div className="text-sm text-muted-foreground">Best Streak</div>
             </Card>
             {/* Top Score (highlight, spans more space) */}
-            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center">
-              <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
-              <div className="text-3xl font-bold">{globalLeaders[0]?.score || 0}</div>
+            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-gradient-to-br from-[#ff6b35]/20 to-[#00ff88]/20 border-[#ff6b35]/50">
+              <Trophy className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
+              <div className="text-3xl font-bold text-white">{globalLeaders[0]?.score || 0}</div>
               <div className="text-sm text-muted-foreground">Top Score</div>
             </Card>
             
@@ -190,16 +193,16 @@ export default function LeaderboardPage() {
 
         {/* Leaderboard Tabs */}
         <Tabs defaultValue="global" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="global">Global Rankings</TabsTrigger>
-            <TabsTrigger value="weekly">This Week</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-card/50 border-[#ff6b35]/30">
+            <TabsTrigger value="global" className="data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black text-white">Global Rankings</TabsTrigger>
+            <TabsTrigger value="weekly" className="data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black text-white">This Week</TabsTrigger>
           </TabsList>
 
           <TabsContent value="global">
-            <Card>
+            <Card className="bg-card/50 backdrop-blur-sm border-[#ff6b35]/30">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Trophy className="h-5 w-5 text-[#ff6b35]" />
                   Global Leaderboard
                 </CardTitle>
               </CardHeader>
@@ -210,10 +213,10 @@ export default function LeaderboardPage() {
           </TabsContent>
 
           <TabsContent value="weekly">
-            <Card>
+            <Card className="bg-card/50 backdrop-blur-sm border-[#ff6b35]/30">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <TrendingUp className="h-5 w-5 text-[#00ff88]" />
                   Weekly Rankings
                 </CardTitle>
               </CardHeader>

@@ -230,9 +230,26 @@ export const finalizeDebate = async (req, res) => {
     if (!debate.arguments || debate.arguments.length === 0)
       return res.status(400).json({ error: "No arguments to finalize" });
 
+    // Check if debate is already finalized
+    if (debate.status === "completed") {
+      return res.status(400).json({ error: "Debate is already finalized" });
+    }
+
     // Prepare arguments for ML
     if (debate.joinedUsers.length < 2) {
       return res.status(400).json({ error: "Debate requires at least two users to finalize." });
+    }
+
+    // Check if this is a force finalization (from socket approval) or requires approval
+    const { forceFinalize } = req.body;
+    
+    if (debate.participants && debate.participants.length > 1 && !forceFinalize) {
+      // If there are multiple participants and it's not a forced finalization,
+      // this should be handled through socket events for mutual approval
+      return res.status(400).json({ 
+        error: "Multiple participants detected. Use socket events for mutual approval.",
+        requiresApproval: true 
+      });
     }
 
     // Format arguments according to ML API expectations
@@ -314,8 +331,11 @@ export const finalizeDebate = async (req, res) => {
 
     // Broadcast results via WebSocket
     const io = req.app.get('io');
-    if (io && io.broadcastDebateFinalized) {
-      io.broadcastDebateFinalized(debateId, mlResponse.data);
+    if (io) {
+      io.to(`debate_${debateId}`).emit('debateFinalized', {
+        debateId: debateId.toString(),
+        results: mlResponse.data
+      });
     }
 
     res.json(mlResponse.data);
