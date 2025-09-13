@@ -144,7 +144,7 @@ export default function DebateResultsPage() {
                         <BarChart3 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
                         <h2 className="text-xl font-semibold mb-2">No Results Available</h2>
                         <p className="text-muted-foreground mb-4">
-                            The debate hasn't been finalized yet or results are still being processed.
+                            The debate hasn&apos;t been finalized yet or results are still being processed.
                         </p>
                         <Button onClick={() => router.push(`/debates/${id}`)}>
                             <ArrowLeft className="w-4 h-4 mr-2" />

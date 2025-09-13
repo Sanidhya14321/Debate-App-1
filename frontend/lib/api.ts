@@ -34,7 +34,7 @@ export const mlApi = {
       
       if (!response.ok) throw new Error(`ML API error: ${response.status}`);
       return await response.json();
-    } catch (error) {
+    } catch (_error) {
       console.warn('ML API unavailable, using fallback');
       return {
         score: {
