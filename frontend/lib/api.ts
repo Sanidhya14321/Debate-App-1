@@ -10,14 +10,55 @@ export const API_ROUTES = {
   DEBATES: process.env.NEXT_PUBLIC_DEBATES_ROUTE || "/debates",
   USERS: process.env.NEXT_PUBLIC_USERS_ROUTE || "/users",
   ANALYTICS: process.env.NEXT_PUBLIC_ANALYTICS_ROUTE || "/analytics",
+  MISC: process.env.NEXT_PUBLIC_MISC_ROUTE || "/misc",
 };
 
 // UI Configuration
 export const UI_CONFIG = {
-  APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || "Debate Revolution",
+  APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || "AI Debate Platform",
   PRIMARY_COLOR: process.env.NEXT_PUBLIC_PRIMARY_COLOR || "#2563eb",
   SECONDARY_COLOR: process.env.NEXT_PUBLIC_SECONDARY_COLOR || "#10b981",
   ACCENT_COLOR: process.env.NEXT_PUBLIC_ACCENT_COLOR || "#f59e0b",
+};
+
+// ML API functions
+export const mlApi = {
+  analyze: async (text: string) => {
+    try {
+      const response = await fetch(`${ML_API_URL}/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+        signal: AbortSignal.timeout(15000)
+      });
+      
+      if (!response.ok) throw new Error(`ML API error: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.warn('ML API unavailable, using fallback');
+      return {
+        score: {
+          sentiment: { score: Math.random() * 100, rating: "Good" },
+          clarity: { score: Math.random() * 100, rating: "Good" },
+          vocab_richness: { score: Math.random() * 100, rating: "Good" },
+          avg_word_len: { score: Math.random() * 100, rating: "Good" },
+          length: text.split(' ').length
+        }
+      };
+    }
+  },
+
+  checkHealth: async () => {
+    try {
+      const response = await fetch(`${ML_API_URL}/health`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000)
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
 };
 
 export const api = {
@@ -57,6 +98,7 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
         const err = await res.json();
         if (err?.message) errorMessage = err.message;
         if (err?.error) errorMessage = err.error;
+        if (err?.details) errorMessage += ` - ${err.details}`;
       } catch {
         // If JSON parsing fails, use status text
         errorMessage = res.statusText || `HTTP ${res.status}`;

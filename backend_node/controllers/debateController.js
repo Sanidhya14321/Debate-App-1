@@ -113,8 +113,23 @@ export const getOpenDebates = async (req, res) => {
 export const addArgument = async (req, res) => {
   try {
     const { content } = req.body;
+    
+    // Validate input
+    if (!content || content.trim().length < 10) {
+      return res.status(400).json({ error: "Argument must be at least 10 characters long" });
+    }
+
+    if (content.length > 2000) {
+      return res.status(400).json({ error: "Argument too long (max 2000 characters)" });
+    }
+
     const debate = await Debate.findById(req.params.id);
     if (!debate) return res.status(404).json({ error: "Debate not found" });
+
+    // Check if user is participant
+    if (!debate.joinedUsers.includes(req.user.id)) {
+      return res.status(403).json({ error: "You are not a participant in this debate" });
+    }
 
     let score;
     try {
@@ -126,16 +141,22 @@ export const addArgument = async (req, res) => {
           'Content-Type': 'application/json'
         }
       });
-      score = mlResponse.data.score;
+      score = mlResponse.data.score || mlResponse.data;
     } catch (mlErr) {
       console.warn("[ML API unavailable] using mock scoring:", mlErr.message);
-      score = Math.random() * 2 - 1;
-      // Don't fail the request, but log the error for monitoring
+      // Provide structured fallback score
+      score = {
+        sentiment: { score: Math.random() * 100, rating: "Good" },
+        clarity: { score: Math.random() * 100, rating: "Good" },
+        vocab_richness: { score: Math.random() * 100, rating: "Good" },
+        avg_word_len: { score: Math.random() * 100, rating: "Good" },
+        length: content.split(' ').length
+      };
     }
 
     const newArgument = {
       user: req.user.id,
-      content,
+      content: content.trim(),
       score,
       createdAt: new Date()
     };
@@ -149,34 +170,29 @@ export const addArgument = async (req, res) => {
     
     const addedArgument = populatedDebate.arguments[populatedDebate.arguments.length - 1];
 
+    const formattedArgument = {
+      id: addedArgument._id,
+      content: addedArgument.content,
+      score: addedArgument.score,
+      username: addedArgument.user?.username || 'Unknown',
+      color: addedArgument.user?.color || '#333',
+      createdAt: addedArgument.createdAt
+    };
+
     // Broadcast to WebSocket clients
     const io = req.app.get('io');
     if (io && io.broadcastArgumentAdded) {
-      io.broadcastArgumentAdded(req.params.id, {
-        id: addedArgument._id,
-        content: addedArgument.content,
-        score: addedArgument.score,
-        username: addedArgument.user?.username || 'Unknown',
-        color: addedArgument.user?.color || '#333',
-        createdAt: addedArgument.createdAt
-      });
+      io.broadcastArgumentAdded(req.params.id, formattedArgument);
     }
 
     res.json({ 
       message: "Argument added successfully", 
       score,
-      argument: {
-        id: addedArgument._id,
-        content: addedArgument.content,
-        score: addedArgument.score,
-        username: addedArgument.user?.username || 'Unknown',
-        color: addedArgument.user?.color || '#333',
-        createdAt: addedArgument.createdAt
-      }
+      argument: formattedArgument
     });
   } catch (err) {
     console.error("[add argument] error details:", err);
-    res.status(500).json({ message: "Error adding argument" });
+    res.status(500).json({ message: "Error adding argument", details: err.message });
   }
 };
 
@@ -219,23 +235,17 @@ export const finalizeDebate = async (req, res) => {
       return res.status(400).json({ error: "Debate requires at least two users to finalize." });
     }
 
-    const userA_id = debate.joinedUsers[0]._id.toString();
-    const userB_id = debate.joinedUsers[1]._id.toString();
-
-    const args_a = debate.arguments
-      .filter(arg => arg.user._id.toString() === userA_id)
-      .map(arg => arg.content || "");
-
-    const args_b = debate.arguments
-      .filter(arg => arg.user._id.toString() === userB_id)
-      .map(arg => arg.content || "");
+    // Format arguments according to ML API expectations
+    const mlArguments = debate.arguments.map(arg => ({
+      username: arg.user?.username || "Anonymous",
+      argumentText: arg.content || ""
+    }));
 
     // Call ML API with retry logic
     let mlResponse;
     try {
       mlResponse = await axios.post(`${ML_API_URL}/finalize`, { 
-        args_a: args_a,
-        args_b: args_b
+        arguments: mlArguments
       }, {
         timeout: 30000,
         headers: {
@@ -246,13 +256,31 @@ export const finalizeDebate = async (req, res) => {
       if (!mlResponse.data) throw new Error("ML API returned empty response");
     } catch (mlErr) {
       console.error("[ML API Error]", mlErr.message);
+      
+      // Get usernames for fallback
+      const usernames = [...new Set(debate.arguments.map(arg => arg.user?.username || "Anonymous"))];
+      const fallbackWinner = usernames[Math.floor(Math.random() * usernames.length)];
+      
       // Provide fallback results when ML API fails
       mlResponse = {
         data: {
-          winner: mlArgs.length > 0 ? mlArgs[0].username : "No winner",
-          logicScore: Math.random() * 100,
-          persuasivenessScore: Math.random() * 100,
-          engagementScore: Math.random() * 100,
+          winner: fallbackWinner,
+          scores: {
+            A: {
+              sentiment: { score: Math.random() * 100, rating: "Good" },
+              clarity: { score: Math.random() * 100, rating: "Good" },
+              vocab_richness: { score: Math.random() * 100, rating: "Good" },
+              avg_word_len: { score: Math.random() * 100, rating: "Good" }
+            },
+            B: {
+              sentiment: { score: Math.random() * 100, rating: "Good" },
+              clarity: { score: Math.random() * 100, rating: "Good" },
+              vocab_richness: { score: Math.random() * 100, rating: "Good" },
+              avg_word_len: { score: Math.random() * 100, rating: "Good" }
+            }
+          },
+          totals: { A: Math.random() * 100, B: Math.random() * 100 },
+          coherence: { score: Math.random() * 100, rating: "Good" },
           summary: "Results generated locally due to ML API unavailability"
         }
       };
@@ -264,20 +292,30 @@ export const finalizeDebate = async (req, res) => {
 
     // Save results in Result collection with debateId as string
     try {
-      const { winner, logicScore, persuasivenessScore, engagementScore } = mlResponse.data;
+      const { winner, scores, totals, coherence } = mlResponse.data;
       await Result.findOneAndUpdate(
         { debateId: debateId.toString() },
         {
           debateId: debateId.toString(),
-          logicScore: logicScore ?? null,
-          persuasivenessScore: persuasivenessScore ?? null,
-          engagementScore: engagementScore ?? null,
-          winner: winner ?? null
+          winner: winner ?? null,
+          scores: scores ?? null,
+          totals: totals ?? null,
+          coherence: coherence ?? null,
+          // Legacy fields for backward compatibility
+          logicScore: totals?.A ?? null,
+          persuasivenessScore: totals?.B ?? null,
+          engagementScore: coherence?.score ?? null
         },
         { upsert: true, new: true }
       );
     } catch (saveErr) {
       console.warn("[result save] could not persist to Result collection:", saveErr.message);
+    }
+
+    // Broadcast results via WebSocket
+    const io = req.app.get('io');
+    if (io && io.broadcastDebateFinalized) {
+      io.broadcastDebateFinalized(debateId, mlResponse.data);
     }
 
     res.json(mlResponse.data);

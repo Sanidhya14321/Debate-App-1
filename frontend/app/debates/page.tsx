@@ -183,21 +183,21 @@ export default function DebatesPage() {
 
           {/* Stats Bar */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-[#ff6b35]/30">
-              <MessageSquare className="h-8 w-8 mx-auto mb-3 text-[#ff6b35]" />
-              <div className="text-2xl font-bold text-white mb-1">{openDebates.length}</div>
+            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-primary/30">
+              <MessageSquare className="h-8 w-8 mx-auto mb-3 text-primary" />
+              <div className="text-2xl font-bold mb-1">{openDebates.length}</div>
               <div className="text-sm text-muted-foreground">Active Debates</div>
             </Card>
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-[#00ff88]/30">
-              <Users className="h-8 w-8 mx-auto mb-3 text-[#00ff88]" />
-              <div className="text-2xl font-bold text-white mb-1">
+            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-green-500/30">
+              <Users className="h-8 w-8 mx-auto mb-3 text-green-500" />
+              <div className="text-2xl font-bold mb-1">
                 {openDebates.reduce((acc, debate) => acc + debate.joinedUsers.length, 0)}
               </div>
               <div className="text-sm text-muted-foreground">Active Debaters</div>
             </Card>
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-[#ff0080]/30">
-              <Trophy className="h-8 w-8 mx-auto mb-3 text-[#ff0080]" />
-              <div className="text-2xl font-bold text-white mb-1">Live</div>
+            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-yellow-500/30">
+              <Trophy className="h-8 w-8 mx-auto mb-3 text-yellow-500" />
+              <div className="text-2xl font-bold mb-1">Live</div>
               <div className="text-sm text-muted-foreground">AI Scoring</div>
             </Card>
           </div>
