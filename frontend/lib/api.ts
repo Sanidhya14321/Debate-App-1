@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any*/ 
+
 // API Configuration
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://debate-app-1.onrender.com";
-export const ML_API_URL = process.env.NEXT_PUBLIC_ML_API_URL || "https://debate-app-ml.hf.space";
+export const ML_API_URL = process.env.NEXT_PUBLIC_ML_API_URL || "https://sanidhya14321-debate-app-ml.hf.space";
 
 // API Routes
 export const API_ROUTES = {

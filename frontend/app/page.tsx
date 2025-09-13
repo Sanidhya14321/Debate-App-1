@@ -187,6 +187,7 @@ export default function Home() {
               }
             ].map((feature, index) => (
               <motion.div
+              key={index}
               initial={{ opacity: 0, y: 20 }}
               animate = {{opacity : 0 , y:0}}
               whileInView="visible"
