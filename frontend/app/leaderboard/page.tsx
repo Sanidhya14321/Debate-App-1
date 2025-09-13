@@ -69,7 +69,7 @@ export default function LeaderboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
-          <Card className={`p-4 hover:border-[#ff6b35]/50 transition-all duration-300 bg-card/50 backdrop-blur-sm ${user.rank <= 3 ? 'border-[#ff6b35]/50 bg-gradient-to-r from-[#ff6b35]/10 to-transparent' : 'border-border/30'}`}>
+          <Card className={`p-4 hover:border-[#ff6b35]/50 transition-all duration-300 bg-card/50 backdrop-blur-sm ${user.rank <= 3 ? 'border-[#ff6b35]/50 bg-[#ff6b35]/10' : 'border-border/30'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center justify-center w-12 h-12">
@@ -129,8 +129,8 @@ export default function LeaderboardPage() {
     <div className="min-h-screen bg-dark-gradient">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#ff6b35]/20 to-[#00ff88]/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-[#ff0080]/20 to-[#00d4ff]/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#ff6b35]/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#00ff88]/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
       <motion.div className="relative container mx-auto px-4 py-16 max-w-6xl">
@@ -141,12 +141,12 @@ export default function LeaderboardPage() {
         >
           {/* Header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#ff6b35]/20 to-[#00ff88]/20 border border-[#ff6b35]/30 mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#ff6b35]/20 border border-[#ff6b35]/30 mb-6">
               <Trophy className="h-4 w-4 text-[#ff6b35]" />
               <span className="text-sm font-medium text-white">Hall of Fame</span>
               <Crown className="h-4 w-4 text-[#00ff88]" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-white via-[#ff6b35] to-[#00ff88] bg-clip-text text-transparent mb-4">
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-4">
               LEADERBOARD
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -182,7 +182,7 @@ export default function LeaderboardPage() {
               <div className="text-sm text-muted-foreground">Best Streak</div>
             </Card>
             {/* Top Score (highlight, spans more space) */}
-            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-gradient-to-br from-[#ff6b35]/20 to-[#00ff88]/20 border-[#ff6b35]/50">
+            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-[#ff6b35]/20 border-[#ff6b35]/50">
               <Trophy className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
               <div className="text-3xl font-bold text-white">{globalLeaders[0]?.score || 0}</div>
               <div className="text-sm text-muted-foreground">Top Score</div>

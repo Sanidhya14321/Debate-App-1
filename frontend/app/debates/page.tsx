@@ -304,7 +304,7 @@ export default function DebatesPage() {
               <Button
                 onClick={handleCreateDebate}
                 disabled={creating || !newTopic.trim() || newTopic.trim().length < 5}
-                className="w-full bg-gradient-to-r from-[#ff6b35] to-[#ff6b35]/80 hover:from-[#ff6b35]/90 hover:to-[#ff6b35]/70 text-black font-semibold py-4 text-lg rounded-xl"
+                className="w-full bg-[#ff6b35] hover:bg-[#ff6b35]/90 text-black font-semibold py-4 text-lg rounded-xl border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200"
               >
                 {creating ? (
                   <>
@@ -343,7 +343,7 @@ export default function DebatesPage() {
                 />
                 <Button
                   onClick={handleJoinPrivate}
-                  className="bg-gradient-to-r from-[#00ff88] to-[#00ff88]/80 hover:from-[#00ff88]/90 hover:to-[#00ff88]/70 text-black font-semibold"
+                  className="bg-[#00ff88] hover:bg-[#00ff88]/90 text-black font-semibold border border-[#ff6b35] hover:border-[#ff6b35]/80 transition-all duration-200"
                   disabled={!privateCode.trim()}
                 >
                   <Search className="h-4 w-4 mr-2" />
@@ -376,7 +376,7 @@ export default function DebatesPage() {
                 <p className="text-muted-foreground mb-6">Be the first to start a debate and get the conversation going!</p>
                 <Button
                   onClick={() => document.getElementById('topic')?.focus()}
-                  className="bg-gradient-to-r from-[#ff6b35] to-[#ff6b35]/80 hover:from-[#ff6b35]/90 hover:to-[#ff6b35]/70 text-black font-semibold"
+                  className="bg-[#ff6b35] hover:bg-[#ff6b35]/90 text-black font-semibold border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Create First Debate
@@ -411,7 +411,7 @@ export default function DebatesPage() {
                           </div>
                           <Button
                             onClick={() => handleJoinOpen(debate._id)}
-                            className="bg-gradient-to-r from-[#ff6b35] to-[#ff6b35]/80 hover:from-[#ff6b35]/90 hover:to-[#ff6b35]/70 text-black font-semibold group-hover:scale-105 transition-transform"
+                            className="bg-[#ff6b35] hover:bg-[#ff6b35]/90 text-black font-semibold group-hover:scale-105 transition-transform border border-[#00ff88] hover:border-[#00ff88]/80"
                           >
                             <ArrowRight className="h-4 w-4 mr-2" />
                             Join Battle

@@ -17,6 +17,26 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
+// Type definitions for socket events
+interface UserEventData {
+  username: string;
+  userId: string;
+}
+
+interface FinalizationEventData {
+  requestedBy: string;
+  userId: string;
+}
+
+interface ArgumentEventData {
+  argument: any; // TODO: Type this properly based on your argument structure
+}
+
+interface DebateEventData {
+  debateId: string;
+  results: any; // TODO: Type this properly based on your results structure
+}
+
 // Type definitions
 interface Debate {
   id: string;
@@ -76,47 +96,53 @@ export default function DebateRoomPage() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token && id) {
-      const socket = socketManager.connect(token);
+      socketManager.connect(token);
       
       // Join debate room
       socketManager.joinDebate(id);
 
       // Socket event listeners
-      socketManager.onUserJoined((data: any) => {
-        toast.success(`${data.username} joined the debate`);
-        setOnlineUsers(prev => [...prev, data.username]);
+      socketManager.onUserJoined((data: unknown) => {
+        const userData = data as UserEventData;
+        toast.success(`${userData.username} joined the debate`);
+        setOnlineUsers(prev => [...prev, userData.username]);
       });
 
-      socketManager.onUserLeft((data: any) => {
-        toast.info(`${data.username} left the debate`);
-        setOnlineUsers(prev => prev.filter(u => u !== data.username));
+      socketManager.onUserLeft((data: unknown) => {
+        const userData = data as UserEventData;
+        toast.info(`${userData.username} left the debate`);
+        setOnlineUsers(prev => prev.filter(u => u !== userData.username));
       });
 
-      socketManager.onArgumentAdded((data: any) => {
-        setArgs(prev => [...prev, data.argument]);
+      socketManager.onArgumentAdded((data: unknown) => {
+        const argData = data as ArgumentEventData;
+        setArgs(prev => [...prev, argData.argument]);
         toast.success("New argument added!");
       });
 
-      socketManager.onUserTyping((data: any) => {
-        if (data.username !== user?.username) {
-          setTypingUsers(prev => [...prev.filter(u => u !== data.username), data.username]);
+      socketManager.onUserTyping((data: unknown) => {
+        const userData = data as UserEventData;
+        if (userData.username !== user?.username) {
+          setTypingUsers(prev => [...prev.filter(u => u !== userData.username), userData.username]);
         }
       });
 
-      socketManager.onUserStoppedTyping((data: any) => {
-        setTypingUsers(prev => prev.filter(u => u !== data.username));
+      socketManager.onUserStoppedTyping((data: unknown) => {
+        const userData = data as UserEventData;
+        setTypingUsers(prev => prev.filter(u => u !== userData.username));
       });
 
-      socketManager.onFinalizationRequested((data: any) => {
-        if (data.requestedBy !== user?.username) {
+      socketManager.onFinalizationRequested((data: unknown) => {
+        const finData = data as FinalizationEventData;
+        if (finData.requestedBy !== user?.username) {
           setFinalizationRequested(true);
-          setFinalizationRequestedBy(data.requestedBy);
+          setFinalizationRequestedBy(finData.requestedBy);
           setShowFinalizationDialog(true);
-          toast.info(`${data.requestedBy} wants to finalize the debate`);
+          toast.info(`${finData.requestedBy} wants to finalize the debate`);
         }
       });
 
-      socketManager.onFinalizationApproved(async (data: any) => {
+      socketManager.onFinalizationApproved(async (_data: unknown) => {
         setFinalizationRequested(false);
         setShowFinalizationDialog(false);
         toast.success("Debate finalization approved! Finalizing now...");
@@ -135,7 +161,7 @@ export default function DebateRoomPage() {
         }
       });
 
-      socketManager.onFinalizationRejected((data: any) => {
+      socketManager.onFinalizationRejected((_data: unknown) => {
         setFinalizationRequested(false);
         setFinalizationRequestedBy("");
         toast.info("Finalization request was rejected");
@@ -293,39 +319,39 @@ export default function DebateRoomPage() {
   };
 
   return (
-  <div className="min-h-screen bg-dark-gradient">
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+    <div className="min-h-screen bg-black">
+      <div className="max-w-6xl mx-auto px-8 py-16 space-y-16">
         
         {/* Header Section */}
         <motion.div
-          className="text-center space-y-4"
+          className="text-center space-y-8 mb-20"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#ff6b35] to-[#00ff88] bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#ff6b35] leading-relaxed px-8 break-words">
             {debate?.topic || "Loading..."}
           </h1>
           
           {debate && (
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
+            <div className="flex flex-wrap justify-center gap-8 text-lg text-white/80 mt-12">
+              <div className="flex items-center gap-4">
+                <Users className="w-6 h-6 text-[#ff6b35]" />
                 <span>{debate.participants?.length || 0}/{debate.maxUsers || 2} participants</span>
               </div>
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" />
+              <div className="flex items-center gap-4">
+                <MessageSquare className="w-6 h-6 text-[#ff6b35]" />
                 <span>{args.length} arguments</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                <Badge variant={debate.status === 'active' ? 'default' : 'secondary'}>
+              <div className="flex items-center gap-4">
+                <Clock className="w-6 h-6 text-[#ff6b35]" />
+                <Badge variant={debate.status === 'active' ? 'default' : 'secondary'} className="bg-[#ff6b35] text-black text-base px-4 py-2">
                   {debate.status}
                 </Badge>
               </div>
               {onlineUsers.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-[#00ff88] rounded-full animate-pulse"></div>
                   <span>{onlineUsers.length} online</span>
                 </div>
               )}
@@ -396,49 +422,50 @@ export default function DebateRoomPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="mb-16"
         >
-          <Card className="shadow-lg border-[#ff6b35]/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <MessageSquare className="w-5 h-5 text-[#ff6b35]" />
+          <Card className="shadow-2xl border-[#ff6b35]/40 bg-zinc-900/80 backdrop-blur-sm">
+            <CardHeader className="pb-8">
+              <CardTitle className="flex items-center gap-4 text-white text-2xl">
+                <MessageSquare className="w-6 h-6 text-[#ff6b35]" />
                 Submit Your Argument
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <CardContent className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="relative">
                   <Input
                     value={newArg}
                     onChange={(e) => setNewArg(e.target.value)}
                     placeholder="Type your compelling argument here... (minimum 10 characters)"
-                    className="pr-16 min-h-[100px] resize-none bg-background/50 border-border/50 focus:border-[#ff6b35]/50 text-white placeholder:text-muted-foreground"
+                    className="pr-20 min-h-[120px] resize-none bg-zinc-800/50 border-zinc-700/50 focus:border-[#ff6b35]/50 text-white placeholder:text-zinc-400 text-lg leading-relaxed p-6"
                     disabled={submitting}
                     maxLength={2000}
                   />
-                  <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                  <div className="absolute bottom-3 right-4 text-sm text-zinc-400 font-medium">
                     {newArg.length}/2000
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
+                <div className="flex items-center justify-between pt-4">
+                  <div className="text-base text-zinc-400">
                     {newArg.length < 10 && newArg.length > 0 && (
-                      <span className="text-red-500">Need {10 - newArg.length} more characters</span>
+                      <span className="text-red-400 font-medium">Need {10 - newArg.length} more characters</span>
                     )}
                   </div>
                   <Button 
                     type="submit" 
                     disabled={submitting || newArg.trim().length < 10} 
-                    className="px-8 bg-[#ff6b35] text-black hover:bg-[#ff6b35]/90"
+                    className="px-10 py-3 text-lg bg-[#ff6b35] text-black hover:bg-[#ff6b35]/90 shadow-lg"
                   >
                     {submitting ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <Loader2 className="w-5 h-5 mr-3 animate-spin" />
                         Submitting...
                       </>
                     ) : (
                       <>
-                        <Send className="w-4 h-4 mr-2" />
+                        <Send className="w-5 h-5 mr-3" />
                         Submit Argument
                       </>
                     )}
@@ -450,21 +477,21 @@ export default function DebateRoomPage() {
         </motion.div>
 
         {/* Arguments List */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-center text-white">Debate Arguments</h2>
+        <div className="space-y-10">
+          <h2 className="text-3xl font-bold text-center text-white mb-12">Debate Arguments</h2>
           
           <AnimatePresence>
             {args.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-12"
+                className="text-center py-20"
               >
-                <MessageSquare className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-lg text-muted-foreground">No arguments yet. Be the first to contribute!</p>
+                <MessageSquare className="w-20 h-20 mx-auto text-zinc-600 mb-8" />
+                <p className="text-xl text-zinc-400 font-medium">No arguments yet. Be the first to contribute!</p>
               </motion.div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-8">
                 {args.map((arg, idx) => {
                   const scoreStr = getArgumentScore(arg.score);
                   const scoreColor = getScoreColor(scoreStr);
@@ -475,49 +502,49 @@ export default function DebateRoomPage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.1 }}
-                      whileHover={{ scale: 1.02 }}
+                      whileHover={{ scale: 1.01 }}
                     >
-                      <Card className="shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border-l-[#ff6b35] bg-card/80 backdrop-blur-sm">
-                        <CardHeader className="pb-3">
+                      <Card className="shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-[#ff6b35] bg-zinc-900/80 backdrop-blur-sm border-zinc-800">
+                        <CardHeader className="pb-6">
                           <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-6">
                               <div 
-                                className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm"
+                                className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg"
                                 style={{ backgroundColor: arg.color || '#ff6b35' }}
                               >
                                 {(arg.username || arg.email || "A").charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="font-semibold text-white">{arg.username || arg.email || "Anonymous"}</p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="font-semibold text-white text-xl">{arg.username || arg.email || "Anonymous"}</p>
+                                <p className="text-base text-zinc-400 mt-1">
                                   {new Date(arg.createdAt).toLocaleString()}
                                 </p>
                               </div>
                             </div>
                             
                             <div className="text-right">
-                              <div className={`text-2xl font-bold ${scoreColor}`}>
+                              <div className={`text-3xl font-bold ${scoreColor} mb-1`}>
                                 {scoreStr}
                               </div>
-                              <div className="text-xs text-muted-foreground">Quality Score</div>
+                              <div className="text-sm text-zinc-400 font-medium">Quality Score</div>
                             </div>
                           </div>
                         </CardHeader>
-                        <CardContent>
-                          <p className="text-lg leading-relaxed text-white">{arg.content}</p>
+                        <CardContent className="space-y-6">
+                          <p className="text-lg leading-relaxed text-white font-medium">{arg.content}</p>
                           
                           {/* Score breakdown if available */}
                           {typeof arg.score === 'object' && arg.score !== null && (
-                            <div className="mt-4 pt-4 border-t border-border/50">
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div className="mt-8 pt-6 border-t border-zinc-700">
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
                                 {Object.entries(arg.score as ScoreObject).map(([key, value]) => {
                                   if (key === 'length' || typeof value !== 'object') return null;
                                   const metric = value as ScoreMetric;
                                   return (
                                     <div key={key} className="text-center">
-                                      <div className="font-semibold capitalize text-white">{key.replace('_', ' ')}</div>
-                                      <Progress value={metric.score} className="h-2 mt-1" />
-                                      <div className="text-xs text-muted-foreground mt-1">{metric.rating}</div>
+                                      <div className="font-semibold capitalize text-white text-base mb-2">{key.replace('_', ' ')}</div>
+                                      <Progress value={metric.score} className="h-3 mt-2 bg-zinc-700" />
+                                      <div className="text-sm text-zinc-400 mt-2 font-medium">{metric.rating}</div>
                                     </div>
                                   );
                                 })}
@@ -536,7 +563,7 @@ export default function DebateRoomPage() {
 
         {/* Finalize Button */}
         <motion.div
-          className="flex justify-center pt-8"
+          className="flex justify-center pt-16 pb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
@@ -545,21 +572,21 @@ export default function DebateRoomPage() {
             onClick={finalize}
             disabled={loading || args.length < 2 || debate?.isFinalized || finalizationRequested}
             size="lg"
-            className="px-12 py-4 text-lg font-semibold bg-gradient-to-r from-[#ff6b35] to-[#00ff88] hover:from-[#ff6b35]/90 hover:to-[#00ff88]/90 text-black shadow-lg"
+            className="px-16 py-6 text-xl font-semibold bg-[#ff6b35] hover:bg-[#ff6b35]/90 text-black shadow-2xl border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200"
           >
             {loading ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                <Loader2 className="w-6 h-6 mr-3 animate-spin" />
                 Finalizing...
               </>
             ) : finalizationRequested ? (
               <>
-                <Clock className="w-5 h-5 mr-2" />
+                <Clock className="w-6 h-6 mr-3" />
                 Waiting for Approval
               </>
             ) : (
               <>
-                <Trophy className="w-5 h-5 mr-2" />
+                <Trophy className="w-6 h-6 mr-3" />
                 {debate?.participants && debate.participants.length > 1 ? "Request Finalization" : "Finalize & See Results"}
               </>
             )}

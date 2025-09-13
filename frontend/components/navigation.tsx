@@ -72,7 +72,7 @@ export function Navigation() {
   return (
     <header className="w-full border-b border-[#ff6b35]/20 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/80 sticky top-0 z-50">
       <nav className="container mx-auto flex items-center justify-between px-6 py-4">
-        <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-[#ff6b35] to-[#00ff88] bg-clip-text text-transparent">
+        <Link href="/" className="text-2xl font-bold text-[#ff6b35] hover:text-[#00ff88] transition-colors duration-300">
           DebAI
         </Link>
 
@@ -124,7 +124,7 @@ export function Navigation() {
               <Button variant="ghost" asChild className="text-white hover:text-[#ff6b35] hover:bg-[#ff6b35]/10">
                 <Link href="/login">Login</Link>
               </Button>
-              <Button asChild className="bg-gradient-to-r from-[#ff6b35] to-[#00ff88] text-black font-semibold hover:from-[#ff6b35]/90 hover:to-[#00ff88]/90">
+              <Button asChild className="bg-[#ff6b35] text-black font-semibold hover:bg-[#ff6b35]/90 border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200">
                 <Link href="/register">Get Started</Link>
               </Button>
             </div>
@@ -172,7 +172,7 @@ export function Navigation() {
             <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-black border-[#ff6b35]/30">
               <div className="flex flex-col space-y-4 mt-6">
                 <div className="px-2 py-1">
-                  <h2 className="text-xl font-bold bg-gradient-to-r from-[#ff6b35] to-[#00ff88] bg-clip-text text-transparent">Navigation</h2>
+                  <h2 className="text-xl font-bold text-[#ff6b35]">Navigation</h2>
                 </div>
                 
                 {links.map(({ href, label }) => (
@@ -195,7 +195,7 @@ export function Navigation() {
                     <Button variant="ghost" asChild className="justify-start text-white hover:text-[#ff6b35] hover:bg-[#ff6b35]/10">
                       <Link href="/login" onClick={handleLinkClick}>Login</Link>
                     </Button>
-                    <Button asChild className="justify-start bg-gradient-to-r from-[#ff6b35] to-[#00ff88] text-black font-semibold hover:from-[#ff6b35]/90 hover:to-[#00ff88]/90">
+                    <Button asChild className="justify-start bg-[#ff6b35] text-black font-semibold hover:bg-[#ff6b35]/90 border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200">
                       <Link href="/register" onClick={handleLinkClick}>Get Started</Link>
                     </Button>
                   </div>

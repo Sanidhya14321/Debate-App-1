@@ -19,10 +19,7 @@ import {
   TrendingUp,
   Award,
   BarChart3,
-  Plus,
-  CheckCircle,
-  AlertTriangle,
-  Eye
+  Plus
 } from "lucide-react";
 
 export default function Home() {
@@ -292,7 +289,7 @@ export default function Home() {
           }}
           className="text-center"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-16 bg-gradient-to-r from-white via-[#ff6b35] to-[#00ff88] bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl font-bold mb-16 text-white">
             What Debaters Say
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -344,7 +341,7 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="text-gray-300 italic leading-relaxed">
-                    "{testimonial.quote}"
+                    &ldquo;{testimonial.quote}&rdquo;
                   </p>
                 </Card>
               </motion.div>
