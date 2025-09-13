@@ -367,7 +367,7 @@ export default function DebatesPage() {
           </div>
 
           <div 
-            className="w-2/3"
+            className="w-2/3 justify-center justify-self-center mx-auto"
           >
             {openDebates.length === 0 ? (
               <Card className="p-12 text-center bg-card/30 backdrop-blur-sm border-border/50">
