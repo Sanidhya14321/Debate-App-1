@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { User, LogOut, Trophy, Settings, Menu} from "lucide-react"
+import { User, LogOut, Trophy, Settings, Menu, Shield } from "lucide-react"
 
 export function Navigation() {
   const pathname = usePathname()
@@ -33,12 +33,47 @@ export function Navigation() {
     setIsOpen(false)
   }
 
+  const userDropdownItems = (
+    <>
+      <DropdownMenuItem asChild>
+        <Link href="/profile" className="flex items-center gap-2">
+          <User className="h-4 w-4" />
+          Profile
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild>
+        <Link href="/achievements" className="flex items-center gap-2">
+          <Trophy className="h-4 w-4" />
+          Achievements
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild>
+        <Link href="/settings" className="flex items-center gap-2">
+          <Settings className="h-4 w-4" />
+          Settings
+        </Link>
+      </DropdownMenuItem>
+      {user?.role === 'admin' && (
+        <DropdownMenuItem asChild>
+          <Link href="/admin/dashboard" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Admin Dashboard
+          </Link>
+        </DropdownMenuItem>
+      )}
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={logout} className="flex items-center gap-2">
+        <LogOut className="h-4 w-4" />
+        Log out
+      </DropdownMenuItem>
+    </>
+  )
+
   return (
     <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <nav className="container mx-auto flex items-center justify-between px-6 py-4">
-        {/* Logo */}
         <Link href="/" className="text-xl font-bold text-white">
-          DebateAI
+          DebAI
         </Link>
 
         {/* Desktop Navigation */}
@@ -76,29 +111,7 @@ export function Navigation() {
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/achievements" className="flex items-center gap-2">
-                    <Trophy className="h-4 w-4" />
-                    Achievements
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="flex items-center gap-2">
-                  <LogOut className="h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
+                {userDropdownItems}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
@@ -136,29 +149,7 @@ export function Navigation() {
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/achievements" className="flex items-center gap-2">
-                    <Trophy className="h-4 w-4" />
-                    Achievements
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="flex items-center gap-2">
-                  <LogOut className="h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
+                {userDropdownItems}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

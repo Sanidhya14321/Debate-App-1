@@ -64,6 +64,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
             className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12"
+            whileInView={{opacity : 1}}
           >
             Experience intelligent debates with real-time AI analysis, comprehensive scoring, 
             and competitive tournaments. Elevate your critical thinking skills.
@@ -74,6 +75,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7 }}
             className="flex flex-col sm:flex-row gap-6 justify-center"
+            whileInView={{opacity : 1}}
           >
             {token ? (
               <>
@@ -123,6 +125,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.9 }}
           className="mb-32"
+          whileInView={{opacity : 1}}
         >
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
@@ -142,10 +145,16 @@ export default function Home() {
 
         {/* Features Section */}
         <motion.section 
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.1 }}
-          className="mb-32"
+          initial={{ opacity: 0, y: 20 }}
+          animate = {{ opacity:1, y:0}}
+          whileInView="visible"
+          viewport={{ once: true }}
+          transition={{  duration: 0.8, delay: 0.3 }}
+          variants={{
+            visible: { opacity: 1, scale: 1 },
+            hidden: { opacity: 0, scale: 0 }
+          }}
+          className="mb-20"
         >
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
@@ -178,10 +187,15 @@ export default function Home() {
               }
             ].map((feature, index) => (
               <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.3 + index * 0.2 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate = {{opacity : 0 , y:0}}
+              whileInView="visible"
+              viewport={{ once: true }}
+              transition={{  duration: 0.8, delay: 0.5 + index / 3 }}
+              variants={{
+                visible: { opacity: 1, scale: 1 },
+                hidden: { opacity: 0, scale: 0 }
+              }}
               >
                 <Card className="p-10 text-center bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 group h-full">
                   <div className="mb-8">
@@ -202,10 +216,14 @@ export default function Home() {
 
         {/* Additional Features */}
         <motion.section 
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.5 }}
-          className="mb-20"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView="visible"
+          viewport={{ once: true }}
+          transition={{  duration: 0.8, delay: 0.3 }}
+          variants={{
+            visible: { opacity: 1, scale: 1 },
+            hidden: { opacity: 0, scale: 0 }
+          }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <Card className="p-10 bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300">

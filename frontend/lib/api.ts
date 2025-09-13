@@ -18,6 +18,13 @@ export const UI_CONFIG = {
   ACCENT_COLOR: process.env.NEXT_PUBLIC_ACCENT_COLOR || "#f59e0b",
 };
 
+export const api = {
+  get: (path: string, options?: RequestInit) => apiFetch(path, { ...options, method: 'GET' }),
+  post: (path: string, body: any, options?: RequestInit) => apiFetch(path, { ...options, method: 'POST', body: JSON.stringify(body) }),
+  put: (path: string, body: any, options?: RequestInit) => apiFetch(path, { ...options, method: 'PUT', body: JSON.stringify(body) }),
+  delete: (path: string, options?: RequestInit) => apiFetch(path, { ...options, method: 'DELETE' }),
+};
+
 export async function apiFetch(path: string, options: RequestInit = {}) {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const headers: HeadersInit = {

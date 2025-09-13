@@ -47,7 +47,7 @@ export const argumentLimiter = rateLimit({
 // ML API limiter (more restrictive due to computational cost)
 export const mlLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 30, // limit each IP to 30 ML requests per minute
+  max: 300, // limit each IP to 30 ML requests per minute
   message: {
     error: 'ML API rate limit exceeded, please try again later.',
     retryAfter: '1 minute'

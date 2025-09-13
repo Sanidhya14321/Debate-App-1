@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiFetch } from '../lib/api';
 import socketManager from '../lib/socket';
 
-type User = { username: string; email: string; color?: string };
+type User = { username: string; email: string; color?: string; role?: string };
 
 type AuthContextType = {
   user: User | null;
@@ -46,7 +46,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           id: tokenData.id,
           username: tokenData.username,
           email: email,
-          color: response.color || tokenData.color || '#3b82f6'
+          color: response.color || tokenData.color || '#3b82f6',
+          role: response.role || tokenData.role
         };
         
         // Store token and user data

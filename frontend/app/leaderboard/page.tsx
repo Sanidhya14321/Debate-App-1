@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Trophy, Users, Medal, TrendingUp, Award, Crown} from "lucide-react";
+import { api } from "../../lib/api";
 
 interface LeaderboardUser {
   id: string
@@ -26,22 +27,23 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data - replace with actual API calls
-    const mockData: LeaderboardUser[] = [
-      { id: "1", username: "DebateMaster", color: "#ff6b6b", rank: 1, score: 2450, winRate: 87, totalDebates: 156, wins: 136, streak: 12 },
-      { id: "2", username: "LogicLord", color: "#4ecdc4", rank: 2, score: 2380, winRate: 82, totalDebates: 142, wins: 116, streak: 8 },
-      { id: "3", username: "ArgumentAce", color: "#45b7d1", rank: 3, score: 2290, winRate: 79, totalDebates: 128, wins: 101, streak: 5 },
-      { id: "4", username: "ReasonRuler", color: "#96ceb4", rank: 4, score: 2180, winRate: 76, totalDebates: 118, wins: 90, streak: 3 },
-      { id: "5", username: "PersuasionPro", color: "#feca57", rank: 5, score: 2120, winRate: 74, totalDebates: 105, wins: 78, streak: 7 },
-      { id: "6", username: "DebateKing", color: "#ff9ff3", rank: 6, score: 2050, winRate: 71, totalDebates: 98, wins: 70, streak: 2 },
-      { id: "7", username: "RhetoricalRex", color: "#54a0ff", rank: 7, score: 1980, winRate: 68, totalDebates: 89, wins: 61, streak: 4 },
-      { id: "8", username: "ArgumentAngel", color: "#5f27cd", rank: 8, score: 1920, winRate: 65, totalDebates: 82, wins: 53, streak: 1 },
-    ]
+    const fetchLeaderboard = async () => {
+      try {
+        setLoading(true);
+        const data = await api.get("/leaderboard");
+        setGlobalLeaders(data);
+        // For now, we'll use the same data for weekly leaders.
+        // A separate endpoint could be created for this in the future.
+        setWeeklyLeaders(data);
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setGlobalLeaders(mockData)
-    setWeeklyLeaders([...mockData].sort(() => Math.random() - 0.5))
-    setLoading(false)
-  }, [])
+    fetchLeaderboard();
+  }, []);
 
   const getRankIcon = (rank: number) => {
     switch (rank) {

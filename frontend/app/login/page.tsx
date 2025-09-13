@@ -21,21 +21,20 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const admin = {
+    email: "admin@admin.com",
+    password: "admin"
+  }
+   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Basic client-side validation
     if (!email || !password) {
       toast.error("Please fill in all fields");
       return;
     }
-    
     setLoading(true);
-
     try {
-      // Use AuthContext login method which handles the API call internally
       const result = await login(email, password);
-      
       if (result.success) {
         toast.success("Welcome back!");
         router.replace("/debates");

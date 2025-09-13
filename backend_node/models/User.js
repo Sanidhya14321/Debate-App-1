@@ -5,7 +5,12 @@ const userSchema = new mongoose.Schema({
   username: String,
   email: { type: String, unique: true },
   password: String,
-  color: String // hex color code
+  color: String, // hex color code
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  }
 });
 
 const User = mongoose.model("User", userSchema);

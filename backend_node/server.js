@@ -16,6 +16,9 @@ import userRoutes from "./routes/userRoutes.js";
 import miscRoutes from "./routes/miscRoutes.js";
 import tournamentRoutes from "./routes/tournamentRoutes.js";
 import achievementRoutes from "./routes/achievementRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import leaderboardRoutes from "./routes/leaderboardRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 import { setupSocketHandlers } from "./socket/socketHandlers.js";
 import { initializeDefaultAchievements } from "./controllers/achievementController.js";
 import errorHandler from "./middleware/errorHandler.js";
@@ -83,6 +86,9 @@ connectDB(MONGODB_URI).then(async () => {
   app.use(process.env.USERS_ROUTE || "/users", userRoutes);    // profile (protected)
   app.use("/tournaments", tournamentRoutes); // tournament endpoints
   app.use("/achievements", achievementRoutes); // achievement endpoints
+  app.use("/admin", adminRoutes);
+  app.use("/leaderboard", leaderboardRoutes);
+  app.use("/analytics", analyticsRoutes);
 
   // Health check endpoint
   app.get('/health', (req, res) => {

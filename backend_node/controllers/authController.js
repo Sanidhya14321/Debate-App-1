@@ -8,6 +8,55 @@ import generateColor from "../utils/generateColor.js";
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || "secret123";
 
+// Create mock users and admin on startup if they don't exist
+const createInitialUsers = async () => {
+  try {
+    // Admin User
+    let admin = await User.findOne({ email: 'admin@example.com' });
+    if (!admin) {
+      const hashedPassword = await bcrypt.hash('adminpassword', 10);
+      admin = await User.create({
+        username: 'Admin',
+        email: 'admin@example.com',
+        password: hashedPassword,
+        color: generateColor(),
+        role: 'admin',
+      });
+      console.log('Admin user created');
+    }
+
+    // Mock User 1
+    let user1 = await User.findOne({ email: 'user1@example.com' });
+    if (!user1) {
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      user1 = await User.create({
+        username: 'MockUser1',
+        email: 'user1@example.com',
+        password: hashedPassword,
+        color: generateColor(),
+      });
+      console.log('Mock user 1 created');
+    }
+
+    // Mock User 2
+    let user2 = await User.findOne({ email: 'user2@example.com' });
+    if (!user2) {
+      const hashedPassword = await bcrypt.hash('password456', 10);
+      user2 = await User.create({
+        username: 'MockUser2',
+        email: 'user2@example.com',
+        password: hashedPassword,
+        color: generateColor(),
+      });
+      console.log('Mock user 2 created');
+    }
+  } catch (error) {
+    console.error('Error creating initial users:', error);
+  }
+};
+
+createInitialUsers();
+
 export const registerUser = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
@@ -43,12 +92,12 @@ export const loginUser = async (req, res, next) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, username: user.username, color: user.color },
+      { id: user._id, username: user.username, color: user.color, role: user.role },
       JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    res.json({ token, color: user.color });
+    res.json({ token, color: user.color, role: user.role });
   } catch (err) {
     console.error("[login]", err.message);
     res.status(500).json({ message: "Server error" });

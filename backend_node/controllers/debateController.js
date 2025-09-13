@@ -215,16 +215,27 @@ export const finalizeDebate = async (req, res) => {
       return res.status(400).json({ error: "No arguments to finalize" });
 
     // Prepare arguments for ML
-    const mlArgs = debate.arguments.map(arg => ({
-      username: arg.user?.username || "unknown",
-      argumentText: arg.content || arg.argument || ""
-    }));
+    if (debate.joinedUsers.length < 2) {
+      return res.status(400).json({ error: "Debate requires at least two users to finalize." });
+    }
+
+    const userA_id = debate.joinedUsers[0]._id.toString();
+    const userB_id = debate.joinedUsers[1]._id.toString();
+
+    const args_a = debate.arguments
+      .filter(arg => arg.user._id.toString() === userA_id)
+      .map(arg => arg.content || "");
+
+    const args_b = debate.arguments
+      .filter(arg => arg.user._id.toString() === userB_id)
+      .map(arg => arg.content || "");
 
     // Call ML API with retry logic
     let mlResponse;
     try {
       mlResponse = await axios.post(`${ML_API_URL}/finalize`, { 
-        arguments: mlArgs 
+        args_a: args_a,
+        args_b: args_b
       }, {
         timeout: 30000,
         headers: {

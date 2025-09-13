@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { UI_CONFIG } from '@/lib/api';
 import { MessageSquare, Trophy, Target, Star} from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface AnalyticsData {
   overview: {
@@ -50,73 +51,8 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-
-      // Mock data - replace with API call
-      const mockData: AnalyticsData = {
-        overview: {
-          totalDebates: 47,
-          totalArguments: 234,
-          averageScore: 0.73,
-          winRate: 64.2
-        },
-        performance: {
-          scoreHistory: [
-            { date: '2024-01-01', score: 0.65, debates: 3 },
-            { date: '2024-01-08', score: 0.71, debates: 5 },
-            { date: '2024-01-15', score: 0.68, debates: 4 },
-            { date: '2024-01-22', score: 0.76, debates: 6 },
-            { date: '2024-01-29', score: 0.73, debates: 4 },
-          ],
-          categoryBreakdown: [
-            { category: 'Technology', score: 0.78, count: 12 },
-            { category: 'Politics', score: 0.71, count: 15 },
-            { category: 'Society', score: 0.69, count: 10 },
-            { category: 'Ethics', score: 0.75, count: 8 },
-            { category: 'Economics', score: 0.72, count: 2 },
-          ]
-        },
-        engagement: {
-          debatesPerWeek: [
-            { week: 'Week 1', debates: 8, arguments: 42 },
-            { week: 'Week 2', debates: 12, arguments: 58 },
-            { week: 'Week 3', debates: 6, arguments: 31 },
-            { week: 'Week 4', debates: 10, arguments: 48 },
-          ],
-          peakHours: [
-            { hour: 9, activity: 15 },
-            { hour: 12, activity: 28 },
-            { hour: 15, activity: 22 },
-            { hour: 18, activity: 35 },
-            { hour: 21, activity: 40 },
-          ]
-        },
-        achievements: {
-          recent: [
-            { name: 'Winning Streak', icon: '🔥', unlockedAt: '2024-01-28' },
-            { name: 'High Scorer', icon: '⭐', unlockedAt: '2024-01-25' },
-            { name: 'Debate Veteran', icon: '🏛️', unlockedAt: '2024-01-20' },
-          ],
-          progress: [
-            { name: 'Master Debater', current: 47, target: 50, category: 'milestone' },
-            { name: 'Tournament Champion', current: 0, target: 1, category: 'tournament' },
-            { name: 'Unstoppable', current: 3, target: 5, category: 'skill' },
-          ]
-        },
-        leaderboard: {
-          global: [
-            { rank: 12, username: 'You', score: 1247, debates: 47 },
-            { rank: 11, username: 'DebateMaster', score: 1289, debates: 52 },
-            { rank: 13, username: 'LogicLord', score: 1203, debates: 41 },
-          ],
-          category: [
-            { category: 'Technology', rank: 8, score: 0.78 },
-            { category: 'Politics', rank: 15, score: 0.71 },
-            { category: 'Ethics', rank: 6, score: 0.75 },
-          ]
-        }
-      };
-
-      setAnalyticsData(mockData);
+      const data = await api.get('/analytics');
+      setAnalyticsData(data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {
