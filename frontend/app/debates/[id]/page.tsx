@@ -53,10 +53,10 @@ interface ResultsData {
   arguments: ArgumentData[];
 }
 
-interface DebateEventData {
-  debateId: string;
-  results: ResultsData;
-}
+// interface DebateEventData {
+//   debateId: string;
+//   results: ResultsData;
+// }
 
 // Type definitions
 interface Debate {
