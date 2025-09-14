@@ -51,6 +51,8 @@ interface ResultsData {
   forScore: number;
   againstScore: number;
   arguments: ArgumentData[];
+  analysisSource?: 'ml' | 'ai' | 'fallback';
+  finalizedAt?: string;
 }
 
 // interface DebateEventData {
@@ -170,10 +172,16 @@ export default function DebateRoomPage() {
         
         try {
           // Force finalize the debate since both parties agreed
-          await apiFetch(`/debates/${id}/finalize`, { 
+          const result = await apiFetch(`/debates/${id}/finalize`, { 
             method: "POST",
             body: JSON.stringify({ forceFinalize: true })
           });
+          
+          // Log analysis source
+          if (result?.analysisSource) {
+            console.log(`📊 Debate analyzed using: ${result.analysisSource}`);
+          }
+          
           toast.success("Debate finalized! Redirecting to results...");
           setTimeout(() => router.push(`/debates/${id}/results`), 1500);
         } catch (err) {
@@ -283,8 +291,21 @@ export default function DebateRoomPage() {
     // Single participant or no socket - proceed with direct finalization
     setLoading(true);
     try {
-      await apiFetch(`/debates/${id}/finalize`, { method: "POST" });
-      toast.success("Debate finalized! Redirecting to results...");
+      const result = await apiFetch(`/debates/${id}/finalize`, { method: "POST" });
+      
+      // Log analysis source for debugging
+      if (result?.analysisSource) {
+        console.log(`📊 Debate analyzed using: ${result.analysisSource}`);
+        const sourceLabels: Record<string, string> = {
+          ml: 'ML Model',
+          ai: 'AI Fallback', 
+          fallback: 'Basic Scoring'
+        };
+        toast.success(`Debate finalized using ${sourceLabels[result.analysisSource] || 'Unknown'}! Redirecting...`);
+      } else {
+        toast.success("Debate finalized! Redirecting to results...");
+      }
+      
       setTimeout(() => router.push(`/debates/${id}/results`), 1500);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to finalize debate";

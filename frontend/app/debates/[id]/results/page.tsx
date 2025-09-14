@@ -46,6 +46,8 @@ interface Results {
     coherence: ScoreMetric;
     totals: { A: number; B: number };
     summary?: string;
+    analysisSource?: 'ml' | 'ai' | 'fallback';
+    finalizedAt?: string;
 }
 
 interface DebateData {
@@ -210,6 +212,21 @@ export default function DebateResultsPage() {
                         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                             {debateData.topic}
                         </p>
+                    )}
+                    {/* Analysis Source Indicator */}
+                    {results?.analysisSource && (
+                        <div className="inline-flex items-center px-4 py-2 rounded-full border border-gray-600 bg-gray-800/50">
+                            <div className={`w-3 h-3 rounded-full mr-2 ${
+                                results.analysisSource === 'ml' ? 'bg-green-400' : 
+                                results.analysisSource === 'ai' ? 'bg-blue-400' : 'bg-yellow-400'
+                            }`}></div>
+                            <span className="text-sm text-gray-300">
+                                Analyzed using {
+                                    results.analysisSource === 'ml' ? 'Machine Learning' :
+                                    results.analysisSource === 'ai' ? 'AI Fallback' : 'Basic Scoring'
+                                }
+                            </span>
+                        </div>
                     )}
                 </motion.div>
 

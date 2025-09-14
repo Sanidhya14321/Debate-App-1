@@ -260,6 +260,8 @@ export const finalizeDebate = async (req, res) => {
 
     // Call ML API with retry logic
     let mlResponse;
+    let analysisSource = 'ml';
+    
     try {
       mlResponse = await axios.post(`${ML_API_URL}/finalize`, { 
         arguments: mlArguments
@@ -271,37 +273,61 @@ export const finalizeDebate = async (req, res) => {
       });
 
       if (!mlResponse.data) throw new Error("ML API returned empty response");
+      console.log('✅ ML API successful');
     } catch (mlErr) {
-      console.error("[ML API Error]", mlErr.message);
+      console.warn('⚠️ ML API failed, attempting AI fallback:', mlErr.message);
       
-      // Get usernames for fallback
-      const usernames = [...new Set(debate.arguments.map(arg => arg.user?.username || "Anonymous"))];
-      const fallbackWinner = usernames[Math.floor(Math.random() * usernames.length)];
-      
-      // Provide fallback results when ML API fails
-      mlResponse = {
-        data: {
-          winner: fallbackWinner,
-          scores: {
-            A: {
-              sentiment: { score: Math.random() * 100, rating: "Good" },
-              clarity: { score: Math.random() * 100, rating: "Good" },
-              vocab_richness: { score: Math.random() * 100, rating: "Good" },
-              avg_word_len: { score: Math.random() * 100, rating: "Good" }
+      try {
+        // Attempt AI fallback using Genkit flow
+        const { analyzeDebate } = await import('../../../frontend/ai/flows/debate-analysis.js');
+        const aiResult = await analyzeDebate({ arguments: mlArguments });
+        
+        mlResponse = {
+          data: {
+            ...aiResult,
+            analysisSource: 'ai'
+          }
+        };
+        analysisSource = 'ai';
+        console.log('🤖 AI fallback successful');
+      } catch (aiErr) {
+        console.error('❌ AI fallback failed:', aiErr.message);
+        
+        // Final fallback - basic scoring
+        const usernames = [...new Set(debate.arguments.map(arg => arg.user?.username || "Anonymous"))];
+        const fallbackWinner = usernames[Math.floor(Math.random() * usernames.length)];
+        
+        mlResponse = {
+          data: {
+            winner: fallbackWinner,
+            scores: {
+              A: {
+                sentiment: { score: Math.random() * 100, rating: "Good" },
+                clarity: { score: Math.random() * 100, rating: "Good" },
+                vocab_richness: { score: Math.random() * 100, rating: "Good" },
+                avg_word_len: { score: Math.random() * 100, rating: "Good" }
+              },
+              B: {
+                sentiment: { score: Math.random() * 100, rating: "Good" },
+                clarity: { score: Math.random() * 100, rating: "Good" },
+                vocab_richness: { score: Math.random() * 100, rating: "Good" },
+                avg_word_len: { score: Math.random() * 100, rating: "Good" }
+              }
             },
-            B: {
-              sentiment: { score: Math.random() * 100, rating: "Good" },
-              clarity: { score: Math.random() * 100, rating: "Good" },
-              vocab_richness: { score: Math.random() * 100, rating: "Good" },
-              avg_word_len: { score: Math.random() * 100, rating: "Good" }
-            }
-          },
-          totals: { A: Math.random() * 100, B: Math.random() * 100 },
-          coherence: { score: Math.random() * 100, rating: "Good" },
-          summary: "Results generated locally due to ML API unavailability"
-        }
-      };
+            totals: { A: Math.random() * 100, B: Math.random() * 100 },
+            coherence: { score: Math.random() * 100, rating: "Good" },
+            summary: "Results generated locally due to ML API unavailability",
+            analysisSource: 'fallback'
+          }
+        };
+        analysisSource = 'fallback';
+        console.log('⚠️ Using basic fallback scoring');
+      }
     }
+
+    // Add analysis source and timestamp to results
+    mlResponse.data.analysisSource = analysisSource;
+    mlResponse.data.finalizedAt = new Date();
 
     debate.result = mlResponse.data;
     debate.status = "completed";
@@ -338,7 +364,11 @@ export const finalizeDebate = async (req, res) => {
       });
     }
 
-    res.json(mlResponse.data);
+    res.json({
+      message: 'Debate finalized successfully',
+      results: mlResponse.data,
+      analysisSource
+    });
   } catch (err) {
     console.error("[finalize route] error:", err.message);
     res.status(500).json({ message: "Error finalizing debate", details: err.message });
