@@ -759,14 +759,18 @@ async function saveResult(debateId, analysisResult, analysisSource) {
 export const getResults = async (req, res) => {
   try {
     const debateId = req.params.id;
+    console.log(`🔍 [getResults] Fetching results for debate ID: ${debateId}`);
     
     // First, try to get results from Result collection
     let results = await Result.findOne({ debateId: debateId.toString() });
+    console.log(`📊 [getResults] Results from Result collection:`, results ? 'Found' : 'Not found');
     
     // If not found in Result collection, check if debate has results
     if (!results) {
       const debate = await Debate.findById(debateId);
+      console.log(`📋 [getResults] Debate document:`, debate ? 'Found' : 'Not found');
       if (debate?.result) {
+        console.log(`✅ [getResults] Debate has result, structure:`, Object.keys(debate.result));
         // Use debate.result and save it to Result collection for future queries
         results = {
           debateId: debateId.toString(),
@@ -783,6 +787,7 @@ export const getResults = async (req, res) => {
             results,
             { upsert: true, new: true }
           );
+          console.log(`💾 [getResults] Saved results to Result collection`);
         } catch (saveErr) {
           console.warn("Could not save results to Result collection:", saveErr.message);
         }
@@ -790,9 +795,12 @@ export const getResults = async (req, res) => {
     }
     
     if (!results) {
+      console.log(`❌ [getResults] No results found for debate ${debateId}`);
       return res.status(404).json({ error: "Results not found. Debate may not be finalized yet." });
     }
     
+    console.log(`📤 [getResults] Returning results structure:`, Object.keys(results));
+    console.log(`📤 [getResults] Results.results exists:`, !!results.results);
     res.json(results);
   } catch (err) {
     console.error('[get results]', err.message);

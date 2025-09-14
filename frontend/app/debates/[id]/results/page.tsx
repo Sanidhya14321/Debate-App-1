@@ -78,13 +78,18 @@ export default function DebateResultsPage() {
 
     const fetchResults = async () => {
         try {
+            console.log('🔍 [fetchResults] Fetching results for debate ID:', id);
             const [resultsData, debateInfo] = await Promise.all([
                 apiFetch(`/debates/${id}/results`),
                 apiFetch(`/debates/${id}/status`)
             ]);
+            console.log('📊 [fetchResults] Results data received:', resultsData);
+            console.log('📊 [fetchResults] Results.results exists:', !!resultsData?.results);
+            console.log('📊 [fetchResults] Results structure:', Object.keys(resultsData || {}));
             setResults(resultsData);
             setDebateData(debateInfo);
         } catch (err) {
+            console.error('❌ [fetchResults] Error:', err);
             const errorMessage = err instanceof Error ? err.message : "Failed to fetch results";
             toast.error(errorMessage);
             setResults(null);
@@ -285,9 +290,9 @@ export default function DebateResultsPage() {
                     )}
                     {/* Analysis Source Indicator */}
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-zinc-900/30 backdrop-blur-sm border border-zinc-800/40">
-                        <div className={`w-3 h-3 rounded-full mr-2 ${getAnalysisSourceColor(results.analysisSource)}`}></div>
+                        <div className={`w-3 h-3 rounded-full mr-2 ${getAnalysisSourceColor(results?.analysisSource || 'unknown')}`}></div>
                         <span className="text-sm font-medium text-white">
-                            {getAnalysisSourceLabel(results.analysisSource)}
+                            {getAnalysisSourceLabel(results?.analysisSource || 'unknown')}
                         </span>
                     </div>
                 </motion.div>
@@ -302,7 +307,7 @@ export default function DebateResultsPage() {
                         <CardContent className="text-center py-8">
                             <Trophy className="w-16 h-16 mx-auto text-[#ffd700] mb-4" />
                             <h2 className="text-3xl font-bold mb-4 text-white">
-                                🏆 Winner: <span className="text-[#ffd700]">{results.winner}</span>
+                                🏆 Winner: <span className="text-[#ffd700]">{results?.winner || 'TBD'}</span>
                             </h2>
                             <div className="flex justify-center gap-8 text-lg font-semibold">
                                 {participants.map(participant => (

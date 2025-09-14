@@ -26,8 +26,16 @@ export const getAnalytics = async (req, res) => {
       debate.arguments.forEach(arg => {
         if (arg.user.toString() === userId) {
           totalArguments++;
-          if (arg.score && typeof arg.score.final === 'number') {
+          if (arg.score && typeof arg.score === 'object' && typeof arg.score.final === 'number') {
             totalScore += arg.score.final;
+            scoreCount++;
+          } else if (arg.score && typeof arg.score.total === 'number') {
+            // Handle different score structure
+            totalScore += arg.score.total;
+            scoreCount++;
+          } else if (typeof arg.score === 'number') {
+            // Handle direct numeric score
+            totalScore += arg.score;
             scoreCount++;
           }
         }

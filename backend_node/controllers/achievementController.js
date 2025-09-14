@@ -242,8 +242,16 @@ const checkAchievementCriteria = async (userId, achievement) => {
         userDebates.forEach(debate => {
           debate.arguments.forEach(arg => {
             if (arg.user.toString() === userId) {
-              totalScore += arg.score;
-              argumentCount++;
+              if (arg.score) {
+                if (typeof arg.score === 'number') {
+                  totalScore += arg.score;
+                } else if (typeof arg.score === 'object' && typeof arg.score.total === 'number') {
+                  totalScore += arg.score.total;
+                } else if (typeof arg.score === 'object' && typeof arg.score.final === 'number') {
+                  totalScore += arg.score.final;
+                }
+                argumentCount++;
+              }
             }
           });
         });
