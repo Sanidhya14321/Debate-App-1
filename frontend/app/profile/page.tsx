@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
-import { Trophy, Target, MessageSquare,TrendingUp, Award, Edit } from "lucide-react";
+import { apiFetch } from "@/lib/api";
+import { Trophy, Target, MessageSquare, TrendingUp, Award, Edit, Calendar, User, BarChart3 } from "lucide-react";
+import { CircularProgress } from "@/components/ui/circular-progress";
+import { toast } from "sonner";
 
 interface UserStats {
   totalDebates: number;
@@ -23,15 +25,6 @@ interface UserStats {
   totalArguments: number;
 }
 
-interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  earned: boolean;
-  earnedAt?: string;
-}
-
 interface RecentDebate {
   id: string;
   topic: string;
@@ -39,44 +32,30 @@ interface RecentDebate {
   score: number;
   date: string;
   opponent: string;
+  finalizedAt?: string;
+}
+
+interface ProfileData {
+  username: string;
+  email: string;
+  color: string;
+  stats: UserStats;
+  recentDebates: RecentDebate[];
 }
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [recentDebates, setRecentDebates] = useState<RecentDebate[]>([]);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        // Mock data for now - replace with actual API calls
-        setStats({
-          totalDebates: 24,
-          wins: 18,
-          losses: 6,
-          winRate: 75,
-          averageScore: 8.2,
-          streak: 5,
-          rank: "Gold",
-          totalArguments: 156
-        });
-        
-        setAchievements([
-          { id: "1", name: "First Victory", description: "Win your first debate", icon: "🏆", earned: true, earnedAt: "2024-01-15" },
-          { id: "2", name: "Debate Master", description: "Win 10 debates", icon: "🎯", earned: true, earnedAt: "2024-02-20" },
-          { id: "3", name: "Persuasion Expert", description: "Achieve 80% win rate", icon: "💡", earned: false },
-          { id: "4", name: "Marathon Debater", description: "Participate in 50 debates", icon: "🏃", earned: false }
-        ]);
-        
-        setRecentDebates([
-          { id: "1", topic: "AI should replace human judges", result: "win", score: 8.5, date: "2024-01-20", opponent: "Alice" },
-          { id: "2", topic: "Remote work is more productive", result: "win", score: 7.8, date: "2024-01-18", opponent: "Bob" },
-          { id: "3", topic: "Social media benefits society", result: "loss", score: 6.2, date: "2024-01-15", opponent: "Charlie" }
-        ]);
+        const data = await apiFetch('/users') as ProfileData;
+        setProfileData(data);
       } catch (error) {
         console.error("Failed to fetch profile data:", error);
+        toast.error("Failed to load profile data");
       } finally {
         setLoading(false);
       }
@@ -88,57 +67,64 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="flex items-center justify-center min-h-screen bg-black">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#ff6b35]"></div>
         </div>
       </ProtectedRoute>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#ff6b35]/20 to-[#00ff88]/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-[#ff0080]/20 to-[#00d4ff]/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
+  const stats = profileData?.stats;
+  const recentDebates = profileData?.recentDebates || [];
 
+  const getRankColor = (rank: string) => {
+    switch(rank) {
+      case 'Diamond': return '#b9f2ff';
+      case 'Platinum': return '#e5e7eb';
+      case 'Gold': return '#ffd700';
+      case 'Silver': return '#c0c0c0';
+      default: return '#cd7f32';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-black">
       <ProtectedRoute>
-        <div className="relative container mx-auto px-4 py-16 max-w-6xl">
+        <div className="container mx-auto px-4 py-16 max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           {/* Profile Header */}
-          <Card className="mb-8 bg-card/80 backdrop-blur-sm border-[#ff6b35]/30">
+          <Card className="mb-8 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
             <CardContent className="pt-8">
               <div className="flex items-center space-x-6">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-r from-[#ff6b35]/20 to-[#00ff88]/20 border-2 border-[#ff6b35]/50 flex items-center justify-center">
+                <div className="w-24 h-24 rounded-full bg-zinc-800/30 border-2 border-[#ff6b35]/50 flex items-center justify-center">
                   <Avatar className="h-20 w-20">
                     <AvatarFallback 
-                      style={{ backgroundColor: user?.color || '#2563eb' }}
+                      style={{ backgroundColor: profileData?.color || user?.color || '#ff6b35' }}
                       className="text-2xl font-bold text-white"
                     >
-                      {user?.username?.charAt(0).toUpperCase() || 'U'}
+                      {profileData?.username?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </div>
                 <div className="flex-1">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-[#ff6b35] bg-clip-text text-transparent">{user?.username}</h1>
-                  <p className="text-muted-foreground text-lg">{user?.email}</p>
+                  <h1 className="text-4xl font-bold text-white">{profileData?.username || user?.username}</h1>
+                  <p className="text-zinc-400 text-lg">{profileData?.email || user?.email}</p>
                   <div className="flex items-center space-x-4 mt-3">
-                    <Badge className="bg-gradient-to-r from-[#ff6b35] to-[#ff6b35]/80 text-black font-semibold">
+                    <Badge className="font-semibold text-black" style={{ backgroundColor: getRankColor(stats?.rank || 'Bronze') }}>
                       <Trophy className="w-4 h-4 mr-1" />
                       {stats?.rank} Rank
                     </Badge>
                     <Badge variant="outline" className="border-[#00ff88] text-[#00ff88]">
                       <Trophy className="w-4 h-4 mr-1" />
-                      {stats?.wins} Wins
+                      {stats?.wins || 0} Wins
                     </Badge>
-                    <Badge variant="outline" className="border-[#ff0080] text-[#ff0080]">
+                    <Badge variant="outline" className="border-[#ff6b35] text-[#ff6b35]">
                       <Target className="w-4 h-4 mr-1" />
-                      {stats?.winRate}% Win Rate
+                      {stats?.winRate || 0}% Win Rate
                     </Badge>
                   </div>
                 </div>
@@ -152,144 +138,186 @@ export default function ProfilePage() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-[#ff6b35]/30">
+            <Card className="p-6 text-center bg-zinc-900/30 backdrop-blur-sm border-zinc-800/50">
               <MessageSquare className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
-              <div className="text-2xl font-bold text-white">{stats?.totalDebates}</div>
-              <div className="text-sm text-muted-foreground">Total Debates</div>
+              <div className="text-2xl font-bold text-white">{stats?.totalDebates || 0}</div>
+              <div className="text-sm text-zinc-400">Total Debates</div>
             </Card>
             
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-[#00ff88]/30">
-              <Trophy className="h-8 w-8 mx-auto mb-2 text-[#00ff88]" />
-              <div className="text-2xl font-bold text-white">{stats?.averageScore}/10</div>
-              <div className="text-sm text-muted-foreground">Average Score</div>
+            <Card className="p-6 text-center bg-zinc-900/30 backdrop-blur-sm border-zinc-800/50">
+              <div className="flex justify-center mb-2">
+                <CircularProgress
+                  value={(stats?.averageScore || 0) * 10}
+                  size={48}
+                  strokeWidth={4}
+                  color="#00ff88"
+                  showValue={false}
+                />
+              </div>
+              <div className="text-2xl font-bold text-white">{stats?.averageScore || 0}/10</div>
+              <div className="text-sm text-zinc-400">Average Score</div>
             </Card>
             
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-[#ff0080]/30">
-              <Target className="h-8 w-8 mx-auto mb-2 text-[#ff0080]" />
-              <div className="text-2xl font-bold text-white">{stats?.totalArguments}</div>
-              <div className="text-sm text-muted-foreground">Arguments Made</div>
+            <Card className="p-6 text-center bg-zinc-900/30 backdrop-blur-sm border-zinc-800/50">
+              <BarChart3 className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
+              <div className="text-2xl font-bold text-white">{stats?.totalArguments || 0}</div>
+              <div className="text-sm text-zinc-400">Arguments Made</div>
             </Card>
             
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-[#00d4ff]/30">
-              <Award className="h-8 w-8 mx-auto mb-2 text-[#00d4ff]" />
-              <div className="text-2xl font-bold text-white">{achievements.filter(a => a.earned).length}</div>
-              <div className="text-sm text-muted-foreground">Achievements</div>
+            <Card className="p-6 text-center bg-zinc-900/30 backdrop-blur-sm border-zinc-800/50">
+              <Award className="h-8 w-8 mx-auto mb-2 text-[#ffd700]" />
+              <div className="text-2xl font-bold text-white">{stats?.streak || 0}</div>
+              <div className="text-sm text-zinc-400">Win Streak</div>
             </Card>
           </div>
 
           {/* Tabs Section */}
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="achievements">Achievements</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-zinc-900/40">
+              <TabsTrigger value="overview" className="text-white data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black">Overview</TabsTrigger>
+              <TabsTrigger value="history" className="text-white data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black">Recent Debates</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Performance Chart */}
-                <Card className="p-6">
+                <Card className="p-6 bg-zinc-900/30 border-zinc-800/50">
                   <CardHeader className="px-0 pt-0">
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Performance
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <TrendingUp className="h-5 w-5 text-[#ff6b35]" />
+                      Performance Metrics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-0 space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="text-center">
+                        <CircularProgress
+                          value={stats?.winRate || 0}
+                          size={100}
+                          strokeWidth={8}
+                          color="#00ff88"
+                        />
+                        <div className="mt-2 text-sm text-zinc-400">Win Rate</div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <CircularProgress
+                          value={(stats?.averageScore || 0) * 10}
+                          size={100}
+                          strokeWidth={8}
+                          color="#ff6b35"
+                        />
+                        <div className="mt-2 text-sm text-zinc-400">Avg Score</div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div className="bg-zinc-800/30 rounded-lg p-3">
+                        <div className="text-xl font-bold text-[#00ff88]">{stats?.wins || 0}</div>
+                        <div className="text-xs text-zinc-400">Wins</div>
+                      </div>
+                      <div className="bg-zinc-800/30 rounded-lg p-3">
+                        <div className="text-xl font-bold text-[#ff4444]">{stats?.losses || 0}</div>
+                        <div className="text-xs text-zinc-400">Losses</div>
+                      </div>
+                      <div className="bg-zinc-800/30 rounded-lg p-3">
+                        <div className="text-xl font-bold text-[#ffd700]">{stats?.streak || 0}</div>
+                        <div className="text-xs text-zinc-400">Streak</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* User Info */}
+                <Card className="p-6 bg-zinc-900/30 border-zinc-800/50">
+                  <CardHeader className="px-0 pt-0">
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <User className="h-5 w-5 text-[#ff6b35]" />
+                      Account Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="px-0 space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Win Rate</span>
-                        <span>{stats?.winRate}%</span>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-zinc-400">Username:</span>
+                        <span className="text-white font-medium">{profileData?.username}</span>
                       </div>
-                      <Progress value={stats?.winRate} className="h-2" />
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Average Score</span>
-                        <span>{stats?.averageScore}/10</span>
+                      <div className="flex justify-between">
+                        <span className="text-zinc-400">Email:</span>
+                        <span className="text-white font-medium">{profileData?.email}</span>
                       </div>
-                      <Progress value={(stats?.averageScore || 0) * 10} className="h-2" />
+                      <div className="flex justify-between">
+                        <span className="text-zinc-400">Rank:</span>
+                        <Badge style={{ backgroundColor: getRankColor(stats?.rank || 'Bronze') }} className="text-black font-medium">
+                          {stats?.rank || 'Bronze'}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-zinc-400">Total Arguments:</span>
+                        <span className="text-white font-medium">{stats?.totalArguments || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-zinc-400">Current Streak:</span>
+                        <span className="text-[#ffd700] font-bold">{stats?.streak || 0} wins</span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Recent Activity */}
-                <Card className="p-6">
-                  <CardHeader className="px-0 pt-0">
-                    <CardTitle>Recent Activity</CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-0 space-y-3">
-                    {recentDebates.slice(0, 3).map((debate) => (
-                      <div key={debate.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm truncate">{debate.topic}</p>
-                          <p className="text-xs text-muted-foreground">vs {debate.opponent}</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge 
-                            variant={debate.result === 'win' ? 'default' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {debate.result}
-                          </Badge>
-                          <p className="text-xs text-muted-foreground mt-1">{debate.score}/10</p>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="achievements" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {achievements.map((achievement) => (
-                  <Card key={achievement.id} className={`p-4 ${achievement.earned ? 'bg-primary/5 border-primary/20' : 'opacity-60'}`}>
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">{achievement.icon}</div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{achievement.name}</h3>
-                        <p className="text-sm text-muted-foreground">{achievement.description}</p>
-                        {achievement.earned && achievement.earnedAt && (
-                          <p className="text-xs text-primary mt-1">
-                            Earned {new Date(achievement.earnedAt).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                      {achievement.earned && (
-                        <Award className="h-5 w-5 text-primary" />
-                      )}
-                    </div>
-                  </Card>
-                ))}
               </div>
             </TabsContent>
 
             <TabsContent value="history" className="space-y-6">
-              <Card>
+              <Card className="bg-zinc-900/30 border-zinc-800/50">
                 <CardHeader>
-                  <CardTitle>Debate History</CardTitle>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <Calendar className="h-5 w-5 text-[#ff6b35]" />
+                    Last 5 Debates
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentDebates.map((debate) => (
-                      <div key={debate.id} className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{debate.topic}</h4>
-                          <p className="text-sm text-muted-foreground">vs {debate.opponent} • {new Date(debate.date).toLocaleDateString()}</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge 
-                            variant={debate.result === 'win' ? 'default' : debate.result === 'loss' ? 'destructive' : 'secondary'}
-                          >
-                            {debate.result}
-                          </Badge>
-                          <p className="text-sm text-muted-foreground mt-1">Score: {debate.score}/10</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  {recentDebates.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageSquare className="w-16 h-16 mx-auto text-zinc-600 mb-4" />
+                      <p className="text-zinc-400">No debates yet. Start your first debate!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {recentDebates.map((debate, index) => (
+                        <motion.div 
+                          key={debate.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="flex items-center justify-between p-4 rounded-lg bg-zinc-800/30 border border-zinc-700/30 hover:border-[#ff6b35]/30 transition-colors"
+                        >
+                          <div className="flex-1">
+                            <h4 className="font-medium text-white mb-1">{debate.topic}</h4>
+                            <p className="text-sm text-zinc-400">
+                              vs {debate.opponent} • {new Date(debate.date).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right flex items-center gap-4">
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-white">{debate.score}/10</div>
+                              <div className="text-xs text-zinc-400">Score</div>
+                            </div>
+                            <Badge 
+                              variant={debate.result === 'win' ? 'default' : debate.result === 'loss' ? 'destructive' : 'secondary'}
+                              className={
+                                debate.result === 'win' 
+                                  ? 'bg-[#00ff88] text-black' 
+                                  : debate.result === 'loss' 
+                                  ? 'bg-[#ff4444] text-white' 
+                                  : 'bg-zinc-600 text-white'
+                              }
+                            >
+                              {debate.result.toUpperCase()}
+                            </Badge>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

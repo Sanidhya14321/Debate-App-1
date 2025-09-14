@@ -10,8 +10,7 @@ import {
 } from "../middleware/validation.js";
 import {
   debateCreationLimiter,
-  argumentLimiter,
-  mlLimiter
+  argumentLimiter
 } from "../middleware/rateLimiter.js";
 import {
   createPrivateDebate,
@@ -48,8 +47,8 @@ router.get("/open", validatePagination, getOpenDebates);
 router.post("/:id/arguments", authMiddleware, argumentLimiter, validateAddArgument, addArgument);
 router.get("/:id/arguments", validateDebateId, getArguments);
 
-// Finalize & results
-router.post("/:id/finalize", authMiddleware, mlLimiter, validateDebateId, finalizeDebate);
+// Finalize & results (using AI analysis)
+router.post("/:id/finalize", authMiddleware, argumentLimiter, validateDebateId, finalizeDebate);
 router.get("/:id/results", validateDebateId, getResults);
 
 export default router;

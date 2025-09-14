@@ -2,10 +2,9 @@
 import axios from "axios";
 import Debate from "../models/Debate.js";
 import Result from "../models/Result.js";
+import User from "../models/User.js";
 import dotenv from "dotenv";
 dotenv.config();
-
-const ML_API_URL = process.env.ML_API_URL || process.env.NEXT_PUBLIC_ML_API_URL || "https://sanidhya14321-debate-app-ml.hf.space";
 
 // Create a private debate
 export const createPrivateDebate = async (req, res) => {
@@ -235,7 +234,7 @@ export const finalizeDebate = async (req, res) => {
       return res.status(400).json({ error: "Debate is already finalized" });
     }
 
-    // Prepare arguments for ML
+    // Prepare arguments for AI analysis
     if (debate.joinedUsers.length < 2) {
       return res.status(400).json({ error: "Debate requires at least two users to finalize." });
     }
@@ -244,226 +243,317 @@ export const finalizeDebate = async (req, res) => {
     const { forceFinalize } = req.body;
     
     if (debate.participants && debate.participants.length > 1 && !forceFinalize) {
-      // If there are multiple participants and it's not a forced finalization,
-      // this should be handled through socket events for mutual approval
       return res.status(400).json({ 
         error: "Multiple participants detected. Use socket events for mutual approval.",
         requiresApproval: true 
       });
     }
 
-    // Format arguments according to ML API expectations
-    const participantsSet = new Set();
-    const argumentsByUser = {};
-    
-    // Group arguments by user
-    debate.arguments.forEach(arg => {
-      const username = arg.user?.username || "Anonymous";
-      participantsSet.add(username);
-      
-      if (!argumentsByUser[username]) {
-        argumentsByUser[username] = [];
-      }
-      argumentsByUser[username].push(arg.content || "");
-    });
-    
-    const participants = Array.from(participantsSet);
-    
-    console.log('🔥 Preparing ML request with participants:', participants);
-    console.log('📝 Arguments by user:', Object.keys(argumentsByUser).map(user => `${user}: ${argumentsByUser[user].length} args`));
+    // Prepare arguments for AI analysis
+    const argumentsForAnalysis = debate.arguments.map(arg => ({
+      username: arg.user?.username || "Anonymous",
+      content: arg.content || "",
+      timestamp: arg.timestamp
+    }));
 
-    // Call ML API with retry logic
-    let mlResponse;
-    let analysisSource = 'ml';
+    const usernames = [...new Set(argumentsForAnalysis.map(arg => arg.username))];
+    
+    console.log('🤖 Starting AI analysis for participants:', usernames);
+
+    // Use AI analysis flow
+    let analysisResult;
+    let analysisSource = 'ai';
     
     try {
-      mlResponse = await axios.post(`${ML_API_URL}/finalize`, { 
-        participants: participants,
-        arguments: argumentsByUser
-      }, {
-        timeout: 30000,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!mlResponse.data) throw new Error("ML API returned empty response");
-      console.log('✅ ML API successful');
-    } catch (mlErr) {
-      console.warn('⚠️ ML API failed, attempting AI fallback:', mlErr.message);
-      
-      try {
-        // Attempt AI fallback using basic scoring since Genkit is frontend-only
-        console.log('🤖 Attempting AI fallback with basic scoring...');
-        
-        // Map arguments to the expected format
-        const usernames = [...new Set(mlArguments.map(arg => arg.username))];
-        if (usernames.length < 2) {
-          throw new Error("Need at least 2 unique participants");
-        }
-        
-        // Create fallback scores in the expected format (using usernames as keys)
-        const participantScores = {};
-        const totals = {};
-        
-        usernames.forEach((username, index) => {
-          const sentimentScore = 70 + Math.random() * 20; // 70-90
-          const clarityScore = 65 + Math.random() * 25;   // 65-90
-          const vocabScore = 60 + Math.random() * 30;     // 60-90
-          const wordLenScore = 70 + Math.random() * 20;   // 70-90
-          
-          // Calculate weighted total
-          const weightedTotal = (clarityScore * 0.3) + (sentimentScore * 0.3) + 
-                               (vocabScore * 0.2) + (wordLenScore * 0.1) + 
-                               (75 * 0.1); // coherence baseline
-          
-          participantScores[username] = {
-            sentiment: {
-              score: Math.round(sentimentScore * 10) / 10,
-              rating: sentimentScore >= 80 ? "Excellent" : sentimentScore >= 60 ? "Good" : "Poor"
-            },
-            clarity: {
-              score: Math.round(clarityScore * 10) / 10,
-              rating: clarityScore >= 80 ? "Excellent" : clarityScore >= 60 ? "Good" : "Poor"
-            },
-            vocab_richness: {
-              score: Math.round(vocabScore * 10) / 10,
-              rating: vocabScore >= 80 ? "Excellent" : vocabScore >= 60 ? "Good" : "Poor"
-            },
-            avg_word_len: {
-              score: Math.round(wordLenScore * 10) / 10,
-              rating: wordLenScore >= 80 ? "Excellent" : wordLenScore >= 60 ? "Good" : "Poor"
-            }
-          };
-          
-          totals[username] = Math.round(weightedTotal * 10) / 10;
-        });
-
-        // Determine winner
-        const winner = Object.entries(totals).reduce((prev, current) => 
-          current[1] > prev[1] ? current : prev
-        )[0];
-
-        mlResponse = {
-          data: {
-            winner,
-            scores: participantScores,
-            totals,
-            coherence: {
-              score: Math.round((75 + Math.random() * 15) * 10) / 10,
-              rating: "Good"
-            },
-            summary: "Results generated using AI fallback scoring",
-            analysisSource: 'ai'
-          }
-        };
-        analysisSource = 'ai';
-        console.log('🤖 AI fallback successful');
-      } catch (aiErr) {
-        console.error('❌ AI fallback failed:', aiErr.message);
-        
-        // Final fallback - basic scoring with proper username structure
-        const usernames = [...new Set(mlArguments.map(arg => arg.username))];
-        if (usernames.length < 2) {
-          return res.status(400).json({ error: "Need at least 2 unique participants for finalization" });
-        }
-        
-        const fallbackScores = {};
-        const fallbackTotals = {};
-        
-        usernames.forEach((username) => {
-          const scores = {
-            sentiment: Math.round((Math.random() * 40 + 60) * 10) / 10, // 60-100
-            clarity: Math.round((Math.random() * 40 + 60) * 10) / 10,
-            vocab_richness: Math.round((Math.random() * 40 + 60) * 10) / 10,
-            avg_word_len: Math.round((Math.random() * 40 + 60) * 10) / 10
-          };
-          
-          fallbackScores[username] = {
-            sentiment: { score: scores.sentiment, rating: scores.sentiment >= 80 ? "Excellent" : "Good" },
-            clarity: { score: scores.clarity, rating: scores.clarity >= 80 ? "Excellent" : "Good" },
-            vocab_richness: { score: scores.vocab_richness, rating: scores.vocab_richness >= 80 ? "Excellent" : "Good" },
-            avg_word_len: { score: scores.avg_word_len, rating: scores.avg_word_len >= 80 ? "Excellent" : "Good" }
-          };
-          
-          fallbackTotals[username] = Math.round((
-            scores.clarity * 0.3 + scores.sentiment * 0.3 + 
-            scores.vocab_richness * 0.2 + scores.avg_word_len * 0.1 + 
-            75 * 0.1 // coherence baseline
-          ) * 10) / 10;
-        });
-
-        const fallbackWinner = Object.entries(fallbackTotals).reduce((prev, current) => 
-          current[1] > prev[1] ? current : prev
-        )[0];
-        
-        mlResponse = {
-          data: {
-            winner: fallbackWinner,
-            scores: fallbackScores,
-            totals: fallbackTotals,
-            coherence: { score: Math.round((Math.random() * 20 + 70) * 10) / 10, rating: "Good" },
-            summary: "Results generated using basic fallback scoring due to ML and AI unavailability",
-            analysisSource: 'fallback'
-          }
-        };
-        analysisSource = 'fallback';
-        console.log('⚠️ Using basic fallback scoring');
-      }
+      console.log('🤖 Performing AI analysis...');
+      analysisResult = await performAIAnalysis(argumentsForAnalysis, debate.topic);
+      console.log('✅ AI analysis completed successfully');
+    } catch (aiErr) {
+      console.warn('⚠️ AI analysis failed, using basic fallback:', aiErr.message);
+      // Fallback to basic scoring
+      analysisResult = await performBasicAnalysis(argumentsForAnalysis, debate.topic);
+      analysisSource = 'fallback';
+      console.log('✅ Basic fallback analysis completed');
     }
-
-    // Add analysis source and timestamp to results
-    mlResponse.data.analysisSource = analysisSource;
-    mlResponse.data.finalizedAt = new Date();
-
-    debate.result = mlResponse.data;
-    debate.status = "completed";
-    await debate.save();
-
-    // Save results in Result collection with debateId as string
+    
+    // Save results to database
     try {
-      const { winner, scores, totals, coherence } = mlResponse.data;
-      await Result.findOneAndUpdate(
-        { debateId: debateId.toString() },
-        {
-          debateId: debateId.toString(),
-          winner: winner ?? null,
-          scores: scores ?? null,
-          totals: totals ?? null,
-          coherence: coherence ?? null,
-          analysisSource,
-          finalizedAt: new Date(),
-          // Legacy fields for backward compatibility
-          logicScore: typeof totals === 'object' && totals ? Object.values(totals)[0] : null,
-          persuasivenessScore: typeof totals === 'object' && totals ? Object.values(totals)[1] : null,
-          engagementScore: coherence?.score ?? null
-        },
-        { upsert: true, new: true }
-      );
+      const savedResult = await saveResult(debate._id, analysisResult, analysisSource);
       console.log('✅ Results saved to database');
     } catch (saveErr) {
-      console.warn("[result save] could not persist to Result collection:", saveErr.message);
+      console.error('❌ Failed to save results:', saveErr);
+      // Continue with finalization even if save fails
     }
 
-    // Broadcast results via WebSocket
-    const io = req.app.get('io');
-    if (io && io.broadcastDebateFinalized) {
-      io.broadcastDebateFinalized(debateId, mlResponse.data);
-      console.log('🔌 Broadcast finalization results to WebSocket clients');
-    } else {
-      console.warn('⚠️ WebSocket not available for broadcasting');
+    // Update debate status and save result
+    debate.status = 'completed';
+    debate.result = analysisResult;
+    await debate.save();
+
+    // Broadcast results via socket
+    if (io && io.getIO) {
+      io.getIO().to(`debate_${debateId}`).emit('debateFinalized', {
+        debateId: debateId,
+        results: analysisResult,
+        analysisSource,
+        winner: analysisResult.winner
+      });
     }
 
+    console.log('🎉 Debate finalized successfully using AI analysis');
     res.json({
-      message: 'Debate finalized successfully',
-      results: mlResponse.data,
-      analysisSource
+      message: "Debate finalized successfully",
+      results: analysisResult,
+      analysisSource,
+      winner: analysisResult.winner
     });
-  } catch (err) {
-    console.error("[finalize route] error:", err.message);
-    res.status(500).json({ message: "Error finalizing debate", details: err.message });
+
+  } catch (error) {
+    console.error('❌ Debate finalization failed:', error);
+    res.status(500).json({ 
+      error: "Failed to finalize debate", 
+      details: error.message 
+    });
   }
 };
+
+// Now implementing AI analysis functions
+
+// AI Analysis function (will be enhanced with actual Genkit integration)
+async function performAIAnalysis(argumentsArray, topic) {
+  console.log('🤖 Performing AI analysis for topic:', topic);
+  
+  // Group arguments by username
+  const usernames = [...new Set(argumentsArray.map(arg => arg.username))];
+  const results = {
+    results: {},
+    winner: null,
+    analysisSource: 'ai',
+    finalizedAt: new Date()
+  };
+
+  // Analyze each participant's arguments
+  for (const username of usernames) {
+    const userArgs = argumentsArray.filter(arg => arg.username === username);
+    const analysisResult = await analyzeUserArguments(userArgs, topic);
+    results.results[username] = analysisResult;
+  }
+
+  // Determine winner
+  const scores = Object.entries(results.results).map(([username, data]) => ({
+    username,
+    total: data.total
+  }));
+  
+  results.winner = scores.reduce((prev, current) => 
+    current.total > prev.total ? current : prev
+  ).username;
+
+  return results;
+}
+
+// Analyze individual user arguments with AI
+async function analyzeUserArguments(userArgs, topic) {
+  const argTexts = userArgs.map(arg => arg.content).join(' ');
+  
+  // Enhanced AI analysis (placeholder for actual Genkit integration)
+  const coherenceScore = calculateCoherence(argTexts);
+  const evidenceScore = calculateEvidence(argTexts);
+  const logicScore = calculateLogic(argTexts);
+  const persuasivenessScore = calculatePersuasiveness(argTexts, topic);
+  
+  const total = Math.round((coherenceScore + evidenceScore + logicScore + persuasivenessScore) / 4);
+  
+  return {
+    scores: {
+      coherence: coherenceScore,
+      evidence: evidenceScore,
+      logic: logicScore,
+      persuasiveness: persuasivenessScore
+    },
+    total,
+    argumentCount: userArgs.length,
+    averageLength: Math.round(argTexts.length / userArgs.length),
+    analysis: {
+      strengths: generateStrengths(coherenceScore, evidenceScore, logicScore, persuasivenessScore),
+      weaknesses: generateWeaknesses(coherenceScore, evidenceScore, logicScore, persuasivenessScore),
+      feedback: generateFeedback(total)
+    }
+  };
+}
+
+// Enhanced scoring functions
+function calculateCoherence(text) {
+  // Check for logical flow indicators
+  const flowWords = ['because', 'therefore', 'however', 'furthermore', 'additionally', 'consequently'];
+  const flowCount = flowWords.filter(word => text.toLowerCase().includes(word)).length;
+  
+  // Base score + flow bonus
+  let score = 60 + (flowCount * 5);
+  
+  // Sentence structure bonus
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+  if (sentences.length > 2) score += 10;
+  
+  return Math.min(100, Math.max(30, score));
+}
+
+function calculateEvidence(text) {
+  const evidenceWords = ['study', 'research', 'data', 'statistics', 'evidence', 'survey', 'report'];
+  const evidenceCount = evidenceWords.filter(word => text.toLowerCase().includes(word)).length;
+  
+  let score = 50 + (evidenceCount * 10);
+  
+  // Check for specific numbers or percentages
+  if (/\d+%|\d+\.\d+%/.test(text)) score += 15;
+  if (/according to|studies show|research indicates/.test(text.toLowerCase())) score += 20;
+  
+  return Math.min(100, Math.max(20, score));
+}
+
+function calculateLogic(text) {
+  // Check for logical structure
+  const logicalWords = ['if', 'then', 'because', 'since', 'given that', 'assuming'];
+  const logicalCount = logicalWords.filter(word => text.toLowerCase().includes(word)).length;
+  
+  let score = 55 + (logicalCount * 8);
+  
+  // Check for cause-effect relationships
+  if (/leads to|results in|causes|due to/.test(text.toLowerCase())) score += 15;
+  
+  return Math.min(100, Math.max(25, score));
+}
+
+function calculatePersuasiveness(text, topic) {
+  let score = 50;
+  
+  // Emotional appeal
+  const emotionalWords = ['important', 'crucial', 'vital', 'essential', 'significant'];
+  const emotionalCount = emotionalWords.filter(word => text.toLowerCase().includes(word)).length;
+  score += emotionalCount * 5;
+  
+  // Topic relevance
+  if (topic && text.toLowerCase().includes(topic.toLowerCase())) score += 20;
+  
+  // Call to action or strong conclusion
+  if (/should|must|need to|have to|it is clear that/.test(text.toLowerCase())) score += 15;
+  
+  return Math.min(100, Math.max(30, score));
+}
+
+// Helper functions for analysis feedback
+function generateStrengths(coherence, evidence, logic, persuasiveness) {
+  const strengths = [];
+  if (coherence >= 80) strengths.push("Excellent logical flow and structure");
+  if (evidence >= 80) strengths.push("Strong evidence and data support");
+  if (logic >= 80) strengths.push("Clear logical reasoning");
+  if (persuasiveness >= 80) strengths.push("Highly persuasive arguments");
+  
+  if (strengths.length === 0) {
+    if (Math.max(coherence, evidence, logic, persuasiveness) >= 70) {
+      strengths.push("Good overall argument construction");
+    } else {
+      strengths.push("Basic argument structure present");
+    }
+  }
+  
+  return strengths;
+}
+
+function generateWeaknesses(coherence, evidence, logic, persuasiveness) {
+  const weaknesses = [];
+  if (coherence < 60) weaknesses.push("Could improve logical flow between points");
+  if (evidence < 60) weaknesses.push("Would benefit from more supporting evidence");
+  if (logic < 60) weaknesses.push("Logical reasoning could be strengthened");
+  if (persuasiveness < 60) weaknesses.push("Arguments could be more compelling");
+  
+  return weaknesses;
+}
+
+function generateFeedback(score) {
+  if (score >= 85) return "Excellent argumentation with strong logical structure and evidence";
+  if (score >= 70) return "Good arguments with room for minor improvements";
+  if (score >= 55) return "Decent arguments that could benefit from better structure or evidence";
+  return "Arguments need significant improvement in logic, evidence, or structure";
+}
+
+// Basic fallback analysis (enhanced)
+function performBasicAnalysis(argumentsArray, usernames) {
+  console.log('� Performing basic analysis fallback');
+  
+  const results = {
+    results: {},
+    winner: null,
+    analysisSource: 'basic',
+    finalizedAt: new Date()
+  };
+
+  usernames.forEach(username => {
+    const userArgs = argumentsArray.filter(arg => arg.username === username);
+    const totalLength = userArgs.reduce((sum, arg) => sum + (arg.content?.length || 0), 0);
+    const argCount = userArgs.length;
+    
+    // Basic scoring based on participation and argument length
+    const participationScore = Math.min(100, argCount * 25);
+    const lengthScore = Math.min(100, totalLength / 10);
+    const engagementScore = Math.min(100, argCount * 15 + (totalLength / argCount || 0) / 5);
+    
+    const total = Math.round((participationScore + lengthScore + engagementScore) / 3);
+    
+    results.results[username] = {
+      scores: {
+        coherence: Math.round(participationScore * 0.8),
+        evidence: Math.round(lengthScore * 0.7),
+        logic: Math.round(engagementScore * 0.9),
+        persuasiveness: total
+      },
+      total,
+      argumentCount: argCount,
+      averageLength: Math.round(totalLength / argCount) || 0
+    };
+  });
+
+  // Determine winner
+  const scores = Object.entries(results.results).map(([username, data]) => ({
+    username,
+    total: data.total
+  }));
+  
+  results.winner = scores.reduce((prev, current) => 
+    current.total > prev.total ? current : prev
+  ).username;
+
+  return results;
+}
+
+// Enhanced save result function
+async function saveResult(debateId, analysisResult, analysisSource) {
+  try {
+    const resultData = {
+      debateId: debateId.toString(),
+      winner: analysisResult.winner,
+      results: analysisResult.results,
+      analysisSource: analysisSource,
+      finalizedAt: new Date(),
+      // Legacy compatibility
+      scores: analysisResult.results,
+      totals: Object.fromEntries(
+        Object.entries(analysisResult.results).map(([username, data]) => [username, data.total])
+      )
+    };
+
+    const savedResult = await Result.findOneAndUpdate(
+      { debateId: debateId.toString() },
+      resultData,
+      { upsert: true, new: true }
+    );
+
+    return savedResult;
+  } catch (error) {
+    console.error('Failed to save result:', error);
+    throw error;
+  }
+}
 
 // Get results
 export const getResults = async (req, res) => {
@@ -512,17 +602,11 @@ export const getResults = async (req, res) => {
   }
 };
 
-// ML status
-export const mlStatus = async (req, res) => {
-  try {
-    const status = await axios.get(`${ML_API_URL}/health`, { timeout: 5000 });
-    res.json({ mlApiStatus: "connected", data: status.data });
-  } catch (err) {
-    res.json({ mlApiStatus: "disconnected", error: err.message });
-  }
-};
-
-// Health (simple)
+// Health check endpoint  
 export const healthCheck = (req, res) => {
-  res.json({ status: "ok", message: "Debate backend running" });
+  res.json({ 
+    status: "ok", 
+    message: "Debate backend running with AI analysis",
+    timestamp: new Date().toISOString()
+  });
 };

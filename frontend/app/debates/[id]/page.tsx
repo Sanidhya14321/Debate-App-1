@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { Clock, Users, MessageSquare, Trophy, Send, Loader2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { Clock, Users, MessageSquare, Trophy, Send, Loader2, CheckCircle, XCircle, AlertTriangle, Brain, Target, Lightbulb, Zap } from "lucide-react";
 
 import { apiFetch } from "@/lib/api";
 import { useAuthGuard } from "@/lib/auth";
@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { CircularProgress } from "@/components/ui/circular-progress";
 
 // Type definitions for socket events
 interface UserEventData {
@@ -558,50 +559,164 @@ export default function DebateRoomPage() {
                       transition={{ delay: idx * 0.1 }}
                       whileHover={{ scale: 1.01 }}
                     >
-                      <Card className="shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 border-l-[#ff6b35] bg-zinc-900/80 backdrop-blur-sm border-zinc-800">
-                        <CardHeader className="pb-6">
+                      <Card className="shadow-xl hover:shadow-2xl transition-all duration-300 border border-zinc-800/50 bg-zinc-900/60 backdrop-blur-sm hover:border-[#ff6b35]/30 group">
+                        <CardHeader className="pb-4">
                           <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-4">
                               <div 
-                                className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg"
+                                className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-base shadow-lg ring-2 ring-white/20"
                                 style={{ backgroundColor: arg.color || '#ff6b35' }}
                               >
                                 {(arg.username || arg.email || "A").charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="font-semibold text-white text-xl">{arg.username || arg.email || "Anonymous"}</p>
-                                <p className="text-base text-zinc-400 mt-1">
+                                <p className="font-semibold text-white text-lg">{arg.username || arg.email || "Anonymous"}</p>
+                                <p className="text-sm text-zinc-400">
                                   {new Date(arg.createdAt).toLocaleString()}
                                 </p>
                               </div>
                             </div>
                             
                             <div className="text-right">
-                              <div className={`text-3xl font-bold ${scoreColor} mb-1`}>
-                                {scoreStr}
+                              <div className="flex items-center justify-center mb-2">
+                                <CircularProgress
+                                  value={parseFloat(scoreStr)}
+                                  size={56}
+                                  strokeWidth={4}
+                                  color={scoreStr && parseFloat(scoreStr) >= 80 ? '#00ff88' : parseFloat(scoreStr) >= 60 ? '#ff6b35' : '#ff4444'}
+                                />
                               </div>
-                              <div className="text-sm text-zinc-400 font-medium">Quality Score</div>
+                              <div className="text-xs text-zinc-400 font-medium">Quality Score</div>
                             </div>
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-6">
-                          <p className="text-lg leading-relaxed text-white font-medium">{arg.content}</p>
+                          {/* Argument Content */}
+                          <div className="bg-zinc-800/30 rounded-lg p-6 border border-zinc-700/30">
+                            <p className="text-base leading-relaxed text-white/90 font-normal">{arg.content}</p>
+                          </div>
                           
-                          {/* Score breakdown if available */}
+                          {/* Enhanced Analysis Section */}
                           {typeof arg.score === 'object' && arg.score !== null && (
                             <div className="mt-8 pt-6 border-t border-zinc-700">
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
-                                {Object.entries(arg.score as ScoreObject).map(([key, value]) => {
-                                  if (key === 'length' || typeof value !== 'object') return null;
-                                  const metric = value as ScoreMetric;
-                                  return (
-                                    <div key={key} className="text-center">
-                                      <div className="font-semibold capitalize text-white text-base mb-2">{key.replace('_', ' ')}</div>
-                                      <Progress value={metric.score} className="h-3 mt-2 bg-zinc-700" />
-                                      <div className="text-sm text-zinc-400 mt-2 font-medium">{metric.rating}</div>
-                                    </div>
-                                  );
-                                })}
+                              <div className="mb-6">
+                                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                  <Brain className="w-5 h-5 text-[#ff6b35]" />
+                                  Argument Analysis
+                                </h4>
+                                
+                                {/* Circular Progress Metrics */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+                                  {Object.entries(arg.score as ScoreObject).map(([key, value]) => {
+                                    if (key === 'length' || key === 'total' || typeof value !== 'object') return null;
+                                    const metric = value as ScoreMetric;
+                                    
+                                    const getMetricIcon = (metricKey: string) => {
+                                      switch(metricKey) {
+                                        case 'clarity': return <Lightbulb className="w-4 h-4" />;
+                                        case 'sentiment': return <Target className="w-4 h-4" />;
+                                        case 'vocab_richness': return <Zap className="w-4 h-4" />;
+                                        case 'avg_word_len': return <MessageSquare className="w-4 h-4" />;
+                                        default: return <Brain className="w-4 h-4" />;
+                                      }
+                                    };
+                                    
+                                    const getMetricColor = (score: number) => {
+                                      if (score >= 80) return "#00ff88"; // neon green
+                                      if (score >= 60) return "#ff6b35"; // orange
+                                      if (score >= 40) return "#ffd700"; // gold
+                                      return "#ff4444"; // red
+                                    };
+                                    
+                                    return (
+                                      <div key={key} className="text-center">
+                                        <div className="flex items-center justify-center mb-3">
+                                          <CircularProgress
+                                            value={metric.score}
+                                            size={80}
+                                            strokeWidth={6}
+                                            color={getMetricColor(metric.score)}
+                                          />
+                                        </div>
+                                        <div className="space-y-1">
+                                          <div className="flex items-center justify-center gap-1 text-white font-medium">
+                                            {getMetricIcon(key)}
+                                            <span className="capitalize text-sm">{key.replace('_', ' ')}</span>
+                                          </div>
+                                          <div className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-300 border">
+                                            {metric.rating}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                
+                                {/* Detailed Breakdown */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {Object.entries(arg.score as ScoreObject).map(([key, value]) => {
+                                    if (key === 'length' || key === 'total' || typeof value !== 'object') return null;
+                                    const metric = value as ScoreMetric;
+                                    
+                                    const getScoreLabel = (score: number) => {
+                                      if (score >= 90) return { label: "Exceptional", color: "text-[#00ff88]" };
+                                      if (score >= 80) return { label: "Excellent", color: "text-[#00ff88]" };
+                                      if (score >= 70) return { label: "Good", color: "text-[#ff6b35]" };
+                                      if (score >= 60) return { label: "Average", color: "text-[#ffd700]" };
+                                      if (score >= 40) return { label: "Below Average", color: "text-[#ff8c00]" };
+                                      return { label: "Needs Improvement", color: "text-[#ff4444]" };
+                                    };
+                                    
+                                    const scoreInfo = getScoreLabel(metric.score);
+                                    
+                                    return (
+                                      <div key={key} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700/50">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <span className="text-white font-medium capitalize">
+                                            {key.replace('_', ' ')}
+                                          </span>
+                                          <span className={`font-bold ${scoreInfo.color}`}>
+                                            {metric.score.toFixed(1)}%
+                                          </span>
+                                        </div>
+                                        <div className="w-full bg-zinc-700 rounded-full h-2 mb-2">
+                                          <div 
+                                            className="h-2 rounded-full transition-all duration-500"
+                                            style={{ 
+                                              width: `${metric.score}%`,
+                                              background: `linear-gradient(90deg, ${scoreInfo.color.includes('88') ? '#00ff88' : scoreInfo.color.includes('35') ? '#ff6b35' : scoreInfo.color.includes('d700') ? '#ffd700' : '#ff4444'} 0%, ${scoreInfo.color.includes('88') ? '#00cc66' : scoreInfo.color.includes('35') ? '#e55a2b' : scoreInfo.color.includes('d700') ? '#ccaa00' : '#cc3333'} 100%)`
+                                            }}
+                                          />
+                                        </div>
+                                        <div className="flex items-center justify-between text-sm">
+                                          <span className="text-zinc-400">{metric.rating}</span>
+                                          <span className={`font-medium ${scoreInfo.color}`}>
+                                            {scoreInfo.label}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Simple score display fallback */}
+                          {(typeof arg.score === 'number' || typeof arg.score === 'string') && (
+                            <div className="mt-6 pt-4 border-t border-zinc-700">
+                              <div className="flex items-center justify-center">
+                                <div className="text-center">
+                                  <div className="flex items-center justify-center mb-2">
+                                    <CircularProgress
+                                      value={parseFloat(getArgumentScore(arg.score))}
+                                      size={60}
+                                      strokeWidth={6}
+                                      color={getScoreColor(getArgumentScore(arg.score)).includes('accent') ? '#00ff88' : getScoreColor(getArgumentScore(arg.score)).includes('primary') ? '#ff6b35' : '#ff4444'}
+                                    />
+                                  </div>
+                                  <div className="text-sm text-zinc-400">Overall Quality</div>
+                                </div>
                               </div>
                             </div>
                           )}

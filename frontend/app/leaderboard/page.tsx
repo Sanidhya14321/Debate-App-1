@@ -127,11 +127,7 @@ export default function LeaderboardPage() {
 
   return (
     <div className="min-h-screen bg-dark-gradient">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#ff6b35]/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#00ff88]/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
+      {/* Removed animated background elements for cleaner look */}
 
       <motion.div className="relative container mx-auto px-4 py-16 max-w-6xl">
         <motion.div
@@ -141,7 +137,7 @@ export default function LeaderboardPage() {
         >
           {/* Header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#ff6b35]/20 border border-[#ff6b35]/30 mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/30 border border-zinc-800/30 mb-6">
               <Trophy className="h-4 w-4 text-[#ff6b35]" />
               <span className="text-sm font-medium text-white">Hall of Fame</span>
               <Crown className="h-4 w-4 text-[#00ff88]" />
@@ -182,7 +178,7 @@ export default function LeaderboardPage() {
               <div className="text-sm text-muted-foreground">Best Streak</div>
             </Card>
             {/* Top Score (highlight, spans more space) */}
-            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-[#ff6b35]/20 border-[#ff6b35]/50">
+            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-zinc-900/30 border-zinc-800/50">
               <Trophy className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
               <div className="text-3xl font-bold text-white">{globalLeaders[0]?.score || 0}</div>
               <div className="text-sm text-muted-foreground">Top Score</div>

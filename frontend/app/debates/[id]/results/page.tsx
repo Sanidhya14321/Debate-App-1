@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Trophy, ArrowLeft, TrendingUp, Users, BarChart3, Target, Loader2 } from "lucide-react";
+import { Trophy, ArrowLeft, TrendingUp, Users, BarChart3, Target, Loader2, Brain, Lightbulb, MessageSquare, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { CircularProgress, SkillRadar } from "@/components/ui/circular-progress";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import {
@@ -24,30 +25,42 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
+    LineChart,
+    Line,
+    PieChart,
+    Pie,
+    Cell
 } from "recharts";
 
-// Enhanced type definitions
-interface ScoreMetric {
-    score: number;
-    rating: string;
+// Enhanced type definitions for new AI structure
+interface ScoreData {
+    coherence: number;
+    evidence: number;
+    logic: number;
+    persuasiveness: number;
 }
 
-interface UserScores {
-    sentiment: ScoreMetric;
-    clarity: ScoreMetric;
-    vocab_richness: ScoreMetric;
-    avg_word_len: ScoreMetric;
+interface AnalysisData {
+    strengths: string[];
+    weaknesses: string[];
+    feedback: string;
+    topicRelevance?: string;
+}
+
+interface ParticipantResult {
+    scores: ScoreData;
+    total: number;
+    argumentCount: number;
+    averageLength: number;
+    analysis?: AnalysisData;
 }
 
 interface Results {
+    results: Record<string, ParticipantResult>;
     winner: string;
-    users?: { A: { username?: string; email?: string }; B: { username?: string; email?: string } };
-    scores: { A: UserScores; B: UserScores } | Record<string, UserScores>;
-    coherence: ScoreMetric;
-    totals: { A: number; B: number } | Record<string, number>;
-    summary?: string;
-    analysisSource?: 'ml' | 'ai' | 'fallback';
-    finalizedAt?: string;
+    analysisSource: 'ai' | 'ai_enhanced' | 'basic';
+    finalizedAt: string;
+    topic?: string;
 }
 
 interface DebateData {
@@ -86,109 +99,83 @@ export default function DebateResultsPage() {
         fetchResultsCallback();
     }, [fetchResultsCallback]);
 
-    // Helper to get display name and handle both old (A/B) and new (username) structures
-    const getParticipants = () => {
-        if (!results) return [];
-        
-        // Check if we have the new structure with username keys
-        const scoreKeys = Object.keys(results.scores || {});
-        if (scoreKeys.length >= 2 && !scoreKeys.includes('A') && !scoreKeys.includes('B')) {
-            // New structure with actual usernames
-            return scoreKeys.slice(0, 2);
+    // Get participants from results
+    const getParticipants = (): string[] => {
+        if (!results?.results) return [];
+        return Object.keys(results.results);
+    };
+
+    // Get score color based on value
+    const getScoreColor = (score: number): string => {
+        if (score >= 85) return "text-green-600";
+        if (score >= 70) return "text-blue-600";
+        if (score >= 55) return "text-yellow-600";
+        return "text-red-600";
+    };
+
+    // Get analysis source color
+    const getAnalysisSourceColor = (source: string): string => {
+        switch (source) {
+            case 'ai_enhanced': return 'bg-blue-400';
+            case 'ai': return 'bg-green-400';
+            case 'basic': return 'bg-yellow-400';
+            default: return 'bg-gray-400';
         }
-        
-        // Old structure with A/B keys - use participants from debateData
-        if (debateData?.participants && debateData.participants.length >= 2) {
-            return debateData.participants.slice(0, 2);
+    };
+
+    // Get analysis source label
+    const getAnalysisSourceLabel = (source: string): string => {
+        switch (source) {
+            case 'ai_enhanced': return 'Enhanced AI Analysis';
+            case 'ai': return 'AI Analysis';
+            case 'basic': return 'Basic Analysis';
+            default: return 'Unknown';
         }
-        
-        // Fallback
-        return ['Participant A', 'Participant B'];
     };
 
-    const getName = (side: "A" | "B") => {
-        const participants = getParticipants();
-        const index = side === "A" ? 0 : 1;
-        return participants[index] || `Participant ${side}`;
+    // Render metric card with circular progress
+    const renderMetricCard = (title: string, score: number, icon: React.ReactNode, participant: string) => {
+        const participantData = results?.results[participant];
+        const analysis = participantData?.analysis;
+        
+        return (
+            <Card className="h-full border-0 bg-white/50 backdrop-blur-sm">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                        {icon}
+                        {title}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-center">
+                        <CircularProgress
+                            value={score}
+                            size={80}
+                            strokeWidth={6}
+                            color={score >= 80 ? "#22c55e" : score >= 60 ? "#3b82f6" : "#f59e0b"}
+                            label={title}
+                            showValue={true}
+                        />
+                    </div>
+                    <div className="text-center">
+                        <Badge variant={
+                            score >= 80 ? "default" :
+                            score >= 60 ? "secondary" : "destructive"
+                        }>
+                            {score >= 80 ? "Excellent" : score >= 60 ? "Good" : "Needs Work"}
+                        </Badge>
+                    </div>
+                </CardContent>
+            </Card>
+        );
     };
-
-    // Helper to get scores for a participant by side
-    const getScoresForSide = (side: "A" | "B") => {
-        if (!results?.scores) return null;
-        
-        const participants = getParticipants();
-        const participantName = participants[side === "A" ? 0 : 1];
-        
-        // Type guard to check if scores has string keys (new structure)
-        const scores = results.scores as Record<string, UserScores>;
-        
-        // Try new structure first (username keys)
-        if (scores[participantName]) {
-            return scores[participantName];
-        }
-        
-        // Fallback to old structure (A/B keys)
-        return scores[side];
-    };
-
-    // Helper to get totals for a participant by side
-    const getTotalForSide = (side: "A" | "B") => {
-        if (!results?.totals) return 0;
-        
-        const participants = getParticipants();
-        const participantName = participants[side === "A" ? 0 : 1];
-        
-        // Type guard to check if totals has string keys (new structure)
-        const totals = results.totals as Record<string, number>;
-        
-        // Try new structure first (username keys)
-        if (totals[participantName] !== undefined) {
-            return totals[participantName];
-        }
-        
-        // Fallback to old structure (A/B keys)
-        return totals[side] || 0;
-    };
-
-    const getWinnerColor = (side: "A" | "B") => {
-        if (!results) return "text-muted-foreground";
-        const participantName = getName(side);
-        const totalA = getTotalForSide("A");
-        const totalB = getTotalForSide("B");
-        
-        const isWinner = results.winner === participantName || 
-                        (side === "A" && totalA >= totalB) ||
-                        (side === "B" && totalB >= totalA);
-        return isWinner ? "text-yellow-500" : "text-muted-foreground";
-    };
-
-    const renderMetricCard = (title: string, metric: ScoreMetric, icon: React.ReactNode) => (
-        <Card className="h-full">
-            <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                    {icon}
-                    {title}
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-                <div className="text-2xl font-bold">{metric.score.toFixed(1)}%</div>
-                <Progress value={metric.score} className="h-2" />
-                <Badge variant={
-                    metric.score >= 80 ? "default" :
-                    metric.score >= 60 ? "secondary" : "destructive"
-                }>
-                    {metric.rating}
-                </Badge>
-            </CardContent>
-        </Card>
-    );
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center space-y-4">
-                    <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
-                    <p className="text-lg text-muted-foreground">Analyzing debate results...</p>
+                    <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#ff6b35]" />
+                    <p className="text-lg text-zinc-400">Analyzing debate results...</p>
                 </div>
             </div>
         );
@@ -196,15 +183,15 @@ export default function DebateResultsPage() {
 
     if (!results) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Card className="w-full max-w-md">
+            <div className="min-h-screen flex items-center justify-center bg-black">
+                <Card className="w-full max-w-md border-zinc-800/50 bg-zinc-900/30">
                     <CardContent className="text-center py-8">
-                        <BarChart3 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                        <h2 className="text-xl font-semibold mb-2">No Results Available</h2>
-                        <p className="text-muted-foreground mb-4">
+                        <BarChart3 className="w-16 h-16 mx-auto text-zinc-400 mb-4" />
+                        <h2 className="text-xl font-semibold mb-2 text-white">No Results Available</h2>
+                        <p className="text-zinc-400 mb-4">
                             The debate hasn&apos;t been finalized yet or results are still being processed.
                         </p>
-                        <Button onClick={() => router.push(`/debates/${id}`)}>
+                        <Button onClick={() => router.push(`/debates/${id}`)} className="bg-[#ff6b35] text-black hover:bg-[#ff6b35]/90">
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back to Debate
                         </Button>
@@ -214,44 +201,45 @@ export default function DebateResultsPage() {
         );
     }
 
-    // Prepare data for charts
+    const participants = getParticipants();
+    
+    // Prepare data for visualizations
     const radarData = [
         {
-            metric: "Clarity",
-            [getName("A")]: getScoresForSide("A")?.clarity?.score ?? 0,
-            [getName("B")]: getScoresForSide("B")?.clarity?.score ?? 0,
+            metric: "Coherence",
+            ...participants.reduce((acc, p) => ({ ...acc, [p]: results.results[p].scores.coherence }), {})
         },
         {
-            metric: "Sentiment",
-            [getName("A")]: getScoresForSide("A")?.sentiment?.score ?? 0,
-            [getName("B")]: getScoresForSide("B")?.sentiment?.score ?? 0,
+            metric: "Evidence",
+            ...participants.reduce((acc, p) => ({ ...acc, [p]: results.results[p].scores.evidence }), {})
         },
         {
-            metric: "Vocabulary",
-            [getName("A")]: getScoresForSide("A")?.vocab_richness?.score ?? 0,
-            [getName("B")]: getScoresForSide("B")?.vocab_richness?.score ?? 0,
+            metric: "Logic", 
+            ...participants.reduce((acc, p) => ({ ...acc, [p]: results.results[p].scores.logic }), {})
         },
         {
-            metric: "Word Length",
-            [getName("A")]: getScoresForSide("A")?.avg_word_len?.score ?? 0,
-            [getName("B")]: getScoresForSide("B")?.avg_word_len?.score ?? 0,
-        },
+            metric: "Persuasiveness",
+            ...participants.reduce((acc, p) => ({ ...acc, [p]: results.results[p].scores.persuasiveness }), {})
+        }
     ];
 
-    const barData = [
-        {
-            name: getName("A"),
-            score: getTotalForSide("A"),
-            fill: "#8884d8"
-        },
-        {
-            name: getName("B"),
-            score: getTotalForSide("B"),
-            fill: "#82ca9d"
-        }
-    ];    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-            <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+    const barData = participants.map((participant, index) => ({
+        name: participant,
+        score: results.results[participant].total,
+        fill: index === 0 ? "#8884d8" : "#82ca9d"
+    }));
+
+    const pieData = participants.map((participant, index) => ({
+        name: participant,
+        value: results.results[participant].total,
+        fill: index === 0 ? "#8884d8" : "#82ca9d"
+    }));
+
+    const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00'];
+
+    return (
+        <div className="min-h-screen bg-black">
+            <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
                 
                 {/* Header */}
                 <motion.div
@@ -259,29 +247,21 @@ export default function DebateResultsPage() {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                 >
-                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                        Debate Results
+                    <h1 className="text-4xl md:text-5xl font-bold text-white">
+                        🎯 Debate Analysis Results
                     </h1>
-                    {debateData && (
-                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                    {debateData?.topic && (
+                        <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
                             {debateData.topic}
                         </p>
                     )}
                     {/* Analysis Source Indicator */}
-                    {results?.analysisSource && (
-                        <div className="inline-flex items-center px-4 py-2 rounded-full border border-gray-600 bg-gray-800/50">
-                            <div className={`w-3 h-3 rounded-full mr-2 ${
-                                results.analysisSource === 'ml' ? 'bg-green-400' : 
-                                results.analysisSource === 'ai' ? 'bg-blue-400' : 'bg-yellow-400'
-                            }`}></div>
-                            <span className="text-sm text-gray-300">
-                                Analyzed using {
-                                    results.analysisSource === 'ml' ? 'Machine Learning' :
-                                    results.analysisSource === 'ai' ? 'AI Fallback' : 'Basic Scoring'
-                                }
-                            </span>
-                        </div>
-                    )}
+                    <div className="inline-flex items-center px-4 py-2 rounded-full bg-zinc-900/30 backdrop-blur-sm border border-zinc-800/40">
+                        <div className={`w-3 h-3 rounded-full mr-2 ${getAnalysisSourceColor(results.analysisSource)}`}></div>
+                        <span className="text-sm font-medium text-white">
+                            {getAnalysisSourceLabel(results.analysisSource)}
+                        </span>
+                    </div>
                 </motion.div>
 
                 {/* Winner Announcement */}
@@ -290,172 +270,256 @@ export default function DebateResultsPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <Card className="border-2 border-yellow-400 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20">
+                    <Card className="border-2 border-[#ffd700]/50 bg-zinc-900/30 backdrop-blur-sm">
                         <CardContent className="text-center py-8">
-                            <Trophy className="w-16 h-16 mx-auto text-yellow-500 mb-4" />
-                            <h2 className="text-3xl font-bold mb-2">
-                                🏆 Winner: <span className="text-yellow-600">{results.winner}</span>
+                            <Trophy className="w-16 h-16 mx-auto text-[#ffd700] mb-4" />
+                            <h2 className="text-3xl font-bold mb-4 text-white">
+                                🏆 Winner: <span className="text-[#ffd700]">{results.winner}</span>
                             </h2>
-                            <div className="flex justify-center gap-8 text-lg font-semibold mt-4">
-                                <div className={getWinnerColor("A")}>
-                                    {getName("A")}: {results.totals?.A?.toFixed(1) ?? "0.0"}%
-                                </div>
-                                <div className={getWinnerColor("B")}>
-                                    {getName("B")}: {results.totals?.B?.toFixed(1) ?? "0.0"}%
-                                </div>
+                            <div className="flex justify-center gap-8 text-lg font-semibold">
+                                {participants.map(participant => (
+                                    <div key={participant} className={
+                                        participant === results.winner ? "text-[#ffd700]" : "text-zinc-400"
+                                    }>
+                                        {participant}: {results.results[participant].total}%
+                                    </div>
+                                ))}
                             </div>
                         </CardContent>
                     </Card>
                 </motion.div>
 
-                {/* Charts Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Main Dashboard Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     
                     {/* Radar Chart */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3 }}
+                        className="xl:col-span-2"
                     >
-                        <Card className="h-[500px]">
+                        <Card className="h-[500px] border-0 bg-white/30 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Target className="w-5 h-5" />
-                                    Performance Comparison
+                                    Performance Radar
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="h-[400px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <RadarChart data={radarData}>
-                                        <PolarGrid />
-                                        <PolarAngleAxis dataKey="metric" />
-                                        <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                                        <Tooltip />
+                                        <PolarGrid gridType="polygon" />
+                                        <PolarAngleAxis dataKey="metric" className="text-sm font-medium" />
+                                        <PolarRadiusAxis angle={30} domain={[0, 100]} tickCount={5} />
+                                        <Tooltip 
+                                            contentStyle={{ 
+                                                backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                                                border: 'none', 
+                                                borderRadius: '8px',
+                                                backdropFilter: 'blur(10px)'
+                                            }}
+                                        />
                                         <Legend />
-                                        <Radar
-                                            name={getName("A")}
-                                            dataKey={getName("A")}
-                                            stroke="#8884d8"
-                                            fill="#8884d8"
-                                            fillOpacity={0.3}
-                                            strokeWidth={2}
-                                        />
-                                        <Radar
-                                            name={getName("B")}
-                                            dataKey={getName("B")}
-                                            stroke="#82ca9d"
-                                            fill="#82ca9d"
-                                            fillOpacity={0.3}
-                                            strokeWidth={2}
-                                        />
+                                        {participants.map((participant, index) => (
+                                            <Radar
+                                                key={participant}
+                                                name={participant}
+                                                dataKey={participant}
+                                                stroke={colors[index]}
+                                                fill={colors[index]}
+                                                fillOpacity={0.3}
+                                                strokeWidth={3}
+                                            />
+                                        ))}
                                     </RadarChart>
                                 </ResponsiveContainer>
                             </CardContent>
                         </Card>
                     </motion.div>
 
-                    {/* Bar Chart */}
+                    {/* Overall Scores Pie Chart */}
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.4 }}
                     >
-                        <Card className="h-[500px]">
+                        <Card className="h-[500px] border-0 bg-white/30 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <BarChart3 className="w-5 h-5" />
-                                    Final Scores
+                                    Score Distribution
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="h-[400px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={barData}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="name" />
-                                        <YAxis domain={[0, 100]} />
-                                        <Tooltip />
-                                        <Bar dataKey="score" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
+                                    <PieChart>
+                                        <Pie
+                                            data={pieData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={120}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                        >
+                                            {pieData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={colors[index]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip 
+                                            contentStyle={{ 
+                                                backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                                                border: 'none', 
+                                                borderRadius: '8px' 
+                                            }}
+                                        />
+                                        <Legend />
+                                    </PieChart>
                                 </ResponsiveContainer>
                             </CardContent>
                         </Card>
                     </motion.div>
                 </div>
 
-                {/* Detailed Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {(["A", "B"] as const).map((side, index) => (
-                        <motion.div
-                            key={side}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 + index * 0.1 }}
-                        >
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Users className="w-5 h-5" />
-                                        {getName(side)} - Performance Breakdown
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {renderMetricCard(
-                                            "Clarity",
-                                            getScoresForSide(side)?.clarity || { score: 0, rating: "Poor" },
-                                            <Target className="w-4 h-4" />
-                                        )}
-                                        {renderMetricCard(
-                                            "Sentiment",
-                                            getScoresForSide(side)?.sentiment || { score: 0, rating: "Poor" },
-                                            <TrendingUp className="w-4 h-4" />
-                                        )}
-                                        {renderMetricCard(
-                                            "Vocabulary",
-                                            getScoresForSide(side)?.vocab_richness || { score: 0, rating: "Poor" },
-                                            <BarChart3 className="w-4 h-4" />
-                                        )}
-                                        {renderMetricCard(
-                                            "Word Length",
-                                            getScoresForSide(side)?.avg_word_len || { score: 0, rating: "Poor" },
-                                            <Users className="w-4 h-4" />
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    ))}
-                </div>
-
-                {/* Coherence Score */}
-                {results.coherence && (
+                {/* Detailed Participant Analysis */}
+                {participants.map((participant, index) => (
                     <motion.div
+                        key={participant}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.7 }}
+                        transition={{ delay: 0.5 + index * 0.1 }}
                     >
-                        <Card>
+                        <Card className="border-0 bg-white/30 backdrop-blur-sm">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Target className="w-5 h-5" />
-                                    Debate Coherence
+                                <CardTitle className="flex items-center gap-3">
+                                    <div className={`w-4 h-4 rounded-full ${participant === results.winner ? 'bg-yellow-500' : 'bg-blue-500'}`}></div>
+                                    <Users className="w-5 h-5" />
+                                    {participant} - Detailed Analysis
+                                    {participant === results.winner && <Trophy className="w-5 h-5 text-yellow-500" />}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="text-2xl font-bold">{results.coherence.score.toFixed(1)}%</div>
-                                        <div className="text-muted-foreground">Overall debate quality</div>
+                                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                                    
+                                    {/* Metric Cards */}
+                                    <div className="lg:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {renderMetricCard(
+                                            "Coherence", 
+                                            results.results[participant].scores.coherence, 
+                                            <Brain className="w-4 h-4" />,
+                                            participant
+                                        )}
+                                        {renderMetricCard(
+                                            "Evidence", 
+                                            results.results[participant].scores.evidence, 
+                                            <Target className="w-4 h-4" />,
+                                            participant
+                                        )}
+                                        {renderMetricCard(
+                                            "Logic", 
+                                            results.results[participant].scores.logic, 
+                                            <Lightbulb className="w-4 h-4" />,
+                                            participant
+                                        )}
+                                        {renderMetricCard(
+                                            "Persuasiveness", 
+                                            results.results[participant].scores.persuasiveness, 
+                                            <MessageSquare className="w-4 h-4" />,
+                                            participant
+                                        )}
                                     </div>
-                                    <Badge variant={results.coherence.score >= 70 ? "default" : "secondary"}>
-                                        {results.coherence.rating}
-                                    </Badge>
+
+                                    {/* Overall Score */}
+                                    <div className="flex flex-col items-center justify-center">
+                                        <CircularProgress
+                                            value={results.results[participant].total}
+                                            size={120}
+                                            strokeWidth={8}
+                                            color={participant === results.winner ? "#eab308" : "#3b82f6"}
+                                        >
+                                            <div className="text-center">
+                                                <div className="text-3xl font-bold">
+                                                    {results.results[participant].total}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    Overall Score
+                                                </div>
+                                            </div>
+                                        </CircularProgress>
+                                    </div>
                                 </div>
-                                <Progress value={results.coherence.score} className="mt-4 h-3" />
+
+                                {/* Analysis Details */}
+                                {results.results[participant].analysis && (
+                                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Strengths */}
+                                        {results.results[participant].analysis.strengths.length > 0 && (
+                                            <Card className="border-0 bg-green-50/50 backdrop-blur-sm">
+                                                <CardHeader className="pb-3">
+                                                    <CardTitle className="text-sm text-green-700 flex items-center gap-2">
+                                                        <Star className="w-4 h-4" />
+                                                        Strengths
+                                                    </CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <ul className="space-y-1 text-sm">
+                                                        {results.results[participant].analysis.strengths.map((strength, idx) => (
+                                                            <li key={idx} className="flex items-start gap-2">
+                                                                <span className="text-green-500 mt-1">•</span>
+                                                                {strength}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+
+                                        {/* Areas for Improvement */}
+                                        {results.results[participant].analysis.weaknesses.length > 0 && (
+                                            <Card className="border-0 bg-orange-50/50 backdrop-blur-sm">
+                                                <CardHeader className="pb-3">
+                                                    <CardTitle className="text-sm text-orange-700 flex items-center gap-2">
+                                                        <TrendingUp className="w-4 h-4" />
+                                                        Areas for Improvement
+                                                    </CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <ul className="space-y-1 text-sm">
+                                                        {results.results[participant].analysis.weaknesses.map((weakness, idx) => (
+                                                            <li key={idx} className="flex items-start gap-2">
+                                                                <span className="text-orange-500 mt-1">•</span>
+                                                                {weakness}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Stats */}
+                                <div className="mt-4 flex justify-around text-center">
+                                    <div>
+                                        <div className="text-2xl font-bold">{results.results[participant].argumentCount}</div>
+                                        <div className="text-xs text-muted-foreground">Arguments</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-2xl font-bold">{results.results[participant].averageLength}</div>
+                                        <div className="text-xs text-muted-foreground">Avg Length</div>
+                                    </div>
+                                    {results.results[participant].analysis?.topicRelevance && (
+                                        <div>
+                                            <div className="text-2xl font-bold">{results.results[participant].analysis.topicRelevance}</div>
+                                            <div className="text-xs text-muted-foreground">Relevance</div>
+                                        </div>
+                                    )}
+                                </div>
                             </CardContent>
                         </Card>
                     </motion.div>
-                )}
+                ))}
 
                 {/* Action Buttons */}
                 <motion.div
@@ -464,11 +528,11 @@ export default function DebateResultsPage() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8 }}
                 >
-                    <Button onClick={() => router.push(`/debates/${id}`)} variant="outline" size="lg">
+                    <Button onClick={() => router.push(`/debates/${id}`)} variant="outline" size="lg" className="bg-white/30 backdrop-blur-sm">
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Debate
                     </Button>
-                    <Button onClick={() => router.push('/debates')} size="lg">
+                    <Button onClick={() => router.push('/debates')} size="lg" className="bg-white/30 backdrop-blur-sm">
                         New Debate
                     </Button>
                 </motion.div>
