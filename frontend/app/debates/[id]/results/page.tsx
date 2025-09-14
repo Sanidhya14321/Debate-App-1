@@ -135,7 +135,7 @@ export default function DebateResultsPage() {
 
     // Render metric card with circular progress
     const renderMetricCard = (title: string, score: number, icon: React.ReactNode, participant: string) => {
-        const participantData = results?.results[participant];
+        const participantData = results?.results?.[participant];
         const analysis = participantData?.analysis;
         
         return (
@@ -203,35 +203,63 @@ export default function DebateResultsPage() {
 
     const participants = getParticipants();
     
-    // Prepare data for visualizations
+    // Add safety check for results structure
+    if (!results?.results || typeof results.results !== 'object') {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-white mb-4">No Results Available</h2>
+                    <p className="text-zinc-400 mb-6">The debate results are not yet ready or could not be loaded.</p>
+                    <Button onClick={() => router.push(`/debates/${id}`)} className="bg-[#ff6b35] hover:bg-[#ff6b35]/80">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Debate
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+    
+    // Prepare data for visualizations with safety checks
     const radarData = [
         {
             metric: "Coherence",
-            ...participants.reduce((acc, p) => ({ ...acc, [p]: results.results[p].scores.coherence }), {})
+            ...participants.reduce((acc, p) => ({ 
+                ...acc, 
+                [p]: results?.results?.[p]?.scores?.coherence || 0 
+            }), {})
         },
         {
             metric: "Evidence",
-            ...participants.reduce((acc, p) => ({ ...acc, [p]: results.results[p].scores.evidence }), {})
+            ...participants.reduce((acc, p) => ({ 
+                ...acc, 
+                [p]: results?.results?.[p]?.scores?.evidence || 0 
+            }), {})
         },
         {
             metric: "Logic", 
-            ...participants.reduce((acc, p) => ({ ...acc, [p]: results.results[p].scores.logic }), {})
+            ...participants.reduce((acc, p) => ({ 
+                ...acc, 
+                [p]: results?.results?.[p]?.scores?.logic || 0 
+            }), {})
         },
         {
             metric: "Persuasiveness",
-            ...participants.reduce((acc, p) => ({ ...acc, [p]: results.results[p].scores.persuasiveness }), {})
+            ...participants.reduce((acc, p) => ({ 
+                ...acc, 
+                [p]: results?.results?.[p]?.scores?.persuasiveness || 0 
+            }), {})
         }
     ];
 
     const barData = participants.map((participant, index) => ({
         name: participant,
-        score: results.results[participant].total,
+        score: results?.results?.[participant]?.total || 0,
         fill: index === 0 ? "#8884d8" : "#82ca9d"
     }));
 
     const pieData = participants.map((participant, index) => ({
         name: participant,
-        value: results.results[participant].total,
+        value: results?.results?.[participant]?.total || 0,
         fill: index === 0 ? "#8884d8" : "#82ca9d"
     }));
 
@@ -279,9 +307,9 @@ export default function DebateResultsPage() {
                             <div className="flex justify-center gap-8 text-lg font-semibold">
                                 {participants.map(participant => (
                                     <div key={participant} className={
-                                        participant === results.winner ? "text-[#ffd700]" : "text-zinc-400"
+                                        participant === results?.winner ? "text-[#ffd700]" : "text-zinc-400"
                                     }>
-                                        {participant}: {results.results[participant].total}%
+                                        {participant}: {results?.results?.[participant]?.total || 0}%
                                     </div>
                                 ))}
                             </div>
@@ -393,10 +421,10 @@ export default function DebateResultsPage() {
                         <Card className="border-0 bg-white/30 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-3">
-                                    <div className={`w-4 h-4 rounded-full ${participant === results.winner ? 'bg-yellow-500' : 'bg-blue-500'}`}></div>
+                                    <div className={`w-4 h-4 rounded-full ${participant === results?.winner ? 'bg-yellow-500' : 'bg-blue-500'}`}></div>
                                     <Users className="w-5 h-5" />
                                     {participant} - Detailed Analysis
-                                    {participant === results.winner && <Trophy className="w-5 h-5 text-yellow-500" />}
+                                    {participant === results?.winner && <Trophy className="w-5 h-5 text-yellow-500" />}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -406,25 +434,25 @@ export default function DebateResultsPage() {
                                     <div className="lg:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                                         {renderMetricCard(
                                             "Coherence", 
-                                            results.results[participant].scores.coherence, 
+                                            results?.results?.[participant]?.scores?.coherence || 0, 
                                             <Brain className="w-4 h-4" />,
                                             participant
                                         )}
                                         {renderMetricCard(
                                             "Evidence", 
-                                            results.results[participant].scores.evidence, 
+                                            results?.results?.[participant]?.scores?.evidence || 0, 
                                             <Target className="w-4 h-4" />,
                                             participant
                                         )}
                                         {renderMetricCard(
                                             "Logic", 
-                                            results.results[participant].scores.logic, 
+                                            results?.results?.[participant]?.scores?.logic || 0, 
                                             <Lightbulb className="w-4 h-4" />,
                                             participant
                                         )}
                                         {renderMetricCard(
                                             "Persuasiveness", 
-                                            results.results[participant].scores.persuasiveness, 
+                                            results?.results?.[participant]?.scores?.persuasiveness || 0, 
                                             <MessageSquare className="w-4 h-4" />,
                                             participant
                                         )}
@@ -433,14 +461,14 @@ export default function DebateResultsPage() {
                                     {/* Overall Score */}
                                     <div className="flex flex-col items-center justify-center">
                                         <CircularProgress
-                                            value={results.results[participant].total}
+                                            value={results?.results?.[participant]?.total || 0}
                                             size={120}
                                             strokeWidth={8}
-                                            color={participant === results.winner ? "#eab308" : "#3b82f6"}
+                                            color={participant === results?.winner ? "#eab308" : "#3b82f6"}
                                         >
                                             <div className="text-center">
                                                 <div className="text-3xl font-bold">
-                                                    {results.results[participant].total}
+                                                    {results?.results?.[participant]?.total || 0}
                                                 </div>
                                                 <div className="text-xs text-muted-foreground">
                                                     Overall Score
@@ -451,10 +479,10 @@ export default function DebateResultsPage() {
                                 </div>
 
                                 {/* Analysis Details */}
-                                {results.results[participant].analysis && (
+                                {results?.results?.[participant]?.analysis && (
                                     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* Strengths */}
-                                        {results.results[participant].analysis.strengths.length > 0 && (
+                                        {results?.results?.[participant]?.analysis?.strengths?.length > 0 && (
                                             <Card className="border-0 bg-green-50/50 backdrop-blur-sm">
                                                 <CardHeader className="pb-3">
                                                     <CardTitle className="text-sm text-green-700 flex items-center gap-2">
@@ -464,19 +492,19 @@ export default function DebateResultsPage() {
                                                 </CardHeader>
                                                 <CardContent>
                                                     <ul className="space-y-1 text-sm">
-                                                        {results.results[participant].analysis.strengths.map((strength, idx) => (
+                                                        {results?.results?.[participant]?.analysis?.strengths?.map((strength, idx) => (
                                                             <li key={idx} className="flex items-start gap-2">
                                                                 <span className="text-green-500 mt-1">•</span>
                                                                 {strength}
                                                             </li>
-                                                        ))}
+                                                        )) || []}
                                                     </ul>
                                                 </CardContent>
                                             </Card>
                                         )}
 
                                         {/* Areas for Improvement */}
-                                        {results.results[participant].analysis.weaknesses.length > 0 && (
+                                        {results?.results?.[participant]?.analysis?.weaknesses?.length > 0 && (
                                             <Card className="border-0 bg-orange-50/50 backdrop-blur-sm">
                                                 <CardHeader className="pb-3">
                                                     <CardTitle className="text-sm text-orange-700 flex items-center gap-2">
@@ -486,7 +514,7 @@ export default function DebateResultsPage() {
                                                 </CardHeader>
                                                 <CardContent>
                                                     <ul className="space-y-1 text-sm">
-                                                        {results.results[participant].analysis.weaknesses.map((weakness, idx) => (
+                                                        {results?.results?.[participant]?.analysis?.weaknesses?.map((weakness, idx) => (
                                                             <li key={idx} className="flex items-start gap-2">
                                                                 <span className="text-orange-500 mt-1">•</span>
                                                                 {weakness}
@@ -502,16 +530,16 @@ export default function DebateResultsPage() {
                                 {/* Stats */}
                                 <div className="mt-4 flex justify-around text-center">
                                     <div>
-                                        <div className="text-2xl font-bold">{results.results[participant].argumentCount}</div>
+                                        <div className="text-2xl font-bold">{results?.results?.[participant]?.argumentCount || 0}</div>
                                         <div className="text-xs text-muted-foreground">Arguments</div>
                                     </div>
                                     <div>
-                                        <div className="text-2xl font-bold">{results.results[participant].averageLength}</div>
+                                        <div className="text-2xl font-bold">{results?.results?.[participant]?.averageLength || 0}</div>
                                         <div className="text-xs text-muted-foreground">Avg Length</div>
                                     </div>
-                                    {results.results[participant].analysis?.topicRelevance && (
+                                    {results?.results?.[participant]?.analysis?.topicRelevance && (
                                         <div>
-                                            <div className="text-2xl font-bold">{results.results[participant].analysis.topicRelevance}</div>
+                                            <div className="text-2xl font-bold">{results?.results?.[participant]?.analysis?.topicRelevance}</div>
                                             <div className="text-xs text-muted-foreground">Relevance</div>
                                         </div>
                                     )}
