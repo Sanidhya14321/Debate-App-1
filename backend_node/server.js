@@ -35,8 +35,14 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: [
+      process.env.CORS_ORIGIN,
+      "http://localhost:3000",
+      "https://debate-app-1.vercel.app",
+      "https://debate-app-1-git-main-sanidhya14321.vercel.app"
+    ].filter(Boolean),
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -54,9 +60,29 @@ app.use(helmet({
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      process.env.CORS_ORIGIN,
+      "http://localhost:3000",
+      "https://debate-app-1.vercel.app",
+      "https://debate-app-1-git-main-sanidhya14321.vercel.app"
+    ].filter(Boolean);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  preflightContinue: false
 };
 
 app.use(cors(corsOptions));
