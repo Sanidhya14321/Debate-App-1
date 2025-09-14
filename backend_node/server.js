@@ -24,11 +24,12 @@ import { initializeDefaultAchievements } from "./controllers/achievementControll
 import errorHandler from "./middleware/errorHandler.js";
 import { generalLimiter } from "./middleware/rateLimiter.js";
 
-dotenv.config();
-
-// polyfill for __dirname when using ESM
+// Get current directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load .env from the backend_node directory
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const server = createServer(app);
@@ -67,7 +68,12 @@ app.use(morgan("dev"));
 app.use(generalLimiter);
 
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://mongo:27017/debateDB";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/debateDB";
+
+console.log('🔍 Environment check:');
+console.log('PORT:', PORT);
+console.log('MONGODB_URI:', MONGODB_URI);
+console.log('NODE_ENV:', process.env.NODE_ENV);
 
 connectDB(MONGODB_URI).then(async () => {
   // Initialize default achievements

@@ -6,11 +6,6 @@ import User from "../models/User.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-// Health check endpoint
-export const healthCheck = async (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'Debate service is running' });
-};
-
 // Create a private debate
 export const createPrivateDebate = async (req, res) => {
   const { topic } = req.body;
