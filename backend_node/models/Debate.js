@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 const debateSchema = new mongoose.Schema({
   topic: String,
+  description: String,
   status: { type: String, default: "waiting" },
   isPrivate: { type: Boolean, default: false },
   inviteCode: String,

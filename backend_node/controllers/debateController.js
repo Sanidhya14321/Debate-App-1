@@ -3,6 +3,7 @@ import axios from "axios";
 import Debate from "../models/Debate.js";
 import Result from "../models/Result.js";
 import User from "../models/User.js";
+import geminiService from "../services/geminiService.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -13,11 +14,34 @@ export const healthCheck = async (req, res) => {
 
 // Create a private debate
 export const createPrivateDebate = async (req, res) => {
-  const { topic } = req.body;
+  const { topic, description } = req.body;
   if (!topic) return res.status(400).json({ message: "Topic required" });
+  
   try {
+    let finalDescription = description;
+    
+    // Generate description using Gemini AI if not provided
+    if (!description && geminiService.isAvailable()) {
+      try {
+        console.log('🤖 Generating description using Gemini AI for private debate topic:', topic);
+        finalDescription = await geminiService.generateDebateDescription(topic);
+        console.log('✅ Generated description for private debate:', finalDescription);
+      } catch (err) {
+        console.warn('⚠️ Failed to generate description with Gemini:', err.message);
+        finalDescription = `Join the private debate about ${topic} and share your perspective on this important topic.`;
+      }
+    } else if (!description) {
+      finalDescription = `Join the private debate about ${topic} and share your perspective on this important topic.`;
+    }
+
     const inviteCode = Math.random().toString(36).substring(2, 8);
-    const debateData = { topic, isPrivate: true, inviteCode, joinedUsers: [req.user.id] };
+    const debateData = { 
+      topic, 
+      description: finalDescription,
+      isPrivate: true, 
+      inviteCode, 
+      joinedUsers: [req.user.id] 
+    };
     const debate = await Debate.create(debateData);
     res.status(201).json({ id: debate._id, inviteCode });
   } catch (err) {
@@ -54,8 +78,29 @@ export const joinPrivateDebate = async (req, res) => {
 // Create public debate
 export const createDebate = async (req, res) => {
   try {
-    const { topic, isPrivate = false } = req.body;
-    const debateData = { topic, isPrivate, joinedUsers: [req.user.id] };
+    const { topic, description, isPrivate = false } = req.body;
+    let finalDescription = description;
+    
+    // Generate description using Gemini AI if not provided
+    if (!description && geminiService.isAvailable()) {
+      try {
+        console.log('🤖 Generating description using Gemini AI for topic:', topic);
+        finalDescription = await geminiService.generateDebateDescription(topic);
+        console.log('✅ Generated description:', finalDescription);
+      } catch (err) {
+        console.warn('⚠️ Failed to generate description with Gemini:', err.message);
+        finalDescription = `Join the debate about ${topic} and share your perspective on this important topic.`;
+      }
+    } else if (!description) {
+      finalDescription = `Join the debate about ${topic} and share your perspective on this important topic.`;
+    }
+
+    const debateData = { 
+      topic, 
+      description: finalDescription,
+      isPrivate, 
+      joinedUsers: [req.user.id] 
+    };
     
     const debate = await Debate.create(debateData);
     res.status(201).json(debate);
@@ -368,6 +413,12 @@ export const finalizeDebate = async (req, res) => {
 // Request finalization (for mutual approval)
 export const requestFinalization = async (req, res) => {
   try {
+    console.log('🔍 Request finalization debug:', {
+      userId: req.user?.id,
+      username: req.user?.username,
+      hasUser: !!req.user
+    });
+
     const debateId = req.params.id;
     const debate = await Debate.findById(debateId).populate("joinedUsers", "username");
 
@@ -387,9 +438,11 @@ export const requestFinalization = async (req, res) => {
       debate.finalizationRequests = [];
     }
 
+    console.log('🔍 Existing finalization requests:', debate.finalizationRequests.length);
+
     // Check if user already requested
     const existingRequest = debate.finalizationRequests.find(
-      req => req.userId.toString() === req.user.id
+      request => request.userId.toString() === req.user.id
     );
 
     if (existingRequest) {
@@ -513,21 +566,43 @@ async function storeResultsInProfiles(debateId, participants, analysisResult) {
 
 // AI Analysis function
 async function performAIAnalysis(argumentsArray, topic) {
-  console.log('🤖 Performing AI analysis for topic:', topic);
+  console.log('🤖 Performing Gemini AI analysis for topic:', topic);
+  
+  // Use Gemini AI service if available
+  if (geminiService.isAvailable()) {
+    try {
+      console.log('🤖 Using Gemini AI for debate analysis...');
+      const analysisResult = await geminiService.analyzeDebate(argumentsArray, topic);
+      console.log('✅ Gemini AI analysis completed successfully');
+      return analysisResult;
+    } catch (error) {
+      console.error('❌ Gemini AI analysis failed:', error);
+      console.log('🔄 Falling back to enhanced local analysis...');
+      return performEnhancedAnalysis(argumentsArray, topic);
+    }
+  } else {
+    console.warn('⚠️ Gemini AI service not available, using enhanced local analysis');
+    return performEnhancedAnalysis(argumentsArray, topic);
+  }
+}
+
+// Enhanced local analysis as fallback
+function performEnhancedAnalysis(argumentsArray, topic) {
+  console.log('🔄 Performing enhanced local analysis for topic:', topic);
   
   // Group arguments by username
   const usernames = [...new Set(argumentsArray.map(arg => arg.username))];
   const results = {
     results: {},
     winner: null,
-    analysisSource: 'ai',
+    analysisSource: 'enhanced_local',
     finalizedAt: new Date()
   };
 
   // Analyze each participant's arguments
   for (const username of usernames) {
     const userArgs = argumentsArray.filter(arg => arg.username === username);
-    const analysisResult = await analyzeUserArguments(userArgs, topic);
+    const analysisResult = analyzeUserArgumentsEnhanced(userArgs, topic);
     results.results[username] = analysisResult;
   }
 
@@ -544,11 +619,11 @@ async function performAIAnalysis(argumentsArray, topic) {
   return results;
 }
 
-// Analyze individual user arguments with AI
-async function analyzeUserArguments(userArgs, topic) {
+// Analyze individual user arguments with enhanced local analysis
+function analyzeUserArgumentsEnhanced(userArgs, topic) {
   const argTexts = userArgs.map(arg => arg.content).join(' ');
   
-  // Enhanced AI analysis
+  // Enhanced local analysis
   const coherenceScore = calculateCoherence(argTexts);
   const evidenceScore = calculateEvidence(argTexts);
   const logicScore = calculateLogic(argTexts);
