@@ -197,14 +197,23 @@ export const addArgument = async (req, res) => {
     
     const addedArgument = populatedDebate.arguments[populatedDebate.arguments.length - 1];
 
-    res.status(201).json({
+    const argumentData = {
       id: addedArgument._id,
       content: addedArgument.content,
       score: addedArgument.score,
       username: addedArgument.user?.username || "Unknown",
       color: addedArgument.user?.color || "#333",
       createdAt: addedArgument.createdAt,
-    });
+    };
+
+    // Broadcast new argument to all users in the debate room via Socket.IO
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`debate-${req.params.id}`).emit('argument-added', argumentData);
+      console.log(`📢 Broadcasting new argument from ${argumentData.username} to debate-${req.params.id}`);
+    }
+
+    res.status(201).json(argumentData);
   } catch (err) {
     console.error("[add argument]", err.message);
     res.status(500).json({ message: "Failed to add argument" });
@@ -260,15 +269,18 @@ export const finalizeDebate = async (req, res) => {
       return res.status(400).json({ error: "Debate requires at least two users to finalize." });
     }
 
-    // Check if this is a force finalization (from socket approval) or requires approval
-    const { forceFinalize } = req.body;
+    // Check if this is a force finalization (both users approved) or single user request
+    const { forceFinalize, approvedBy } = req.body;
     
-    if (debate.participants && debate.participants.length > 1 && !forceFinalize) {
+    if (!forceFinalize && debate.joinedUsers.length > 1) {
+      // Multiple participants - require mutual approval via Socket.IO
       return res.status(400).json({ 
-        error: "Multiple participants detected. Use socket events for mutual approval.",
+        error: "Multiple participants detected. Both users must approve finalization.",
         requiresApproval: true 
       });
     }
+
+    console.log(`🏆 Finalizing debate ${debateId} with force: ${forceFinalize}`);
 
     // Prepare arguments for AI analysis with proper user data
     const argumentsForAnalysis = debate.arguments.map(arg => ({
@@ -311,16 +323,28 @@ export const finalizeDebate = async (req, res) => {
     // Update debate status and save result
     debate.status = 'completed';
     debate.result = analysisResult;
+    debate.finalizedAt = new Date();
     await debate.save();
 
+    // Store results in participants' profiles
+    try {
+      await storeResultsInProfiles(debate._id, debate.joinedUsers, analysisResult);
+      console.log('✅ Results stored in user profiles');
+    } catch (profileErr) {
+      console.warn('⚠️ Failed to store results in profiles:', profileErr.message);
+    }
+
     // Broadcast results via socket
-    if (io && io.getIO) {
-      io.getIO().to(`debate_${debateId}`).emit('debateFinalized', {
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`debate-${debateId}`).emit('debate-finalized', {
         debateId: debateId,
         results: analysisResult,
         analysisSource,
-        winner: analysisResult.winner
+        winner: analysisResult.winner,
+        finalizedAt: debate.finalizedAt
       });
+      console.log(`📢 Broadcasting finalization to debate-${debateId}`);
     }
 
     console.log('🎉 Debate finalized successfully using AI analysis');
@@ -328,7 +352,8 @@ export const finalizeDebate = async (req, res) => {
       message: "Debate finalized successfully",
       results: analysisResult,
       analysisSource,
-      winner: analysisResult.winner
+      winner: analysisResult.winner,
+      finalizedAt: debate.finalizedAt
     });
 
   } catch (error) {
@@ -339,6 +364,152 @@ export const finalizeDebate = async (req, res) => {
     });
   }
 };
+
+// Request finalization (for mutual approval)
+export const requestFinalization = async (req, res) => {
+  try {
+    const debateId = req.params.id;
+    const debate = await Debate.findById(debateId).populate("joinedUsers", "username");
+
+    if (!debate) return res.status(404).json({ error: "Debate not found" });
+    
+    // Check if user is participant
+    if (!debate.joinedUsers.some(user => user._id.toString() === req.user.id)) {
+      return res.status(403).json({ error: "You are not a participant in this debate" });
+    }
+
+    if (debate.status === "completed") {
+      return res.status(400).json({ error: "Debate is already finalized" });
+    }
+
+    // Initialize finalization requests if not exists
+    if (!debate.finalizationRequests) {
+      debate.finalizationRequests = [];
+    }
+
+    // Check if user already requested
+    const existingRequest = debate.finalizationRequests.find(
+      req => req.userId.toString() === req.user.id
+    );
+
+    if (existingRequest) {
+      return res.status(400).json({ error: "You have already requested finalization" });
+    }
+
+    // Add finalization request
+    debate.finalizationRequests.push({
+      userId: req.user.id,
+      username: req.user.username,
+      requestedAt: new Date()
+    });
+
+    await debate.save();
+
+    // Broadcast finalization request via Socket.IO
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`debate-${debateId}`).emit('finalization-requested', {
+        requestedBy: req.user.username,
+        userId: req.user.id,
+        timestamp: new Date().toISOString(),
+        totalRequests: debate.finalizationRequests.length,
+        requiredApprovals: debate.joinedUsers.length
+      });
+    }
+
+    // Check if all participants have requested finalization
+    if (debate.finalizationRequests.length >= debate.joinedUsers.length) {
+      // All users approved - trigger automatic finalization
+      console.log(`🎯 All users approved finalization for debate ${debateId}`);
+      
+      // Call finalization with force flag
+      req.body.forceFinalize = true;
+      req.body.approvedBy = debate.finalizationRequests.map(r => r.username);
+      return finalizeDebate(req, res);
+    }
+
+    res.json({
+      message: "Finalization requested successfully",
+      pendingApprovals: debate.joinedUsers.length - debate.finalizationRequests.length,
+      requestedBy: debate.finalizationRequests.map(r => r.username)
+    });
+
+  } catch (error) {
+    console.error('❌ Request finalization failed:', error);
+    res.status(500).json({ 
+      error: "Failed to request finalization", 
+      details: error.message 
+    });
+  }
+};
+
+// Store results in user profiles
+async function storeResultsInProfiles(debateId, participants, analysisResult) {
+  try {
+    for (const participant of participants) {
+      const userId = participant._id || participant;
+      const username = participant.username;
+      
+      // Find opponent
+      const opponent = participants.find(p => 
+        (p._id || p).toString() !== userId.toString()
+      );
+      
+      // Determine result for this user
+      const userScore = analysisResult.results[username]?.total || 0;
+      const isWinner = analysisResult.winner === username;
+      let result = 'lost';
+      
+      if (isWinner) {
+        result = 'won';
+      } else {
+        // Check for draws (very close scores)
+        const scores = Object.values(analysisResult.results).map(r => r.total);
+        const maxScore = Math.max(...scores);
+        const minScore = Math.min(...scores);
+        if (maxScore - minScore <= 5) {
+          result = 'draw';
+        }
+      }
+
+      // Update user document
+      await User.findByIdAndUpdate(userId, {
+        $push: {
+          recentDebates: {
+            $each: [{
+              debateId: debateId,
+              topic: analysisResult.topic || 'Unknown Topic',
+              result: result,
+              score: userScore,
+              participatedAt: new Date(),
+              opponent: opponent?.username || 'Unknown',
+              analysisSource: analysisResult.analysisSource || 'ai'
+            }],
+            $slice: -10 // Keep only last 10 debates
+          }
+        },
+        $inc: {
+          'stats.totalDebates': 1,
+          [`stats.${result === 'won' ? 'wins' : result === 'lost' ? 'losses' : 'draws'}`]: 1
+        }
+      });
+
+      // Update average score
+      const user = await User.findById(userId);
+      if (user && user.stats.totalDebates > 0) {
+        const totalScore = user.recentDebates.reduce((sum, debate) => sum + debate.score, 0);
+        const averageScore = totalScore / user.recentDebates.length;
+        
+        await User.findByIdAndUpdate(userId, {
+          'stats.averageScore': Math.round(averageScore * 100) / 100
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error storing results in profiles:', error);
+    throw error;
+  }
+}
 
 // AI Analysis function
 async function performAIAnalysis(argumentsArray, topic) {

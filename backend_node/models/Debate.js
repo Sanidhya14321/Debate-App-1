@@ -9,6 +9,7 @@ const debateSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   joinedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   startedAt: Date,
+  finalizedAt: Date,
   maxUsers: { type: Number, default: 2 },
 
   arguments: [
@@ -19,6 +20,12 @@ const debateSchema = new mongoose.Schema({
       createdAt: { type: Date, default: Date.now }
     }
   ],
+
+  finalizationRequests: [{
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    username: String,
+    requestedAt: { type: Date, default: Date.now }
+  }],
 
   result: { type: Object } // optional: store ML results
 });

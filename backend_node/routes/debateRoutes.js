@@ -22,6 +22,7 @@ import {
   addArgument,
   getArguments,
   finalizeDebate,
+  requestFinalization,
   getResults
 } from "../controllers/debateController.js";
 
@@ -48,6 +49,7 @@ router.post("/:id/arguments", authMiddleware, argumentLimiter, validateAddArgume
 router.get("/:id/arguments", validateDebateId, getArguments);
 
 // Finalize & results (using AI analysis)
+router.post("/:id/request-finalization", authMiddleware, argumentLimiter, validateDebateId, requestFinalization);
 router.post("/:id/finalize", authMiddleware, argumentLimiter, validateDebateId, finalizeDebate);
 router.get("/:id/results", validateDebateId, getResults);
 
