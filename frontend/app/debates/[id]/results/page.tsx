@@ -42,9 +42,9 @@ interface UserScores {
 interface Results {
     winner: string;
     users?: { A: { username?: string; email?: string }; B: { username?: string; email?: string } };
-    scores: { A: UserScores; B: UserScores };
+    scores: { A: UserScores; B: UserScores } | Record<string, UserScores>;
     coherence: ScoreMetric;
-    totals: { A: number; B: number };
+    totals: { A: number; B: number } | Record<string, number>;
     summary?: string;
     analysisSource?: 'ml' | 'ai' | 'fallback';
     finalizedAt?: string;
@@ -86,23 +86,79 @@ export default function DebateResultsPage() {
         fetchResultsCallback();
     }, [fetchResultsCallback]);
 
-    // Helper to get display name
+    // Helper to get display name and handle both old (A/B) and new (username) structures
+    const getParticipants = () => {
+        if (!results) return [];
+        
+        // Check if we have the new structure with username keys
+        const scoreKeys = Object.keys(results.scores || {});
+        if (scoreKeys.length >= 2 && !scoreKeys.includes('A') && !scoreKeys.includes('B')) {
+            // New structure with actual usernames
+            return scoreKeys.slice(0, 2);
+        }
+        
+        // Old structure with A/B keys - use participants from debateData
+        if (debateData?.participants && debateData.participants.length >= 2) {
+            return debateData.participants.slice(0, 2);
+        }
+        
+        // Fallback
+        return ['Participant A', 'Participant B'];
+    };
+
     const getName = (side: "A" | "B") => {
-        if (results?.users?.[side]) {
-            return results.users[side].username || results.users[side].email || `Participant ${side}`;
+        const participants = getParticipants();
+        const index = side === "A" ? 0 : 1;
+        return participants[index] || `Participant ${side}`;
+    };
+
+    // Helper to get scores for a participant by side
+    const getScoresForSide = (side: "A" | "B") => {
+        if (!results?.scores) return null;
+        
+        const participants = getParticipants();
+        const participantName = participants[side === "A" ? 0 : 1];
+        
+        // Type guard to check if scores has string keys (new structure)
+        const scores = results.scores as Record<string, UserScores>;
+        
+        // Try new structure first (username keys)
+        if (scores[participantName]) {
+            return scores[participantName];
         }
-        if (debateData?.participants) {
-            const index = side === "A" ? 0 : 1;
-            return debateData.participants[index] || `Participant ${side}`;
+        
+        // Fallback to old structure (A/B keys)
+        return scores[side];
+    };
+
+    // Helper to get totals for a participant by side
+    const getTotalForSide = (side: "A" | "B") => {
+        if (!results?.totals) return 0;
+        
+        const participants = getParticipants();
+        const participantName = participants[side === "A" ? 0 : 1];
+        
+        // Type guard to check if totals has string keys (new structure)
+        const totals = results.totals as Record<string, number>;
+        
+        // Try new structure first (username keys)
+        if (totals[participantName] !== undefined) {
+            return totals[participantName];
         }
-        return `Participant ${side}`;
+        
+        // Fallback to old structure (A/B keys)
+        return totals[side] || 0;
     };
 
     const getWinnerColor = (side: "A" | "B") => {
         if (!results) return "text-muted-foreground";
-        const isWinner = results.winner === getName(side) || 
-                        results.winner === side ||
-                        (results.totals[side] > results.totals[side === "A" ? "B" : "A"]);
+        const participantName = getName(side);
+        const totalA = getTotalForSide("A");
+        const totalB = getTotalForSide("B");
+        
+        const isWinner = results.winner === participantName || 
+                        (side === "A" && totalA >= totalB) ||
+                        (side === "B" && totalB >= totalA);
         return isWinner ? "text-yellow-500" : "text-muted-foreground";
     };
 
@@ -162,40 +218,38 @@ export default function DebateResultsPage() {
     const radarData = [
         {
             metric: "Clarity",
-            [getName("A")]: results.scores?.A?.clarity?.score ?? 0,
-            [getName("B")]: results.scores?.B?.clarity?.score ?? 0,
+            [getName("A")]: getScoresForSide("A")?.clarity?.score ?? 0,
+            [getName("B")]: getScoresForSide("B")?.clarity?.score ?? 0,
         },
         {
             metric: "Sentiment",
-            [getName("A")]: results.scores?.A?.sentiment?.score ?? 0,
-            [getName("B")]: results.scores?.B?.sentiment?.score ?? 0,
+            [getName("A")]: getScoresForSide("A")?.sentiment?.score ?? 0,
+            [getName("B")]: getScoresForSide("B")?.sentiment?.score ?? 0,
         },
         {
             metric: "Vocabulary",
-            [getName("A")]: results.scores?.A?.vocab_richness?.score ?? 0,
-            [getName("B")]: results.scores?.B?.vocab_richness?.score ?? 0,
+            [getName("A")]: getScoresForSide("A")?.vocab_richness?.score ?? 0,
+            [getName("B")]: getScoresForSide("B")?.vocab_richness?.score ?? 0,
         },
         {
             metric: "Word Length",
-            [getName("A")]: results.scores?.A?.avg_word_len?.score ?? 0,
-            [getName("B")]: results.scores?.B?.avg_word_len?.score ?? 0,
+            [getName("A")]: getScoresForSide("A")?.avg_word_len?.score ?? 0,
+            [getName("B")]: getScoresForSide("B")?.avg_word_len?.score ?? 0,
         },
     ];
 
     const barData = [
         {
             name: getName("A"),
-            score: results.totals?.A ?? 0,
+            score: getTotalForSide("A"),
             fill: "#8884d8"
         },
         {
-            name: getName("B"), 
-            score: results.totals?.B ?? 0,
+            name: getName("B"),
+            score: getTotalForSide("B"),
             fill: "#82ca9d"
         }
-    ];
-
-    return (
+    ];    return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
             <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
                 
@@ -348,22 +402,22 @@ export default function DebateResultsPage() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {renderMetricCard(
                                             "Clarity",
-                                            results.scores?.[side]?.clarity || { score: 0, rating: "Poor" },
+                                            getScoresForSide(side)?.clarity || { score: 0, rating: "Poor" },
                                             <Target className="w-4 h-4" />
                                         )}
                                         {renderMetricCard(
                                             "Sentiment",
-                                            results.scores?.[side]?.sentiment || { score: 0, rating: "Poor" },
+                                            getScoresForSide(side)?.sentiment || { score: 0, rating: "Poor" },
                                             <TrendingUp className="w-4 h-4" />
                                         )}
                                         {renderMetricCard(
                                             "Vocabulary",
-                                            results.scores?.[side]?.vocab_richness || { score: 0, rating: "Poor" },
+                                            getScoresForSide(side)?.vocab_richness || { score: 0, rating: "Poor" },
                                             <BarChart3 className="w-4 h-4" />
                                         )}
                                         {renderMetricCard(
                                             "Word Length",
-                                            results.scores?.[side]?.avg_word_len || { score: 0, rating: "Poor" },
+                                            getScoresForSide(side)?.avg_word_len || { score: 0, rating: "Poor" },
                                             <Users className="w-4 h-4" />
                                         )}
                                     </div>
