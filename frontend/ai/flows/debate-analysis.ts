@@ -133,25 +133,57 @@ const debateAnalysisFlow = ai.defineFlow(
 
     // 🔄 Step 3: Basic fallback scoring
     console.log('📊 Using basic fallback scoring');
-    const basicScores = input.arguments.map((arg, index) => ({
-      participant: arg.username,
-      scores: {
-        sentiment: 70 + Math.random() * 20, // 70-90
-        clarity: 65 + Math.random() * 25,   // 65-90
-        vocabularyRichness: 60 + Math.random() * 30, // 60-90
-        averageWordLength: 70 + Math.random() * 20,  // 70-90
-        coherence: 75 + Math.random() * 15  // 75-90
-      },
-      weightedTotal: 70 + index * 5 + Math.random() * 15 // Simple variation
-    }));
+    
+    // Generate participant scores in the expected format
+    const participantScores: Record<string, any> = {};
+    const totals: Record<string, number> = {};
+    
+    input.arguments.forEach((arg, index) => {
+      const sentimentScore = 70 + Math.random() * 20; // 70-90
+      const clarityScore = 65 + Math.random() * 25;   // 65-90
+      const vocabScore = 60 + Math.random() * 30;     // 60-90
+      const wordLenScore = 70 + Math.random() * 20;   // 70-90
+      
+      // Calculate weighted total (matching expected weights)
+      const weightedTotal = (clarityScore * 0.3) + (sentimentScore * 0.3) + 
+                           (vocabScore * 0.2) + (wordLenScore * 0.1) + 
+                           (75 * 0.1); // coherence baseline
+      
+      participantScores[arg.username] = {
+        sentiment: {
+          score: sentimentScore,
+          rating: sentimentScore >= 80 ? "Excellent" : sentimentScore >= 60 ? "Good" : "Poor"
+        },
+        clarity: {
+          score: clarityScore,
+          rating: clarityScore >= 80 ? "Excellent" : clarityScore >= 60 ? "Good" : "Poor"
+        },
+        vocab_richness: {
+          score: vocabScore,
+          rating: vocabScore >= 80 ? "Excellent" : vocabScore >= 60 ? "Good" : "Poor"
+        },
+        avg_word_len: {
+          score: wordLenScore,
+          rating: wordLenScore >= 80 ? "Excellent" : wordLenScore >= 60 ? "Good" : "Poor"
+        }
+      };
+      
+      totals[arg.username] = weightedTotal;
+    });
 
-    const winner = basicScores.reduce((prev, current) => 
-      current.weightedTotal > prev.weightedTotal ? current : prev
-    );
+    // Determine winner
+    const winner = Object.entries(totals).reduce((prev, current) => 
+      current[1] > prev[1] ? current : prev
+    )[0];
 
     return {
-      winner: winner.participant,
-      detailedScores: basicScores,
+      winner,
+      scores: participantScores,
+      totals,
+      coherence: {
+        score: 75 + Math.random() * 15, // 75-90
+        rating: "Good"
+      },
       analysisSource: 'fallback'
     };
   }

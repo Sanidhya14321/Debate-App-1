@@ -169,6 +169,34 @@ export const setupSocketHandlers = (io) => {
       });
     });
     
+    // Finalization request handling
+    socket.on('request-finalization', (debateId) => {
+      console.log(`🏆 Finalization requested by ${socket.username} for debate ${debateId}`);
+      socket.to(`debate-${debateId}`).emit('finalization-requested', {
+        requestedBy: socket.username,
+        userId: socket.userId,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    socket.on('approve-finalization', (debateId) => {
+      console.log(`✅ Finalization approved by ${socket.username} for debate ${debateId}`);
+      io.to(`debate-${debateId}`).emit('finalization-approved', {
+        approvedBy: socket.username,
+        userId: socket.userId,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    socket.on('reject-finalization', (debateId) => {
+      console.log(`❌ Finalization rejected by ${socket.username} for debate ${debateId}`);
+      io.to(`debate-${debateId}`).emit('finalization-rejected', {
+        rejectedBy: socket.username,
+        userId: socket.userId,
+        timestamp: new Date().toISOString()
+      });
+    });
+    
     // Handle disconnection
     socket.on('disconnect', () => {
       console.log(`🔌 User ${socket.username} disconnected`);

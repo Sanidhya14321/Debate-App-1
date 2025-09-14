@@ -157,11 +157,15 @@ export default function DebateRoomPage() {
 
       socketManager.onFinalizationRequested((data: unknown) => {
         const finData = data as FinalizationEventData;
+        console.log("📨 Finalization request received:", finData);
         if (finData.requestedBy !== user?.username) {
           setFinalizationRequested(true);
           setFinalizationRequestedBy(finData.requestedBy);
           setShowFinalizationDialog(true);
           toast.info(`${finData.requestedBy} wants to finalize the debate`);
+          console.log("✅ Showing finalization dialog for:", finData.requestedBy);
+        } else {
+          console.log("🔄 Ignoring own finalization request");
         }
       });
 
@@ -280,14 +284,22 @@ export default function DebateRoomPage() {
 
     if (args.length < 2) return toast.error("Cannot finalize: At least 2 arguments required");
 
+    console.log("🔍 Finalize debug:", {
+      debateParticipants: debate.participants,
+      participantCount: debate.participants?.length,
+      hasMultipleParticipants: debate.participants && debate.participants.length > 1
+    });
+
     // Check if there are multiple participants
     if (debate.participants && debate.participants.length > 1) {
       // Request finalization from other participants
+      console.log("📤 Sending finalization request via socket to other participants");
       socketManager.requestFinalization(id);
       toast.info("Finalization request sent to other participants");
       return;
     }
 
+    console.log("🚀 Proceeding with direct finalization (single participant)");
     // Single participant or no socket - proceed with direct finalization
     setLoading(true);
     try {

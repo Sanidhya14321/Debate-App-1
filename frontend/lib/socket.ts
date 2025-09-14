@@ -23,6 +23,7 @@ class SocketManager {
 
   connect(token: string): Socket {
     if (this.socket?.connected) {
+      console.log('🔌 Socket already connected');
       return this.socket;
     }
 
@@ -32,9 +33,15 @@ class SocketManager {
       autoConnect: true,
     });
 
-    this.socket.on('connect', () => console.log('🔌 Connected to WebSocket server'));
-    this.socket.on('disconnect', () => console.log('🔌 Disconnected from WebSocket server'));
-    this.socket.on('error', (error: unknown) => console.error('🔌 Socket error:', error));
+    this.socket.on('connect', () => {
+      console.log('🔌 Connected to WebSocket server, ID:', this.socket?.id);
+    });
+    this.socket.on('disconnect', () => {
+      console.log('🔌 Disconnected from WebSocket server');
+    });
+    this.socket.on('error', (error: unknown) => {
+      console.error('🔌 Socket error:', error);
+    });
 
     return this.socket;
   }
@@ -46,6 +53,10 @@ class SocketManager {
 
   getSocket(): Socket | null {
     return this.socket;
+  }
+
+  isConnected(): boolean {
+    return this.socket?.connected || false;
   }
 
   // Debate-specific methods
@@ -77,14 +88,25 @@ class SocketManager {
 
   // Finalization methods
   requestFinalization(debateId: string): void {
+    console.log('🔄 Requesting finalization for debate:', debateId);
+    console.log('🔌 Socket connected:', this.isConnected());
+    console.log('🔌 Socket ID:', this.socket?.id);
+    
+    if (!this.isConnected()) {
+      console.error('❌ Socket not connected, cannot send finalization request');
+      return;
+    }
+    
     this.socket?.emit('request-finalization', debateId);
   }
 
   approveFinalization(debateId: string): void {
+    console.log('✅ Approving finalization for debate:', debateId);
     this.socket?.emit('approve-finalization', debateId);
   }
 
   rejectFinalization(debateId: string): void {
+    console.log('❌ Rejecting finalization for debate:', debateId);
     this.socket?.emit('reject-finalization', debateId);
   }
 
