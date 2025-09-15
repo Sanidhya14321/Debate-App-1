@@ -183,11 +183,12 @@ class MLAnalysisService {
       const totalLength = userArgs.reduce((sum, arg) => sum + (arg.content?.length || 0), 0);
       const argCount = userArgs.length;
       
-      // Heuristic scoring based on participation and engagement
-      const coherence = Math.min(100, 60 + argCount * 10 + Math.random() * 20);
-      const evidence = Math.min(100, 50 + (totalLength / 100) + Math.random() * 25);
-      const logic = Math.min(100, 55 + argCount * 8 + Math.random() * 20);
-      const persuasiveness = Math.min(100, 50 + (totalLength / 80) + Math.random() * 30);
+      // Heuristic scoring based on participation and engagement - deterministic
+      const avgLength = totalLength / Math.max(argCount, 1);
+      const coherence = Math.min(100, 60 + argCount * 8 + (avgLength / 50));
+      const evidence = Math.min(100, 50 + (totalLength / 100) + (argCount * 5));
+      const logic = Math.min(100, 55 + argCount * 6 + (avgLength / 80));
+      const persuasiveness = Math.min(100, 50 + (totalLength / 80) + (argCount * 4));
       
       const total = Math.round((coherence + evidence + logic + persuasiveness) / 4);
       

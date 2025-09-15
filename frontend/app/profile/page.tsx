@@ -298,7 +298,7 @@ export default function ProfilePage() {
                           </div>
                           <div className="text-right flex items-center gap-4">
                             <div className="text-center">
-                              <div className="text-lg font-bold text-white">{debate.score}/10</div>
+                              <div className="text-lg font-bold text-white">{debate.score || 0}/10</div>
                               <div className="text-xs text-zinc-400">Score</div>
                             </div>
                             <Badge 

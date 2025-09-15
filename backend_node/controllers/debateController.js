@@ -215,15 +215,24 @@ export const addArgument = async (req, res) => {
         total: Math.round((coherenceScore + evidenceScore + logicScore + persuasivenessScore) / 4)
       };
     } catch (scoreErr) {
-      console.warn("[AI scoring failed] using basic fallback:", scoreErr.message);
-      // Provide structured fallback score
+      console.warn("[AI scoring failed] using deterministic fallback:", scoreErr.message);
+      // Provide structured deterministic fallback score based on content analysis
+      const wordCount = content.split(' ').length;
+      const charCount = content.length;
+      const avgWordLength = charCount / wordCount;
+      
+      // Deterministic scoring based on content metrics
+      const baseScore = Math.min(100, Math.max(20, 
+        40 + (wordCount * 2) + (avgWordLength * 5) + (charCount / 10)
+      ));
+      
       score = {
-        sentiment: { score: Math.random() * 100, rating: "Good" },
-        clarity: { score: Math.random() * 100, rating: "Good" },
-        vocab_richness: { score: Math.random() * 100, rating: "Good" },
-        avg_word_len: { score: Math.random() * 100, rating: "Good" },
-        length: content.split(' ').length,
-        total: Math.random() * 100
+        sentiment: { score: Math.round(baseScore + (wordCount > 20 ? 10 : 0)), rating: getScoreRating(baseScore + (wordCount > 20 ? 10 : 0)) },
+        clarity: { score: Math.round(baseScore + (avgWordLength > 4 ? 15 : 0)), rating: getScoreRating(baseScore + (avgWordLength > 4 ? 15 : 0)) },
+        vocab_richness: { score: Math.round(baseScore + (charCount > 100 ? 20 : 0)), rating: getScoreRating(baseScore + (charCount > 100 ? 20 : 0)) },
+        avg_word_len: { score: Math.round(baseScore + (wordCount > 15 ? 5 : 0)), rating: getScoreRating(baseScore + (wordCount > 15 ? 5 : 0)) },
+        length: wordCount,
+        total: Math.round(baseScore)
       };
     }
 

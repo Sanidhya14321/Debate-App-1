@@ -101,7 +101,7 @@ export default function LeaderboardPage() {
               </div>
 
               <div className="text-right">
-                <div className="text-2xl font-bold text-[#ff6b35]">{user.score}</div>
+                <div className="text-2xl font-bold text-[#ff6b35]">{user.score || 0}</div>
                 <div className="text-sm text-muted-foreground">points</div>
                 {user.streak > 0 && (
                   <div className="flex items-center gap-1 mt-1">

@@ -11,12 +11,12 @@ function generateBasicScores(argumentText, username) {
   const wordCount = argumentText.split(/\s+/).length;
   const avgWordLength = textLength / wordCount;
   
-  // Generate varied but reasonable scores
+  // Generate deterministic scores based on content analysis
   const baseScores = {
-    sentiment: Math.min(100, 60 + (textLength / 20) + (Math.random() * 20)),
-    clarity: Math.min(100, 55 + (wordCount / 2) + (Math.random() * 25)),
-    vocab_richness: Math.min(100, 50 + (avgWordLength * 10) + (Math.random() * 30)),
-    avg_word_len: Math.min(100, 60 + (avgWordLength * 5) + (Math.random() * 20))
+    sentiment: Math.min(100, 60 + (textLength / 30) + (avgWordLength * 3)),
+    clarity: Math.min(100, 55 + (wordCount / 3) + (avgWordLength * 2)),
+    vocab_richness: Math.min(100, 50 + (avgWordLength * 8) + (textLength / 50)),
+    avg_word_len: Math.min(100, 60 + (avgWordLength * 4) + (wordCount / 5))
   };
   
   // Ensure minimum scores
