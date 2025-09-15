@@ -94,7 +94,7 @@ export default function AnalyticsPage() {
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-        <Card className="bg-white/5 border-white/10 p-8">
+        <Card className="bg-black/5 border-black/10 p-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle className="text-lg font-medium text-gray-300">Total Debates</CardTitle>
             <MessageSquare className="h-6 w-6" style={{ color: COLOR_MAP.primary }} />
@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 p-8">
+        <Card className="bg-black/5 border-black/10 p-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle className="text-lg font-medium text-gray-300">Arguments Made</CardTitle>
             <Target className="h-6 w-6" style={{ color: COLOR_MAP.secondary }} />
@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 p-8">
+        <Card className="bg-black/5 border-black/10 p-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle className="text-lg font-medium text-gray-300">Average Score</CardTitle>
             <Star className="h-6 w-6" style={{ color: COLOR_MAP.accent }} />
@@ -127,7 +127,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 p-8">
+        <Card className="bg-black/5 border-black/10 p-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle className="text-lg font-medium text-gray-300">Win Rate</CardTitle>
             <Trophy className="h-6 w-6" style={{ color: COLOR_MAP.primary }} />
@@ -141,7 +141,7 @@ export default function AnalyticsPage() {
 
       {/* Tabs (Performance, Engagement, Achievements, Rankings) */}
       <Tabs defaultValue="performance" className="space-y-8">
-        <TabsList className="grid w-full grid-cols-4 bg-white/5 border-white/10 p-2">
+        <TabsList className="grid w-full grid-cols-4 bg-black/5 border-black/10 p-2">
           <TabsTrigger value="performance" className="data-[state=active]:text-white data-[state=active]:bg-blue-600">Performance</TabsTrigger>
           <TabsTrigger value="engagement" className="data-[state=active]:text-white">Engagement</TabsTrigger>
           <TabsTrigger value="achievements" className="data-[state=active]:text-white">Achievements</TabsTrigger>
@@ -152,21 +152,21 @@ export default function AnalyticsPage() {
         <TabsContent value="performance" className="space-y-6">
           {/* Recent Performance & Category Performance */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-black/5 border-black/10">
               <CardHeader>
                 <CardTitle className="text-white">Recent Performance</CardTitle>
                 <CardDescription className="text-gray-400">Your latest debate scores</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {analyticsData.performance.scoreHistory.map((entry, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-4 bg-black/5 rounded-lg">
                     <div>
                       <p className="text-white font-medium">{new Date(entry.date).toLocaleDateString()}</p>
                       <p className="text-sm text-gray-400">{entry.debates} debates</p>
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-white">{safePercentage(entry.score)}%</div>
-                      <div className="w-20 bg-white/10 rounded-full h-2 mt-1">
+                      <div className="w-20 bg-black/10 rounded-full h-2 mt-1">
                         <div className="h-2 rounded-full transition-all duration-300" style={{ width: `${safePercentage(entry.score)}%`, backgroundColor: COLOR_MAP.primary }} />
                       </div>
                     </div>
@@ -175,7 +175,7 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-black/5 border-black/10">
               <CardHeader>
                 <CardTitle className="text-white">Category Performance</CardTitle>
                 <CardDescription className="text-gray-400">Your scores by debate category</CardDescription>
@@ -190,7 +190,7 @@ export default function AnalyticsPage() {
                         <Badge variant="outline" className="text-xs">{category.count} debates</Badge>
                       </div>
                     </div>
-                    <div className="w-full bg-white/10 rounded-full h-3">
+                    <div className="w-full bg-black/10 rounded-full h-3">
                       <div className="h-3 rounded-full transition-all duration-500" style={{ width: `${safePercentage(category.score)}%`, backgroundColor: COLOR_MAP.secondary }} />
                     </div>
                   </div>

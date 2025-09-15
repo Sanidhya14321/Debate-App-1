@@ -376,7 +376,7 @@ export default function DebateRoomPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen ">
       <div className="max-w-6xl mx-auto px-8 py-16 space-y-16">
         
         {/* Header Section */}

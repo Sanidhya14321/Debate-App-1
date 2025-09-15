@@ -49,7 +49,7 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black/50">
       <div className="max-w-6xl mx-auto px-8 py-16 space-y-20">
         
         {/* Header */}

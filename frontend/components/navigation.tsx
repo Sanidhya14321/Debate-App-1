@@ -97,7 +97,7 @@ export function Navigation() {
           {token ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-[#ff6b35]/30 hover:border-[#ff6b35]">
+                <Button className="relative h-10 w-10 rounded-full border-2 border-[#ff6b35]/30 hover:border-[#ff6b35]">
                   <Avatar className="h-9 w-9">
                     <AvatarFallback 
                       className="text-black font-bold text-sm"
@@ -126,7 +126,7 @@ export function Navigation() {
               <Button variant="ghost" asChild className="text-white hover:text-[#ff6b35] hover:bg-[#ff6b35]/10">
                 <Link href="/login">Login</Link>
               </Button>
-              <Button asChild className="bg-[#ff6b35] text-black font-semibold hover:bg-[#ff6b35]/90 border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200">
+              <Button asChild className="bg-[#ff6b35] text-black font-semibold hover:bg-[#ff6b35]/90  transition-all duration-200">
                 <Link href="/register">Get Started</Link>
               </Button>
             </div>

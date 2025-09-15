@@ -7,13 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import FAQ from "@/components/faq";
-import { 
-  Brain, 
-  Target, 
-  BarChart3, 
-  Users, 
-  MessageSquare, 
-  Trophy, 
+import {
+  Brain,
+  Target,
+  BarChart3,
+  Users,
+  MessageSquare,
+  Trophy,
   Zap,
   CheckCircle,
   Star,
@@ -84,9 +84,9 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black scroll-smooth">
+    <div className="min-h-screen scroll-smooth">
       <div className="max-w-6xl mx-auto px-8 py-16 space-y-32">
-        
+
         {/* Hero Header */}
         <motion.div
           className="text-center space-y-8"
@@ -103,14 +103,14 @@ export default function AboutPage() {
               About <span className="text-[#ff6b35]">DebAI</span>
             </h1>
           </motion.div>
-          
+
           <motion.p
             className="text-xl text-zinc-400 max-w-4xl mx-auto leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Discover how our AI-powered platform revolutionizes debate practice, empowers critical thinking, 
+            Discover how our AI-powered platform revolutionizes debate practice, empowers critical thinking,
             and helps you become a master debater through intelligent feedback and personalized learning.
           </motion.p>
 
@@ -165,8 +165,8 @@ export default function AboutPage() {
             </CardHeader>
             <CardContent>
               <p className="text-xl text-zinc-300 leading-relaxed mb-8">
-                To democratize access to high-quality debate education by leveraging artificial intelligence to provide 
-                instant, personalized feedback that helps individuals develop critical thinking, argumentation skills, 
+                To democratize access to high-quality debate education by leveraging artificial intelligence to provide
+                instant, personalized feedback that helps individuals develop critical thinking, argumentation skills,
                 and the confidence to engage in meaningful discourse on important topics.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
@@ -215,7 +215,7 @@ export default function AboutPage() {
               className="text-xl text-zinc-400 max-w-4xl mx-auto"
               variants={fadeInUp}
             >
-              Our platform uses cutting-edge artificial intelligence to analyze, score, and provide feedback 
+              Our platform uses cutting-edge artificial intelligence to analyze, score, and provide feedback
               on your debate arguments in real-time, helping you improve with every interaction.
             </motion.p>
           </div>
@@ -418,7 +418,7 @@ export default function AboutPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-zinc-400 text-sm mb-4 leading-relaxed">{metric.desc}</p>
-                    <Badge 
+                    <Badge
                       className="border-0 text-white font-semibold"
                       style={{ backgroundColor: `${metric.color}30`, color: metric.color }}
                     >
@@ -446,9 +446,9 @@ export default function AboutPage() {
                     <motion.div
                       key={score.range}
                       className="p-6 rounded-lg border transition-all duration-300"
-                      style={{ 
-                        backgroundColor: `${score.color}20`, 
-                        borderColor: `${score.color}30` 
+                      style={{
+                        backgroundColor: `${score.color}20`,
+                        borderColor: `${score.color}30`
                       }}
                       whileHover={{ scale: 1.05 }}
                       initial={{ opacity: 0, y: 20 }}
@@ -602,8 +602,8 @@ export default function AboutPage() {
             </CardHeader>
             <CardContent>
               <p className="text-xl text-zinc-300 leading-relaxed mb-8">
-                We envision a world where critical thinking and effective communication are fundamental skills that 
-                everyone can develop. Through AI-powered education, we&apos;re building a future where thoughtful discourse 
+                We envision a world where critical thinking and effective communication are fundamental skills that
+                everyone can develop. Through AI-powered education, we&apos;re building a future where thoughtful discourse
                 replaces polarization, and where every voice can be heard and respected.
               </p>
               <motion.div

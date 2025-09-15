@@ -111,7 +111,7 @@ export default function DebateResultsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black">
+            <div className="min-h-screen flex items-center justify-center bg-black/30">
                 <div className="text-center space-y-4">
                     <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#ff6b35]" />
                     <p className="text-lg text-zinc-400">Analyzing debate results...</p>
@@ -122,7 +122,7 @@ export default function DebateResultsPage() {
 
     if (!results) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black">
+            <div className="min-h-screen flex items-center justify-center bg-black/30">
                 <Card className="w-full max-w-md border-zinc-800/50 bg-zinc-900/30">
                     <CardContent className="text-center py-8">
                         <BarChart3 className="w-16 h-16 mx-auto text-zinc-400 mb-4" />
@@ -145,7 +145,7 @@ export default function DebateResultsPage() {
     // Add safety check for results structure
     if (!results?.results || typeof results.results !== 'object') {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className="min-h-screen bg-black/30 flex items-center justify-center">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-white mb-4">No Results Available</h2>
                     <p className="text-zinc-400 mb-6">The debate results are not yet ready or could not be loaded.</p>
@@ -159,7 +159,7 @@ export default function DebateResultsPage() {
     }
     
     return (
-        <div className="min-h-screen bg-black">
+        <div className="min-h-screen bg-black/30">
             <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
                 
                 {/* Header */}

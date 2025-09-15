@@ -5,7 +5,7 @@ import { Github, Mail, Twitter } from "lucide-react";
 
 export default function Footer() {
     return (
-        <footer className="bg-zinc-900 border-t border-[#ff6b35]/20 mt-auto">
+        <footer className="bg-zinc-900/30 border-t border-[#ff6b35]/20 mt-auto">
             <div className="sm:px-18 sm:py-16 px-2 py-6 ">
                 <div className="grid grid-cols-9 sm:grid-rows-none grid-rows-2 md:grid-cols-4 gap-4 justify-items-center-safe">
                     {/* Brand Section */}
