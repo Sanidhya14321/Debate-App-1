@@ -97,10 +97,10 @@ export default function ProfilePage() {
           transition={{ duration: 0.5 }}
         >
           {/* Profile Header */}
-          <Card className="mb-8 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
-            <CardContent className="pt-8">
-              <div className="flex items-center space-x-6">
-                <div className="w-24 h-24 rounded-full bg-zinc-800/30 border-2 border-[#ff6b35]/50 flex items-center justify-center">
+          <Card className="mb-8 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/35 transition-all duration-300 hover:border-white/30">
+            <CardContent className="p-8">
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="w-24 h-24 rounded-full bg-black/20 backdrop-blur-sm border-2 border-[#ff6b35]/50 flex items-center justify-center hover:border-[#ff6b35] transition-all duration-300">
                   <Avatar className="h-20 w-20">
                     <AvatarFallback 
                       style={{ backgroundColor: profileData?.color || user?.color || '#ff6b35' }}
@@ -138,13 +138,13 @@ export default function ProfilePage() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="p-6 text-center bg-zinc-900/30 backdrop-blur-sm border-zinc-800/50">
+            <Card className="p-6 text-center bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/35 transition-all duration-300 hover:border-white/30">
               <MessageSquare className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
               <div className="text-2xl font-bold text-white">{stats?.totalDebates || 0}</div>
               <div className="text-sm text-zinc-400">Total Debates</div>
             </Card>
             
-            <Card className="p-6 text-center bg-zinc-900/30 backdrop-blur-sm border-zinc-800/50">
+            <Card className="p-6 text-center bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/35 transition-all duration-300 hover:border-white/30">
               <div className="flex justify-center mb-2">
                 <CircularProgress
                   value={(stats?.averageScore || 0) * 10}
@@ -158,13 +158,13 @@ export default function ProfilePage() {
               <div className="text-sm text-zinc-400">Average Score</div>
             </Card>
             
-            <Card className="p-6 text-center bg-zinc-900/30 backdrop-blur-sm border-zinc-800/50">
+            <Card className="p-6 text-center bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/35 transition-all duration-300 hover:border-white/30">
               <BarChart3 className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
               <div className="text-2xl font-bold text-white">{stats?.totalArguments || 0}</div>
               <div className="text-sm text-zinc-400">Arguments Made</div>
             </Card>
             
-            <Card className="p-6 text-center bg-zinc-900/30 backdrop-blur-sm border-zinc-800/50">
+            <Card className="p-6 text-center bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/35 transition-all duration-300 hover:border-white/30">
               <Award className="h-8 w-8 mx-auto mb-2 text-[#ffd700]" />
               <div className="text-2xl font-bold text-white">{stats?.streak || 0}</div>
               <div className="text-sm text-zinc-400">Win Streak</div>
@@ -173,7 +173,7 @@ export default function ProfilePage() {
 
           {/* Tabs Section */}
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 bg-zinc-900/40">
+            <TabsList className="grid w-full grid-cols-2 bg-black/30 backdrop-blur-sm border-white/20">
               <TabsTrigger value="overview" className="text-white data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black">Overview</TabsTrigger>
               <TabsTrigger value="history" className="text-white data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black">Recent Debates</TabsTrigger>
             </TabsList>

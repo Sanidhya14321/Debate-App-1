@@ -72,7 +72,7 @@ export function Navigation() {
   )
 
   return (
-    <header className="w-full border-b border-[#ff6b35]/20 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/80 sticky top-0 z-50">
+    <header className="w-full border-b border-white/20 bg-black/30 backdrop-blur-sm supports-[backdrop-filter]:bg-black/30 sticky top-0 z-50">
       <nav className="container mx-auto flex items-center justify-between px-6 py-4">
         <Link href="/" className="text-2xl font-bold text-[#ff6b35] hover:text-[#00ff88] transition-colors duration-300">
           DebAI
@@ -108,7 +108,7 @@ export function Navigation() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-black border-[#ff6b35]/30" align="end" forceMount>
+              <DropdownMenuContent className="w-56 bg-black/30 backdrop-blur-sm border-white/20" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium text-white">{user?.username}</p>
@@ -117,7 +117,7 @@ export function Navigation() {
                     </p>
                   </div>
                 </div>
-                <DropdownMenuSeparator className="bg-[#ff6b35]/20" />
+                <DropdownMenuSeparator className="bg-white/20" />
                 {userDropdownItems}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -149,7 +149,7 @@ export function Navigation() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-black border-[#ff6b35]/30" align="end" forceMount>
+              <DropdownMenuContent className="w-56 bg-black/30 backdrop-blur-sm border-white/20" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium text-white">{user?.username}</p>
@@ -158,7 +158,7 @@ export function Navigation() {
                     </p>
                   </div>
                 </div>
-                <DropdownMenuSeparator className="bg-[#ff6b35]/20" />
+                <DropdownMenuSeparator className="bg-white/20" />
                 {userDropdownItems}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -171,7 +171,7 @@ export function Navigation() {
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-black border-[#ff6b35]/30">
+            <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-black/30 backdrop-blur-sm border-white/20">
               <div className="flex flex-col space-y-4 mt-6">
                 <div className="px-2 py-1">
                   <h2 className="text-xl font-bold text-[#ff6b35]">Navigation</h2>
@@ -193,7 +193,7 @@ export function Navigation() {
                 ))}
 
                 {!token && (
-                  <div className="flex flex-col space-y-3 pt-4 border-t border-[#ff6b35]/20">
+                  <div className="flex flex-col space-y-3 pt-4 border-t border-white/20">
                     <Button variant="ghost" asChild className="justify-start text-white hover:text-[#ff6b35] hover:bg-[#ff6b35]/10">
                       <Link href="/login" onClick={handleLinkClick}>Login</Link>
                     </Button>

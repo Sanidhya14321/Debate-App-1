@@ -85,14 +85,14 @@ export default function RegisterPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="border-white/10 shadow-2xl bg-black/90 backdrop-blur-sm">
+        <Card className="border-white/20 shadow-2xl bg-black/30 backdrop-blur-sm hover:bg-black/35 transition-all duration-300 hover:border-white/30">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <motion.div 
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="p-4 rounded-full bg-white/5 border border-white/10"
+                className="p-4 rounded-full bg-black/20 backdrop-blur-sm border border-white/20"
               >
                 <UserPlus className="h-10 w-10" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
               </motion.div>
@@ -118,7 +118,7 @@ export default function RegisterPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/20"
+                  className="bg-black/20 backdrop-blur-sm border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/30 hover:border-white/30"
                 />
               </div>
               <div className="space-y-2">
@@ -133,7 +133,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/20"
+                  className="bg-black/20 backdrop-blur-sm border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/30 hover:border-white/30"
                 />
               </div>
               <div className="space-y-2">
@@ -149,7 +149,7 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="pr-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/20"
+                    className="pr-10 bg-black/20 backdrop-blur-sm border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/30 hover:border-white/30"
                   />
                   <Button
                     type="button"
@@ -179,7 +179,7 @@ export default function RegisterPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="pr-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/20"
+                    className="pr-10 bg-black/20 backdrop-blur-sm border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/30 hover:border-white/30"
                   />
                   <Button
                     type="button"

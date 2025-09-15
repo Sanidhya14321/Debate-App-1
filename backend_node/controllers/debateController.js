@@ -4,6 +4,7 @@ import Debate from "../models/Debate.js";
 import Result from "../models/Result.js";
 import User from "../models/User.js";
 import geminiService from "../services/geminiService.js";
+import mlAnalysisService from "../services/mlAnalysisService.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -564,25 +565,35 @@ async function storeResultsInProfiles(debateId, participants, analysisResult) {
   }
 }
 
-// AI Analysis function
+// AI Analysis function with ML-first approach
 async function performAIAnalysis(argumentsArray, topic) {
-  console.log('🤖 Performing Gemini AI analysis for topic:', topic);
+  console.log('🤖 Performing ML-first debate analysis for topic:', topic);
   
-  // Use Gemini AI service if available
-  if (geminiService.isAvailable()) {
-    try {
-      console.log('🤖 Using Gemini AI for debate analysis...');
-      const analysisResult = await geminiService.analyzeDebate(argumentsArray, topic);
-      console.log('✅ Gemini AI analysis completed successfully');
-      return analysisResult;
-    } catch (error) {
-      console.error('❌ Gemini AI analysis failed:', error);
-      console.log('🔄 Falling back to enhanced local analysis...');
+  try {
+    // Use the new ML-first analysis service
+    console.log('🔬 Using ML-first analysis service...');
+    const analysisResult = await mlAnalysisService.analyzeDebate(argumentsArray, topic);
+    console.log('✅ ML-first analysis completed successfully');
+    return analysisResult;
+  } catch (error) {
+    console.error('❌ ML-first analysis failed, falling back to Gemini:', error);
+    
+    // Fallback to Gemini AI service
+    if (geminiService.isAvailable()) {
+      try {
+        console.log('🤖 Falling back to Gemini AI analysis...');
+        const analysisResult = await geminiService.analyzeDebate(argumentsArray, topic);
+        console.log('✅ Gemini AI fallback completed successfully');
+        return analysisResult;
+      } catch (geminiError) {
+        console.error('❌ Gemini AI fallback failed:', geminiError);
+        console.log('🔄 Using enhanced local analysis as final fallback...');
+        return performEnhancedAnalysis(argumentsArray, topic);
+      }
+    } else {
+      console.warn('⚠️ Gemini AI service not available, using enhanced local analysis');
       return performEnhancedAnalysis(argumentsArray, topic);
     }
-  } else {
-    console.warn('⚠️ Gemini AI service not available, using enhanced local analysis');
-    return performEnhancedAnalysis(argumentsArray, topic);
   }
 }
 

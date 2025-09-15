@@ -4,6 +4,7 @@ import { Navigation } from "@/components/navigation";
 import { SonnerProvider } from "@/components/ui/sonner-provider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Footer from "@/components/footer";
+import { AnimatedBackground } from "@/components/animated-background";
 
 export const metadata = {
   title: "AI Debate Platform",
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen bg-background text-foreground antialiased flex flex-col">
+        <AnimatedBackground />
         <ErrorBoundary>
           <AuthProvider>
             <Navigation />

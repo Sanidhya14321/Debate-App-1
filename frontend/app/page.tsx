@@ -134,7 +134,7 @@ export default function Home() {
               { icon: Trophy, label: "Tournaments", value: "500+", color: UI_CONFIG.ACCENT_COLOR },
               { icon: BarChart3, label: "AI Analyses", value: "1M+", color: UI_CONFIG.PRIMARY_COLOR }
             ].map((stat, index) => (
-              <Card key={index} className="p-8 text-center bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300">
+              <Card key={index} className="p-8 text-center bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 hover:border-white/30">
                 <stat.icon className="h-10 w-10 mx-auto mb-4" style={{ color: stat.color }} />
                 <div className="text-3xl font-bold text-white mb-2">{stat.value}</div>
                 <div className="text-sm text-gray-400">{stat.label}</div>
@@ -197,7 +197,7 @@ export default function Home() {
                   hidden: { opacity: 0, y: 20 }
                 }}
               >
-                <Card className="p-10 text-center bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 group h-full">
+                <Card className="p-10 text-center bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 group h-full hover:border-white/30">
                   <div className="mb-8">
                     <feature.icon 
                       className="h-16 w-16 mx-auto group-hover:scale-110 transition-transform duration-300" 
@@ -226,7 +226,7 @@ export default function Home() {
           }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <Card className="p-10 bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300">
+            <Card className="p-10 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 hover:border-white/30">
               <div className="flex items-center gap-6 mb-8">
                 <Trophy className="h-16 w-16" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
                 <div>
@@ -250,7 +250,7 @@ export default function Home() {
               </ul>
             </Card>
 
-            <Card className="p-10 bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300">
+            <Card className="p-10 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 hover:border-white/30">
               <div className="flex items-center gap-6 mb-8">
                 <Globe className="h-16 w-16" style={{ color: UI_CONFIG.SECONDARY_COLOR }} />
                 <div>
@@ -326,7 +326,7 @@ export default function Home() {
                   hidden: { opacity: 0, y: 20 }
                 }}
               >
-                <Card className="p-8 bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full">
+                <Card className="p-8 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 h-full hover:border-white/30">
                   <div className="flex items-center gap-4 mb-6">
                     <div 
                       className="w-12 h-12 rounded-full flex items-center justify-center text-black font-bold"

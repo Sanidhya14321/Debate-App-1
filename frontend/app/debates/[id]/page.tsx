@@ -341,7 +341,10 @@ export default function DebateRoomPage() {
     setFinalizationRequestedBy("");
   };
 
-  const getArgumentScore = (score: number | string | ScoreObject): string => {
+  const getArgumentScore = (score: number | string | ScoreObject | undefined | null): string => {
+    // Handle undefined/null scores
+    if (score === undefined || score === null) return "0.00";
+    
     if (typeof score === "number") return score.toFixed(2);
     if (typeof score === "string" && !isNaN(Number(score))) return Number(score).toFixed(2);
     
@@ -559,7 +562,7 @@ export default function DebateRoomPage() {
                       transition={{ delay: idx * 0.1 }}
                       whileHover={{ scale: 1.01 }}
                     >
-                      <Card className="shadow-xl hover:shadow-2xl transition-all duration-300 border border-zinc-800/50 bg-zinc-900/60 backdrop-blur-sm hover:border-[#ff6b35]/30 group">
+                      <Card className="shadow-xl hover:shadow-2xl transition-all duration-300 border border-white/20 bg-black/30 backdrop-blur-sm hover:border-[#ff6b35]/40 group hover:bg-black/40">
                         <CardHeader className="pb-4">
                           <div className="flex justify-between items-start">
                             <div className="flex items-center gap-4">
@@ -592,13 +595,13 @@ export default function DebateRoomPage() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                           {/* Argument Content */}
-                          <div className="bg-zinc-800/30 rounded-lg p-6 border border-zinc-700/30">
+                          <div className="bg-black/20 backdrop-blur-sm rounded-lg p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
                             <p className="text-base leading-relaxed text-white/90 font-normal">{arg.content}</p>
                           </div>
                           
                           {/* Enhanced Analysis Section */}
-                          {typeof arg.score === 'object' && arg.score !== null && (
-                            <div className="mt-8 pt-6 border-t border-zinc-700">
+                          {typeof arg.score === 'object' && arg.score !== null && arg.score !== undefined && (
+                            <div className="mt-8 pt-6 border-t border-white/20">
                               <div className="mb-6">
                                 <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                                   <Brain className="w-5 h-5 text-[#ff6b35]" />
@@ -608,8 +611,9 @@ export default function DebateRoomPage() {
                                 {/* Circular Progress Metrics */}
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
                                   {Object.entries(arg.score as ScoreObject).map(([key, value]) => {
-                                    if (key === 'length' || key === 'total' || typeof value !== 'object') return null;
+                                    if (key === 'length' || key === 'total' || typeof value !== 'object' || !value) return null;
                                     const metric = value as ScoreMetric;
+                                    if (!metric || typeof metric.score !== 'number') return null;
                                     
                                     const getMetricIcon = (metricKey: string) => {
                                       switch(metricKey) {
@@ -655,8 +659,9 @@ export default function DebateRoomPage() {
                                 {/* Detailed Breakdown */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {Object.entries(arg.score as ScoreObject).map(([key, value]) => {
-                                    if (key === 'length' || key === 'total' || typeof value !== 'object') return null;
+                                    if (key === 'length' || key === 'total' || typeof value !== 'object' || !value) return null;
                                     const metric = value as ScoreMetric;
+                                    if (!metric || typeof metric.score !== 'number') return null;
                                     
                                     const getScoreLabel = (score: number) => {
                                       if (score >= 90) return { label: "Exceptional", color: "text-[#00ff88]" };
@@ -670,7 +675,7 @@ export default function DebateRoomPage() {
                                     const scoreInfo = getScoreLabel(metric.score);
                                     
                                     return (
-                                      <div key={key} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700/50">
+                                      <div key={key} className="bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10 hover:border-white/20 transition-all duration-300">
                                         <div className="flex items-center justify-between mb-2">
                                           <span className="text-white font-medium capitalize">
                                             {key.replace('_', ' ')}
@@ -704,7 +709,7 @@ export default function DebateRoomPage() {
                           
                           {/* Simple score display fallback */}
                           {(typeof arg.score === 'number' || typeof arg.score === 'string') && (
-                            <div className="mt-6 pt-4 border-t border-zinc-700">
+                            <div className="mt-6 pt-4 border-t border-white/20">
                               <div className="flex items-center justify-center">
                                 <div className="text-center">
                                   <div className="flex items-center justify-center mb-2">
