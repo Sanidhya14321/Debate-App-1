@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { Clock, Users, MessageSquare, Trophy, Send, Loader2, CheckCircle, XCircle, AlertTriangle, Brain, Target, Lightbulb, Zap } from "lucide-react";
+import { Clock, Users, MessageSquare, Trophy, Send, Loader2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 
 import { apiFetch } from "@/lib/api";
 import { useAuthGuard } from "@/lib/auth";
@@ -600,133 +600,6 @@ export default function DebateRoomPage() {
                           <div className="bg-black/20 backdrop-blur-sm rounded-lg p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
                             <p className="text-base leading-relaxed text-white/90 font-normal">{arg.content || "No content available"}</p>
                           </div>
-                          
-                          {/* Enhanced Analysis Section */}
-                          {typeof arg.score === 'object' && arg.score !== null && arg.score !== undefined && Object.keys(arg.score).length > 0 && (
-                            <div className="mt-8 pt-6 border-t border-white/20">
-                              <div className="mb-6">
-                                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                  <Brain className="w-5 h-5 text-[#ff6b35]" />
-                                  Argument Analysis
-                                </h4>
-                                
-                                {/* Circular Progress Metrics */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-                                  {Object.entries(arg.score as ScoreObject).map(([key, value]) => {
-                                    if (key === 'length' || key === 'total' || typeof value !== 'object' || !value) return null;
-                                    const metric = value as ScoreMetric;
-                                    if (!metric || typeof metric.score !== 'number' || !metric.rating) return null;
-                                    
-                                    const getMetricIcon = (metricKey: string) => {
-                                      switch(metricKey) {
-                                        case 'clarity': return <Lightbulb className="w-4 h-4" />;
-                                        case 'sentiment': return <Target className="w-4 h-4" />;
-                                        case 'vocab_richness': return <Zap className="w-4 h-4" />;
-                                        case 'avg_word_len': return <MessageSquare className="w-4 h-4" />;
-                                        default: return <Brain className="w-4 h-4" />;
-                                      }
-                                    };
-                                    
-                                    const getMetricColor = (score: number) => {
-                                      if (score >= 80) return "#00ff88"; // neon green
-                                      if (score >= 60) return "#ff6b35"; // orange
-                                      if (score >= 40) return "#ffd700"; // gold
-                                      return "#ff4444"; // red
-                                    };
-                                    
-                                    return (
-                                      <div key={key} className="text-center">
-                                        <div className="flex items-center justify-center mb-3">
-                                          <CircularProgress
-                                            value={metric.score}
-                                            size={80}
-                                            strokeWidth={6}
-                                            color={getMetricColor(metric.score)}
-                                          />
-                                        </div>
-                                        <div className="space-y-1">
-                                          <div className="flex items-center justify-center gap-1 text-white font-medium">
-                                            {getMetricIcon(key)}
-                                            <span className="capitalize text-sm">{key.replace('_', ' ')}</span>
-                                          </div>
-                                          <div className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-300 border">
-                                            {metric.rating}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                                
-                                {/* Detailed Breakdown */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  {Object.entries(arg.score as ScoreObject).map(([key, value]) => {
-                                    if (key === 'length' || key === 'total' || typeof value !== 'object' || !value) return null;
-                                    const metric = value as ScoreMetric;
-                                    if (!metric || typeof metric.score !== 'number' || !metric.rating) return null;
-                                    
-                                    const getScoreLabel = (score: number) => {
-                                      if (score >= 90) return { label: "Exceptional", color: "text-[#00ff88]" };
-                                      if (score >= 80) return { label: "Excellent", color: "text-[#00ff88]" };
-                                      if (score >= 70) return { label: "Good", color: "text-[#ff6b35]" };
-                                      if (score >= 60) return { label: "Average", color: "text-[#ffd700]" };
-                                      if (score >= 40) return { label: "Below Average", color: "text-[#ff8c00]" };
-                                      return { label: "Needs Improvement", color: "text-[#ff4444]" };
-                                    };
-                                    
-                                    const scoreInfo = getScoreLabel(metric.score);
-                                    
-                                    return (
-                                      <div key={key} className="bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10 hover:border-white/20 transition-all duration-300">
-                                        <div className="flex items-center justify-between mb-2">
-                                          <span className="text-white font-medium capitalize">
-                                            {key.replace('_', ' ')}
-                                          </span>
-                                          <span className={`font-bold ${scoreInfo.color}`}>
-                                            {metric.score.toFixed(1)}%
-                                          </span>
-                                        </div>
-                                        <div className="w-full bg-zinc-700 rounded-full h-2 mb-2">
-                                          <div 
-                                            className="h-2 rounded-full transition-all duration-500"
-                                            style={{ 
-                                              width: `${metric.score}%`,
-                                              background: `linear-gradient(90deg, ${scoreInfo.color.includes('88') ? '#00ff88' : scoreInfo.color.includes('35') ? '#ff6b35' : scoreInfo.color.includes('d700') ? '#ffd700' : '#ff4444'} 0%, ${scoreInfo.color.includes('88') ? '#00cc66' : scoreInfo.color.includes('35') ? '#e55a2b' : scoreInfo.color.includes('d700') ? '#ccaa00' : '#cc3333'} 100%)`
-                                            }}
-                                          />
-                                        </div>
-                                        <div className="flex items-center justify-between text-sm">
-                                          <span className="text-zinc-400">{metric.rating}</span>
-                                          <span className={`font-medium ${scoreInfo.color}`}>
-                                            {scoreInfo.label}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Simple score display fallback */}
-                          {(typeof arg.score === 'number' || typeof arg.score === 'string') && (
-                            <div className="mt-6 pt-4 border-t border-white/20">
-                              <div className="flex items-center justify-center">
-                                <div className="text-center">
-                                  <div className="flex items-center justify-center mb-2">
-                                    <CircularProgress
-                                      value={isNaN(parseFloat(getArgumentScore(arg.score))) ? 0 : parseFloat(getArgumentScore(arg.score))}
-                                      size={60}
-                                      strokeWidth={6}
-                                      color={getScoreColor(getArgumentScore(arg.score)).includes('accent') ? '#00ff88' : getScoreColor(getArgumentScore(arg.score)).includes('primary') ? '#ff6b35' : '#ff4444'}
-                                    />
-                                  </div>
-                                  <div className="text-sm text-zinc-400">Overall Quality</div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
                         </CardContent>
                       </Card>
                     </motion.div>
