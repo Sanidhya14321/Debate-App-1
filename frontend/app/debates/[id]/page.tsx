@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { CircularProgress } from "@/components/ui/circular-progress";
 
@@ -283,7 +282,7 @@ export default function DebateRoomPage() {
     if (!debate) return;
     if (debate.isFinalized) return toast.error("Debate already finalized");
 
-    if (args.length < 2) return toast.error("Cannot finalize: At least 2 arguments required");
+    if (!Array.isArray(args) || args.length < 2) return toast.error("Cannot finalize: At least 2 arguments required");
 
     console.log("🔍 Finalize debug:", {
       debateParticipants: debate.participants,
@@ -350,7 +349,7 @@ export default function DebateRoomPage() {
     
     if (typeof score === "object" && score !== null) {
       const scoreObj = score as ScoreObject;
-      if (scoreObj.total !== undefined) return scoreObj.total.toFixed(2);
+      if (scoreObj.total !== undefined && typeof scoreObj.total === 'number') return scoreObj.total.toFixed(2);
       
       // Calculate average of metric scores
       const metrics = ['clarity', 'sentiment', 'vocab_richness', 'avg_word_len'];
@@ -399,7 +398,7 @@ export default function DebateRoomPage() {
               </div>
               <div className="flex items-center gap-4">
                 <MessageSquare className="w-6 h-6 text-[#ff6b35]" />
-                <span>{args.length} arguments</span>
+                <span>{Array.isArray(args) ? args.length : 0} arguments</span>
               </div>
               <div className="flex items-center gap-4">
                 <Clock className="w-6 h-6 text-[#ff6b35]" />
@@ -539,7 +538,7 @@ export default function DebateRoomPage() {
           <h2 className="text-3xl font-bold text-center text-white mb-12">Debate Arguments</h2>
           
           <AnimatePresence>
-            {args.length === 0 ? (
+            {!Array.isArray(args) || args.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -550,13 +549,16 @@ export default function DebateRoomPage() {
               </motion.div>
             ) : (
               <div className="space-y-8">
-                {args.map((arg, idx) => {
+                {Array.isArray(args) && args.map((arg, idx) => {
+                  // Safety check for arg object
+                  if (!arg || typeof arg !== 'object') return null;
+                  
                   const scoreStr = getArgumentScore(arg.score);
                   const scoreColor = getScoreColor(scoreStr);
                   
                   return (
                     <motion.div
-                      key={arg.id}
+                      key={arg.id || `arg-${idx}`}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.1 }}
@@ -575,7 +577,7 @@ export default function DebateRoomPage() {
                               <div>
                                 <p className="font-semibold text-white text-lg">{arg.username || arg.email || "Anonymous"}</p>
                                 <p className="text-sm text-zinc-400">
-                                  {new Date(arg.createdAt).toLocaleString()}
+                                  {arg.createdAt ? new Date(arg.createdAt).toLocaleString() : "Unknown time"}
                                 </p>
                               </div>
                             </div>
@@ -583,10 +585,10 @@ export default function DebateRoomPage() {
                             <div className="text-right">
                               <div className="flex items-center justify-center mb-2">
                                 <CircularProgress
-                                  value={parseFloat(scoreStr)}
+                                  value={isNaN(parseFloat(scoreStr)) ? 0 : parseFloat(scoreStr)}
                                   size={56}
                                   strokeWidth={4}
-                                  color={scoreStr && parseFloat(scoreStr) >= 80 ? '#00ff88' : parseFloat(scoreStr) >= 60 ? '#ff6b35' : '#ff4444'}
+                                  color={scoreStr && !isNaN(parseFloat(scoreStr)) && parseFloat(scoreStr) >= 80 ? '#00ff88' : !isNaN(parseFloat(scoreStr)) && parseFloat(scoreStr) >= 60 ? '#ff6b35' : '#ff4444'}
                                 />
                               </div>
                               <div className="text-xs text-zinc-400 font-medium">Quality Score</div>
@@ -596,11 +598,11 @@ export default function DebateRoomPage() {
                         <CardContent className="space-y-6">
                           {/* Argument Content */}
                           <div className="bg-black/20 backdrop-blur-sm rounded-lg p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
-                            <p className="text-base leading-relaxed text-white/90 font-normal">{arg.content}</p>
+                            <p className="text-base leading-relaxed text-white/90 font-normal">{arg.content || "No content available"}</p>
                           </div>
                           
                           {/* Enhanced Analysis Section */}
-                          {typeof arg.score === 'object' && arg.score !== null && arg.score !== undefined && (
+                          {typeof arg.score === 'object' && arg.score !== null && arg.score !== undefined && Object.keys(arg.score).length > 0 && (
                             <div className="mt-8 pt-6 border-t border-white/20">
                               <div className="mb-6">
                                 <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -613,7 +615,7 @@ export default function DebateRoomPage() {
                                   {Object.entries(arg.score as ScoreObject).map(([key, value]) => {
                                     if (key === 'length' || key === 'total' || typeof value !== 'object' || !value) return null;
                                     const metric = value as ScoreMetric;
-                                    if (!metric || typeof metric.score !== 'number') return null;
+                                    if (!metric || typeof metric.score !== 'number' || !metric.rating) return null;
                                     
                                     const getMetricIcon = (metricKey: string) => {
                                       switch(metricKey) {
@@ -661,7 +663,7 @@ export default function DebateRoomPage() {
                                   {Object.entries(arg.score as ScoreObject).map(([key, value]) => {
                                     if (key === 'length' || key === 'total' || typeof value !== 'object' || !value) return null;
                                     const metric = value as ScoreMetric;
-                                    if (!metric || typeof metric.score !== 'number') return null;
+                                    if (!metric || typeof metric.score !== 'number' || !metric.rating) return null;
                                     
                                     const getScoreLabel = (score: number) => {
                                       if (score >= 90) return { label: "Exceptional", color: "text-[#00ff88]" };
@@ -714,7 +716,7 @@ export default function DebateRoomPage() {
                                 <div className="text-center">
                                   <div className="flex items-center justify-center mb-2">
                                     <CircularProgress
-                                      value={parseFloat(getArgumentScore(arg.score))}
+                                      value={isNaN(parseFloat(getArgumentScore(arg.score))) ? 0 : parseFloat(getArgumentScore(arg.score))}
                                       size={60}
                                       strokeWidth={6}
                                       color={getScoreColor(getArgumentScore(arg.score)).includes('accent') ? '#00ff88' : getScoreColor(getArgumentScore(arg.score)).includes('primary') ? '#ff6b35' : '#ff4444'}
@@ -744,7 +746,7 @@ export default function DebateRoomPage() {
         >
           <Button
             onClick={finalize}
-            disabled={loading || args.length < 2 || debate?.isFinalized || finalizationRequested}
+            disabled={loading || !Array.isArray(args) || args.length < 2 || debate?.isFinalized || finalizationRequested}
             size="lg"
             className="px-16 py-6 text-xl font-semibold bg-[#ff6b35] hover:bg-[#ff6b35]/90 text-black shadow-2xl border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200"
           >
