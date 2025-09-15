@@ -138,8 +138,22 @@ export default function DebateRoomPage() {
       });
 
       socketManager.onArgumentAdded((data: unknown) => {
-        const argData = data as ArgumentEventData;
-        setArgs(prev => [...prev, argData.argument]);
+        // Backend sends argumentData directly, not wrapped in { argument: ... }
+        const argumentData = data as ArgumentData;
+        setArgs(prev => {
+          // Remove any optimistic argument with matching content and author
+          const filteredArgs = prev.filter(arg => {
+            // Remove optimistic arguments that match the incoming real argument
+            if (arg.id.startsWith("optimistic-") && 
+                arg.content === argumentData.content && 
+                (arg.username === argumentData.username || arg.email === argumentData.email)) {
+              return false;
+            }
+            return true;
+          });
+          // Add the confirmed argument from server
+          return [...filteredArgs, argumentData];
+        });
         toast.success("New argument added!");
       });
 
@@ -262,15 +276,33 @@ export default function DebateRoomPage() {
     }
 
     setSubmitting(true);
+    
+    // Create optimistic argument for immediate UI update
+    const optimisticArg: Argument = {
+      id: `optimistic-${Date.now()}`,
+      content: newArg.trim(),
+      score: 0,
+      username: user?.username || user?.email || "You",
+      email: user?.email,
+      color: user?.color || "#ff6b35",
+      createdAt: new Date().toISOString(),
+    };
+    
+    // Add optimistic argument to UI immediately
+    setArgs(prev => [...prev, optimisticArg]);
+    setNewArg("");
+
     try {
       await apiFetch(`/debates/${id}/arguments`, {
         method: "POST",
-        body: JSON.stringify({ content: newArg.trim() }),
+        body: JSON.stringify({ content: optimisticArg.content }),
       });
-      setNewArg("");
       toast.success("Argument submitted successfully!");
-      fetchDebate();
+      // No fetchDebate() call - socket event will update the UI
     } catch (err) {
+      // Remove optimistic argument on error
+      setArgs(prev => prev.filter(arg => arg.id !== optimisticArg.id));
+      setNewArg(optimisticArg.content); // Restore the content for user to retry
       const errorMessage = err instanceof Error ? err.message : "Failed to submit argument";
       toast.error(errorMessage);
     } finally {
