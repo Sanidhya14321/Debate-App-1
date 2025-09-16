@@ -586,8 +586,7 @@ export default function DebateRoomPage() {
                   if (!arg || typeof arg !== 'object') return null;
                   
                   const scoreStr = getArgumentScore(arg.score);
-                  const scoreColor = getScoreColor(scoreStr);
-                  
+
                   return (
                     <motion.div
                       key={arg.id || `arg-${idx}`}
@@ -601,7 +600,7 @@ export default function DebateRoomPage() {
                           <div className="flex justify-between items-start">
                             <div className="flex items-center gap-4">
                               <div 
-                                className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-base shadow-lg ring-2 ring-white/20"
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-base shadow-lg ring-2 ring-white/20"
                                 style={{ backgroundColor: arg.color || '#ff6b35' }}
                               >
                                 {(arg.username || arg.email || "A").charAt(0).toUpperCase()}

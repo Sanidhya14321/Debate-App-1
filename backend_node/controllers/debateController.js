@@ -5,6 +5,7 @@ import Result from "../models/Result.js";
 import User from "../models/User.js";
 import geminiService from "../services/geminiService.js";
 import mlAnalysisService from "../services/mlAnalysisService.js";
+import debateAnalysisService from "../services/debateAnalysisService.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -574,57 +575,65 @@ async function storeResultsInProfiles(debateId, participants, analysisResult) {
   }
 }
 
-// AI Analysis function with ML-first approach
+// AI Analysis function using centralized debate analysis
 async function performAIAnalysis(argumentsArray, topic) {
-  console.log('🤖 Performing ML-first debate analysis for topic:', topic);
+  console.log('🤖 Using centralized debate analysis for topic:', topic);
   
   try {
-    // Use the new ML-first analysis service
-    console.log('🔬 Using ML-first analysis service...');
-    const analysisResult = await mlAnalysisService.analyzeDebate(argumentsArray, topic);
-    console.log('✅ ML-first analysis completed successfully');
+    // Use the centralized analysis service
+    console.log('🔬 Using centralized debateAnalysisService...');
+    const analysisResult = await debateAnalysisService.analyzeDebateForBackend(argumentsArray, topic);
+    console.log('✅ Centralized analysis completed successfully');
     return analysisResult;
   } catch (error) {
-    console.error('❌ ML-first analysis failed, falling back to Gemini:', error);
-    
-    // Fallback to Gemini AI service
-    if (geminiService.isAvailable()) {
-      try {
-        console.log('🤖 Falling back to Gemini AI analysis...');
-        const analysisResult = await geminiService.analyzeDebate(argumentsArray, topic);
-        console.log('✅ Gemini AI fallback completed successfully');
-        return analysisResult;
-      } catch (geminiError) {
-        console.error('❌ Gemini AI fallback failed:', geminiError);
-        console.log('🔄 Using enhanced local analysis as final fallback...');
-        return performEnhancedAnalysis(argumentsArray, topic);
-      }
-    } else {
-      console.warn('⚠️ Gemini AI service not available, using enhanced local analysis');
-      return performEnhancedAnalysis(argumentsArray, topic);
-    }
+    console.error('❌ Centralized analysis failed, using fallback:', error);
+    console.log('🔄 Using basic fallback analysis...');
+    return performBasicAnalysis(argumentsArray, topic);
   }
 }
 
-// Enhanced local analysis as fallback
-function performEnhancedAnalysis(argumentsArray, topic) {
-  console.log('🔄 Performing enhanced local analysis for topic:', topic);
+// Basic fallback analysis (simplified - main logic now in debate-analysis.ts)
+function performBasicAnalysis(argumentsArray, topic) {
+  console.log('🔄 Performing basic analysis fallback');
   
-  // Group arguments by username
   const usernames = [...new Set(argumentsArray.map(arg => arg.username))];
+  
   const results = {
     results: {},
     winner: null,
-    analysisSource: 'enhanced_local',
+    analysisSource: 'fallback',
     finalizedAt: new Date()
   };
 
-  // Analyze each participant's arguments
-  for (const username of usernames) {
+  usernames.forEach(username => {
     const userArgs = argumentsArray.filter(arg => arg.username === username);
-    const analysisResult = analyzeUserArgumentsEnhanced(userArgs, topic);
-    results.results[username] = analysisResult;
-  }
+    const totalLength = userArgs.reduce((sum, arg) => sum + (arg.content?.length || 0), 0);
+    const argCount = userArgs.length;
+    
+    // Basic scoring based on participation and argument length
+    const participationScore = Math.min(100, argCount * 25);
+    const lengthScore = Math.min(100, totalLength / 10);
+    const engagementScore = Math.min(100, argCount * 15 + (totalLength / argCount || 0) / 5);
+    
+    const total = Math.round((participationScore + lengthScore + engagementScore) / 3);
+    
+    results.results[username] = {
+      scores: {
+        sentiment: { score: Math.round(participationScore * 0.8), rating: getScoreRating(Math.round(participationScore * 0.8)) },
+        clarity: { score: Math.round(lengthScore * 0.7), rating: getScoreRating(Math.round(lengthScore * 0.7)) },
+        vocab_richness: { score: Math.round(engagementScore * 0.9), rating: getScoreRating(Math.round(engagementScore * 0.9)) },
+        avg_word_len: { score: total, rating: getScoreRating(total) }
+      },
+      total,
+      argumentCount: argCount,
+      averageLength: Math.round(totalLength / argCount) || 0,
+      analysis: {
+        strengths: ["Active participation", "Consistent engagement"],
+        weaknesses: ["Could improve argument depth"],
+        feedback: generateFeedback(total)
+      }
+    };
+  });
 
   // Determine winner
   const scores = Object.entries(results.results).map(([username, data]) => ({
@@ -639,123 +648,6 @@ function performEnhancedAnalysis(argumentsArray, topic) {
   return results;
 }
 
-// Analyze individual user arguments with enhanced local analysis
-function analyzeUserArgumentsEnhanced(userArgs, topic) {
-  const argTexts = userArgs.map(arg => arg.content).join(' ');
-  
-  // Enhanced local analysis
-  const coherenceScore = calculateCoherence(argTexts);
-  const evidenceScore = calculateEvidence(argTexts);
-  const logicScore = calculateLogic(argTexts);
-  const persuasivenessScore = calculatePersuasiveness(argTexts, topic);
-  
-  const total = Math.round((coherenceScore + evidenceScore + logicScore + persuasivenessScore) / 4);
-  
-  return {
-    scores: {
-      coherence: coherenceScore,
-      evidence: evidenceScore,
-      logic: logicScore,
-      persuasiveness: persuasivenessScore
-    },
-    total,
-    argumentCount: userArgs.length,
-    averageLength: Math.round(argTexts.length / userArgs.length),
-    analysis: {
-      strengths: generateStrengths(coherenceScore, evidenceScore, logicScore, persuasivenessScore),
-      weaknesses: generateWeaknesses(coherenceScore, evidenceScore, logicScore, persuasivenessScore),
-      feedback: generateFeedback(total)
-    }
-  };
-}
-
-// Enhanced scoring functions
-function calculateCoherence(text) {
-  // Check for logical flow indicators
-  const flowWords = ['because', 'therefore', 'however', 'furthermore', 'additionally', 'consequently'];
-  const flowCount = flowWords.filter(word => text.toLowerCase().includes(word)).length;
-  
-  // Base score + flow bonus
-  let score = 60 + (flowCount * 5);
-  
-  // Sentence structure bonus
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
-  if (sentences.length > 2) score += 10;
-  
-  return Math.min(100, Math.max(30, score));
-}
-
-function calculateEvidence(text) {
-  const evidenceWords = ['study', 'research', 'data', 'statistics', 'evidence', 'survey', 'report'];
-  const evidenceCount = evidenceWords.filter(word => text.toLowerCase().includes(word)).length;
-  
-  let score = 50 + (evidenceCount * 10);
-  
-  // Check for specific numbers or percentages
-  if (/\d+%|\d+\.\d+%/.test(text)) score += 15;
-  if (/according to|studies show|research indicates/.test(text.toLowerCase())) score += 20;
-  
-  return Math.min(100, Math.max(20, score));
-}
-
-function calculateLogic(text) {
-  // Check for logical structure
-  const logicalWords = ['if', 'then', 'because', 'since', 'given that', 'assuming'];
-  const logicalCount = logicalWords.filter(word => text.toLowerCase().includes(word)).length;
-  
-  let score = 55 + (logicalCount * 8);
-  
-  // Check for counterarguments
-  if (/however|although|despite|while/.test(text.toLowerCase())) score += 15;
-  
-  return Math.min(100, Math.max(25, score));
-}
-
-function calculatePersuasiveness(text, topic) {
-  // Check for persuasive elements
-  const persuasiveWords = ['should', 'must', 'important', 'crucial', 'essential', 'urgent'];
-  const persuasiveCount = persuasiveWords.filter(word => text.toLowerCase().includes(word)).length;
-  
-  let score = 50 + (persuasiveCount * 7);
-  
-  // Check for emotional appeal
-  if (/significant|critical|vital|devastating|beneficial/.test(text.toLowerCase())) score += 10;
-  
-  // Topic relevance bonus
-  if (topic && text.toLowerCase().includes(topic.toLowerCase().split(' ')[0])) score += 15;
-  
-  return Math.min(100, Math.max(30, score));
-}
-
-function generateStrengths(coherence, evidence, logic, persuasiveness) {
-  const strengths = [];
-  if (coherence >= 70) strengths.push("Clear and coherent arguments");
-  if (evidence >= 70) strengths.push("Strong supporting evidence");
-  if (logic >= 70) strengths.push("Sound logical reasoning");
-  if (persuasiveness >= 70) strengths.push("Compelling and persuasive");
-  
-  if (strengths.length === 0) strengths.push("Shows engagement in the debate");
-  
-  return strengths;
-}
-
-function generateWeaknesses(coherence, evidence, logic, persuasiveness) {
-  const weaknesses = [];
-  if (coherence < 60) weaknesses.push("Could improve logical flow between points");
-  if (evidence < 60) weaknesses.push("Would benefit from more supporting evidence");
-  if (logic < 60) weaknesses.push("Logical reasoning could be strengthened");
-  if (persuasiveness < 60) weaknesses.push("Arguments could be more compelling");
-  
-  return weaknesses;
-}
-
-function generateFeedback(score) {
-  if (score >= 85) return "Excellent argumentation with strong logical structure and evidence";
-  if (score >= 70) return "Good arguments with room for minor improvements";
-  if (score >= 55) return "Decent arguments that could benefit from better structure or evidence";
-  return "Arguments need significant improvement in logic, evidence, or structure";
-}
-
 function getScoreRating(score) {
   if (score >= 90) return "Excellent";
   if (score >= 80) return "Very Good";
@@ -765,18 +657,19 @@ function getScoreRating(score) {
   return "Poor";
 }
 
-// Basic fallback analysis (enhanced)
-function performBasicAnalysis(argumentsArray, topic) {
-  console.log('🔄 Performing basic analysis fallback');
-  
-  const usernames = [...new Set(argumentsArray.map(arg => arg.username))];
-  
-  const results = {
-    results: {},
-    winner: null,
-    analysisSource: 'fallback',
-    finalizedAt: new Date()
-  };
+function generateFeedback(score) {
+  if (score >= 85) return "Excellent argumentation with strong logical structure and evidence";
+  if (score >= 70) return "Good arguments with room for minor improvements";
+  if (score >= 55) return "Decent arguments that could benefit from better structure or evidence";
+  return "Arguments need significant improvement in logic, evidence, or structure";
+const usernames = [...new Set(argumentsArray.map(arg => arg.username))];
+
+const results = {
+  results: {},
+  winner: null,
+  analysisSource: 'fallback',
+  finalizedAt: new Date()
+};
 
   usernames.forEach(username => {
     const userArgs = argumentsArray.filter(arg => arg.username === username);

@@ -126,7 +126,7 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-gradient">
+    <div className="min-h-screen">
       {/* Removed animated background elements for cleaner look */}
 
       <motion.div className="relative container mx-auto px-4 py-16 max-w-6xl">
