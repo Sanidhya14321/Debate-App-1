@@ -1,7 +1,165 @@
 // services/debateAnalysisService.js
-// Backend integration with enhanced AI debate analysis workflow
+// Backend integration with frontend debate-analysis.ts flow
 
-// Enhanced Analysis Functions (fallback versions)
+import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Main analysis function - calls frontend debate-analysis.ts
+export const analyzeDebateForBackend = async (argumentsArray, topic) => {
+  console.log('🤖 Using frontend debate-analysis.ts flow for topic:', topic);
+  
+  try {
+    // Call the frontend debate-analysis.ts via Node.js subprocess
+    const frontendPath = path.resolve(__dirname, '../../frontend');
+    const analysisScript = path.join(frontendPath, 'ai/flows/debate-analysis.ts');
+    
+    console.log('🔬 Calling frontend debate analysis service...');
+    
+    // Create input data that matches frontend schema
+    const inputData = {
+      arguments: argumentsArray.map(arg => ({
+        username: arg.username,
+        argumentText: arg.content || arg.argumentText || '',
+        content: arg.content || arg.argumentText || '',
+        timestamp: arg.timestamp?.toISOString?.() || new Date().toISOString(),
+        userId: arg.userId
+      })),
+      topic
+    };
+
+    // For now, we'll use a simple HTTP call to the frontend analysis endpoint
+    // In production, you might want to set up a proper service communication
+    
+    // Try to call frontend service via HTTP if available
+    if (process.env.FRONTEND_URL) {
+      try {
+        const response = await fetch(`${process.env.FRONTEND_URL}/api/analyze-debate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(inputData),
+          timeout: 10000
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('✅ Frontend analysis completed via HTTP');
+          return result;
+        }
+      } catch (httpErr) {
+        console.warn('⚠️ Frontend HTTP call failed:', httpErr.message);
+      }
+    }
+
+    // Fallback to direct import (requires transpilation)
+    try {
+      // For Node.js environment, we need to implement the same logic
+      // Since we can't directly import TypeScript in Node.js backend
+      return await performDirectAnalysis(inputData);
+    } catch (directErr) {
+      console.error('❌ Direct analysis failed:', directErr.message);
+      throw new Error('All analysis methods failed');
+    }
+
+  } catch (error) {
+    console.error('❌ Frontend analysis service failed:', error);
+    throw error;
+  }
+};
+
+// Direct implementation matching frontend debate-analysis.ts logic
+const performDirectAnalysis = async (inputData) => {
+  console.log('📊 Performing direct analysis (matching frontend logic)');
+  
+  const { arguments: argumentsArray, topic } = inputData;
+  
+  // Normalize input arguments
+  const normalizedArgs = argumentsArray.map(arg => ({
+    username: arg.username,
+    argumentText: arg.argumentText || arg.content || '',
+    content: arg.content || arg.argumentText || '',
+    timestamp: arg.timestamp,
+    userId: arg.userId
+  }));
+
+  // --- Step 1: ML API (if available) ---
+  if (process.env.DEBATE_ML_URL) {
+    try {
+      console.log('🔬 Attempting ML API analysis...');
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      
+      const mlResult = await fetch(`${process.env.DEBATE_ML_URL}/finalize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ arguments: normalizedArgs, topic }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeout);
+      
+      if (mlResult.ok) {
+        const result = await mlResult.json();
+        console.log('✅ ML evaluation completed');
+        return {
+          ...result,
+          analysisSource: 'ml',
+          finalizedAt: new Date()
+        };
+      }
+      console.warn('⚠️ ML evaluation failed with status:', mlResult.status);
+    } catch (mlErr) {
+      console.warn('⚠️ ML service unavailable:', mlErr.message);
+    }
+  }
+
+  // --- Step 2: AI Fallback (Gemini) ---
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      console.log('🤖 Attempting AI analysis fallback...');
+      const aiResult = await performAIAnalysis(normalizedArgs, topic);
+      if (aiResult) {
+        console.log('✅ AI evaluation completed');
+        return {
+          ...aiResult,
+          analysisSource: 'ai',
+          finalizedAt: new Date()
+        };
+      }
+    } catch (aiErr) {
+      console.warn('⚠️ AI analysis failed:', aiErr.message);
+    }
+  }
+
+  // --- Step 3: Enhanced Local Analysis ---
+  console.log('📊 Using enhanced local analysis');
+  const usernames = [...new Set(normalizedArgs.map(arg => arg.username))];
+  const results = {};
+
+  for (const username of usernames) {
+    const userArgs = normalizedArgs.filter(arg => arg.username === username);
+    results[username] = analyzeUserArguments(userArgs, topic);
+  }
+
+  // Determine winner
+  const winner = Object.entries(results).reduce((prev, current) => 
+    current[1].total > prev[1].total ? current : prev
+  )[0];
+
+  return {
+    results,
+    winner,
+    analysisSource: 'enhanced_local',
+    finalizedAt: new Date()
+  };
+};
+
+// Enhanced Analysis Functions (matching frontend logic exactly)
 const calculateCoherence = (text) => {
   const flowWords = ['because', 'therefore', 'however', 'furthermore', 'additionally', 'consequently'];
   const flowCount = flowWords.filter(word => text.toLowerCase().includes(word)).length;
@@ -46,11 +204,8 @@ const calculatePersuasiveness = (text, topic) => {
 };
 
 const rateScore = (score) => {
-  if (score >= 90) return "Excellent";
-  if (score >= 80) return "Very Good";
-  if (score >= 70) return "Good";
-  if (score >= 60) return "Average";
-  if (score >= 50) return "Below Average";
+  if (score >= 80) return "Excellent";
+  if (score >= 60) return "Good";
   return "Poor";
 };
 
@@ -83,7 +238,7 @@ const generateFeedback = (score) => {
 };
 
 const analyzeUserArguments = (userArgs, topic) => {
-  const argTexts = userArgs.map(arg => arg.content || arg.argumentText || '').join(' ');
+  const argTexts = userArgs.map(arg => arg.argumentText || arg.content || '').join(' ');
   
   const coherenceScore = calculateCoherence(argTexts);
   const evidenceScore = calculateEvidence(argTexts);
@@ -114,98 +269,7 @@ const analyzeUserArguments = (userArgs, topic) => {
   };
 };
 
-// Main analysis function - uses ML-first, AI-fallback approach matching debate-analysis.ts
-export const analyzeDebateForBackend = async (argumentsArray, topic) => {
-  console.log('🤖 Using enhanced ML-first AI workflow for debate analysis, topic:', topic);
-  
-  // Normalize input arguments to match frontend schema
-  const normalizedArgs = argumentsArray.map(arg => ({
-    username: arg.username,
-    argumentText: arg.content || arg.argumentText || '',
-    content: arg.content || arg.argumentText || '',
-    timestamp: arg.timestamp,
-    userId: arg.userId
-  }));
-
-  try {
-    // Step 1: Try ML API first (matching frontend workflow)
-    if (process.env.DEBATE_ML_URL) {
-      try {
-        console.log('🔬 Attempting ML API analysis...');
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
-        
-        const mlResult = await fetch(`${process.env.DEBATE_ML_URL}/finalize`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ arguments: normalizedArgs, topic }),
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeout);
-        
-        if (mlResult.ok) {
-          const result = await mlResult.json();
-          console.log('✅ ML evaluation completed');
-          return {
-            ...result,
-            analysisSource: 'ml',
-            finalizedAt: new Date()
-          };
-        }
-        console.warn('⚠️ ML evaluation failed with status:', mlResult.status);
-      } catch (mlErr) {
-        console.warn('⚠️ ML service unavailable:', mlErr.message);
-      }
-    }
-
-    // Step 2: AI Analysis Fallback (Gemini)
-    if (process.env.GEMINI_API_KEY) {
-      try {
-        console.log('🤖 Attempting AI analysis fallback...');
-        const aiResult = await performAIAnalysis(normalizedArgs, topic);
-        if (aiResult) {
-          console.log('✅ AI evaluation completed');
-          return {
-            ...aiResult,
-            analysisSource: 'ai',
-            finalizedAt: new Date()
-          };
-        }
-      } catch (aiErr) {
-        console.warn('⚠️ AI analysis failed:', aiErr.message);
-      }
-    }
-
-    // Step 3: Enhanced Local Analysis (matching frontend logic)
-    console.log('📊 Using enhanced local analysis');
-    const usernames = [...new Set(normalizedArgs.map(arg => arg.username))];
-    const results = {};
-
-    for (const username of usernames) {
-      const userArgs = normalizedArgs.filter(arg => arg.username === username);
-      results[username] = analyzeUserArguments(userArgs, topic);
-    }
-
-    // Determine winner
-    const winner = Object.entries(results).reduce((prev, current) => 
-      current[1].total > prev[1].total ? current : prev
-    )[0];
-
-    return {
-      results,
-      winner,
-      analysisSource: 'enhanced_local',
-      finalizedAt: new Date()
-    };
-
-  } catch (error) {
-    console.error('❌ All analysis methods failed:', error);
-    throw error;
-  }
-};
-
-// AI Analysis using Gemini (simplified version of frontend logic)
+// AI Analysis using Gemini (matching frontend prompt)
 const performAIAnalysis = async (argumentsArray, topic) => {
   if (!process.env.GEMINI_API_KEY) {
     throw new Error('Gemini API key not available');
@@ -216,7 +280,7 @@ const performAIAnalysis = async (argumentsArray, topic) => {
     .join('\n\n');
 
   const prompt = `
-You are a professional debate evaluator.
+You are a **professional debate evaluator**.
 Analyze the provided arguments and return a structured evaluation.
 
 ### Scoring Rubric:
@@ -225,41 +289,17 @@ Analyze the provided arguments and return a structured evaluation.
 - Vocabulary Richness (0–100)
 - Average Word Length (0–100)
 - Coherence (0–100)
-- Evidence (0–100)
-- Logic (0–100)
-- Persuasiveness (0–100)
 
 ### Rules:
 1. Provide descriptive scores (0–100) for each metric.
-2. Compute totals using weights: Clarity (30%), Sentiment (30%), Vocabulary Richness (20%), Avg Word Length (10%), Coherence (10%)
+2. Compute totals using weights:
+   - Clarity (30%)
+   - Sentiment (30%)
+   - Vocabulary Richness (20%)
+   - Avg Word Length (10%)
+   - Coherence (10%)
 3. Winner = participant with highest total.
-4. Return strictly valid JSON in this format:
-{
-  "results": {
-    "username1": {
-      "scores": {
-        "sentiment": {"score": number, "rating": "string"},
-        "clarity": {"score": number, "rating": "string"},
-        "vocab_richness": {"score": number, "rating": "string"},
-        "avg_word_len": {"score": number, "rating": "string"},
-        "coherence": number,
-        "evidence": number,
-        "logic": number,
-        "persuasiveness": number
-      },
-      "total": number,
-      "argumentCount": number,
-      "averageLength": number,
-      "analysis": {
-        "strengths": ["string"],
-        "weaknesses": ["string"],
-        "feedback": "string"
-      }
-    }
-  },
-  "winner": "string"
-}
-
+4. Return strictly valid JSON.
 Arguments: ${argsString}
 `;
 
@@ -310,7 +350,7 @@ Arguments: ${argsString}
 
 export default {
   analyzeDebateForBackend,
-  analyzeUserArguments,
+  analyzeUserArguments: analyzeUserArguments,
   calculateCoherence,
   calculateEvidence,
   calculateLogic,

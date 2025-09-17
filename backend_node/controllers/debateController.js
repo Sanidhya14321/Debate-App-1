@@ -198,10 +198,10 @@ export const addArgument = async (req, res) => {
       return res.status(403).json({ error: "You are not a participant in this debate" });
     }
 
-    // Generate AI-based score for the argument
+    // Generate AI-based score for the argument using enhanced scoring
     let score;
     try {
-      // Use enhanced AI scoring
+      // Use enhanced scoring functions from debate-analysis.ts pattern
       const coherenceScore = calculateCoherence(content);
       const evidenceScore = calculateEvidence(content);
       const logicScore = calculateLogic(content);
@@ -216,7 +216,7 @@ export const addArgument = async (req, res) => {
         total: Math.round((coherenceScore + evidenceScore + logicScore + persuasivenessScore) / 4)
       };
     } catch (scoreErr) {
-      console.warn("[AI scoring failed] using deterministic fallback:", scoreErr.message);
+      console.warn("[Argument scoring failed] using deterministic fallback:", scoreErr.message);
       // Provide structured deterministic fallback score based on content analysis
       const wordCount = content.split(' ').length;
       const charCount = content.length;
@@ -338,7 +338,7 @@ export const finalizeDebate = async (req, res) => {
 
     console.log(`🏆 Finalizing debate ${debateId} with force: ${forceFinalize}`);
 
-    // Prepare arguments for AI analysis with proper user data
+    // Prepare arguments for analysis with proper user data
     const argumentsForAnalysis = debate.arguments.map(arg => ({
       username: arg.user?.username || "Anonymous",
       content: arg.content || "",
@@ -348,28 +348,17 @@ export const finalizeDebate = async (req, res) => {
 
     const usernames = [...new Set(argumentsForAnalysis.map(arg => arg.username))];
     
-    console.log('🤖 Starting AI analysis for participants:', usernames);
+    console.log('🤖 Starting debate analysis for participants:', usernames);
     console.log('🔍 Arguments for analysis:', argumentsForAnalysis.length);
 
-    // Use AI analysis flow
-    let analysisResult;
-    let analysisSource = 'ai';
-    
-    try {
-      console.log('🤖 Performing AI analysis...');
-      analysisResult = await performAIAnalysis(argumentsForAnalysis, debate.topic);
-      console.log('✅ AI analysis completed successfully');
-    } catch (aiErr) {
-      console.warn('⚠️ AI analysis failed, using basic fallback:', aiErr.message);
-      // Fallback to basic scoring
-      analysisResult = await performBasicAnalysis(argumentsForAnalysis, debate.topic);
-      analysisSource = 'fallback';
-      console.log('✅ Basic fallback analysis completed');
-    }
+    // Use centralized debate analysis service (ML -> AI -> Enhanced Local)
+    console.log('🔬 Using centralized debate-analysis.ts service...');
+    const analysisResult = await debateAnalysisService.analyzeDebateForBackend(argumentsForAnalysis, debate.topic);
+    console.log('✅ Debate analysis completed successfully using:', analysisResult.analysisSource);
     
     // Save results to database
     try {
-      const savedResult = await saveResult(debate._id, analysisResult, analysisSource);
+      const savedResult = await saveResult(debate._id, analysisResult, analysisResult.analysisSource);
       console.log('✅ Results saved to database');
     } catch (saveErr) {
       console.error('❌ Failed to save results:', saveErr);
@@ -396,18 +385,18 @@ export const finalizeDebate = async (req, res) => {
       io.to(`debate-${debateId}`).emit('debate-finalized', {
         debateId: debateId,
         results: analysisResult,
-        analysisSource,
+        analysisSource: analysisResult.analysisSource,
         winner: analysisResult.winner,
         finalizedAt: debate.finalizedAt
       });
       console.log(`📢 Broadcasting finalization to debate-${debateId}`);
     }
 
-    console.log('🎉 Debate finalized successfully using AI analysis');
+    console.log('🎉 Debate finalized successfully using centralized analysis');
     res.json({
       message: "Debate finalized successfully",
       results: analysisResult,
-      analysisSource,
+      analysisSource: analysisResult.analysisSource,
       winner: analysisResult.winner,
       finalizedAt: debate.finalizedAt
     });
@@ -575,144 +564,58 @@ async function storeResultsInProfiles(debateId, participants, analysisResult) {
   }
 }
 
-// AI Analysis function using centralized debate analysis
-async function performAIAnalysis(argumentsArray, topic) {
-  console.log('🤖 Using centralized debate analysis for topic:', topic);
+// Enhanced scoring functions (consistent with debate-analysis.ts)
+const calculateCoherence = (text) => {
+  const flowWords = ['because', 'therefore', 'however', 'furthermore', 'additionally', 'consequently'];
+  const flowCount = flowWords.filter(word => text.toLowerCase().includes(word)).length;
   
-  try {
-    // Use the centralized analysis service
-    console.log('🔬 Using centralized debateAnalysisService...');
-    const analysisResult = await debateAnalysisService.analyzeDebateForBackend(argumentsArray, topic);
-    console.log('✅ Centralized analysis completed successfully');
-    return analysisResult;
-  } catch (error) {
-    console.error('❌ Centralized analysis failed, using fallback:', error);
-    console.log('🔄 Using basic fallback analysis...');
-    return performBasicAnalysis(argumentsArray, topic);
-  }
-}
-
-// Basic fallback analysis (simplified - main logic now in debate-analysis.ts)
-function performBasicAnalysis(argumentsArray, topic) {
-  console.log('🔄 Performing basic analysis fallback');
+  let score = 60 + (flowCount * 5);
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+  if (sentences.length > 2) score += 10;
   
-  const usernames = [...new Set(argumentsArray.map(arg => arg.username))];
+  return Math.min(100, Math.max(30, score));
+};
+
+const calculateEvidence = (text) => {
+  const evidenceWords = ['study', 'research', 'data', 'statistics', 'evidence', 'survey', 'report'];
+  const evidenceCount = evidenceWords.filter(word => text.toLowerCase().includes(word)).length;
   
-  const results = {
-    results: {},
-    winner: null,
-    analysisSource: 'fallback',
-    finalizedAt: new Date()
-  };
-
-  usernames.forEach(username => {
-    const userArgs = argumentsArray.filter(arg => arg.username === username);
-    const totalLength = userArgs.reduce((sum, arg) => sum + (arg.content?.length || 0), 0);
-    const argCount = userArgs.length;
-    
-    // Basic scoring based on participation and argument length
-    const participationScore = Math.min(100, argCount * 25);
-    const lengthScore = Math.min(100, totalLength / 10);
-    const engagementScore = Math.min(100, argCount * 15 + (totalLength / argCount || 0) / 5);
-    
-    const total = Math.round((participationScore + lengthScore + engagementScore) / 3);
-    
-    results.results[username] = {
-      scores: {
-        sentiment: { score: Math.round(participationScore * 0.8), rating: getScoreRating(Math.round(participationScore * 0.8)) },
-        clarity: { score: Math.round(lengthScore * 0.7), rating: getScoreRating(Math.round(lengthScore * 0.7)) },
-        vocab_richness: { score: Math.round(engagementScore * 0.9), rating: getScoreRating(Math.round(engagementScore * 0.9)) },
-        avg_word_len: { score: total, rating: getScoreRating(total) }
-      },
-      total,
-      argumentCount: argCount,
-      averageLength: Math.round(totalLength / argCount) || 0,
-      analysis: {
-        strengths: ["Active participation", "Consistent engagement"],
-        weaknesses: ["Could improve argument depth"],
-        feedback: generateFeedback(total)
-      }
-    };
-  });
-
-  // Determine winner
-  const scores = Object.entries(results.results).map(([username, data]) => ({
-    username,
-    total: data.total
-  }));
+  let score = 50 + (evidenceCount * 10);
+  if (/\d+%|\d+\.\d+%/.test(text)) score += 15;
+  if (/according to|studies show|research indicates/.test(text.toLowerCase())) score += 20;
   
-  results.winner = scores.reduce((prev, current) => 
-    current.total > prev.total ? current : prev
-  ).username;
+  return Math.min(100, Math.max(20, score));
+};
 
-  return results;
-}
+const calculateLogic = (text) => {
+  const logicalWords = ['if', 'then', 'because', 'since', 'given that', 'assuming'];
+  const logicalCount = logicalWords.filter(word => text.toLowerCase().includes(word)).length;
+  
+  let score = 55 + (logicalCount * 8);
+  if (/however|although|despite|while/.test(text.toLowerCase())) score += 15;
+  
+  return Math.min(100, Math.max(25, score));
+};
 
-function getScoreRating(score) {
+const calculatePersuasiveness = (text, topic) => {
+  const persuasiveWords = ['should', 'must', 'important', 'crucial', 'essential', 'urgent'];
+  const persuasiveCount = persuasiveWords.filter(word => text.toLowerCase().includes(word)).length;
+  
+  let score = 50 + (persuasiveCount * 7);
+  if (/significant|critical|vital|devastating|beneficial/.test(text.toLowerCase())) score += 10;
+  if (topic && text.toLowerCase().includes(topic.toLowerCase().split(' ')[0])) score += 15;
+  
+  return Math.min(100, Math.max(30, score));
+};
+
+const getScoreRating = (score) => {
   if (score >= 90) return "Excellent";
   if (score >= 80) return "Very Good";
   if (score >= 70) return "Good";
   if (score >= 60) return "Average";
   if (score >= 50) return "Below Average";
   return "Poor";
-}
-
-function generateFeedback(score) {
-  if (score >= 85) return "Excellent argumentation with strong logical structure and evidence";
-  if (score >= 70) return "Good arguments with room for minor improvements";
-  if (score >= 55) return "Decent arguments that could benefit from better structure or evidence";
-  return "Arguments need significant improvement in logic, evidence, or structure";
-const usernames = [...new Set(argumentsArray.map(arg => arg.username))];
-
-const results = {
-  results: {},
-  winner: null,
-  analysisSource: 'fallback',
-  finalizedAt: new Date()
 };
-
-  usernames.forEach(username => {
-    const userArgs = argumentsArray.filter(arg => arg.username === username);
-    const totalLength = userArgs.reduce((sum, arg) => sum + (arg.content?.length || 0), 0);
-    const argCount = userArgs.length;
-    
-    // Basic scoring based on participation and argument length
-    const participationScore = Math.min(100, argCount * 25);
-    const lengthScore = Math.min(100, totalLength / 10);
-    const engagementScore = Math.min(100, argCount * 15 + (totalLength / argCount || 0) / 5);
-    
-    const total = Math.round((participationScore + lengthScore + engagementScore) / 3);
-    
-    results.results[username] = {
-      scores: {
-        coherence: Math.round(participationScore * 0.8),
-        evidence: Math.round(lengthScore * 0.7),
-        logic: Math.round(engagementScore * 0.9),
-        persuasiveness: total
-      },
-      total,
-      argumentCount: argCount,
-      averageLength: Math.round(totalLength / argCount) || 0,
-      analysis: {
-        strengths: ["Active participation", "Consistent engagement"],
-        weaknesses: ["Could improve argument depth"],
-        feedback: generateFeedback(total)
-      }
-    };
-  });
-
-  // Determine winner
-  const scores = Object.entries(results.results).map(([username, data]) => ({
-    username,
-    total: data.total
-  }));
-  
-  results.winner = scores.reduce((prev, current) => 
-    current.total > prev.total ? current : prev
-  ).username;
-
-  return results;
-}
 
 // Save result to database
 async function saveResult(debateId, analysisResult, analysisSource) {
