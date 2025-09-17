@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -114,6 +114,18 @@ export default function DebateRoomPage() {
   const [finalizationRequested, setFinalizationRequested] = useState(false);
   const [finalizationRequestedBy, setFinalizationRequestedBy] = useState<string>("");
   const [showFinalizationDialog, setShowFinalizationDialog] = useState(false);
+
+  // Ref for auto-scrolling to bottom
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [args]);
 
   // Socket setup
   useEffect(() => {
@@ -408,44 +420,47 @@ export default function DebateRoomPage() {
   };
 
   return (
-    <div className="min-h-screen ">
-      <div className="max-w-6xl mx-auto px-8 py-16 space-y-16">
+    <div className="min-h-screen bg-transparent backdrop-blur-sm">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         
         {/* Header Section */}
         <motion.div
-          className="text-center space-y-8 mb-20"
+          className="text-center space-y-6 mb-12"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#ff6b35] leading-relaxed px-8 break-words">
-            {debate?.topic || "Loading..."}
-          </h1>
-          
-          {debate && (
-            <div className="flex flex-wrap justify-center gap-8 text-lg text-white/80 mt-12">
-              <div className="flex items-center gap-4">
-                <Users className="w-6 h-6 text-[#ff6b35]" />
-                <span>{debate.participants?.length || 0}/{debate.maxUsers || 2} participants</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <MessageSquare className="w-6 h-6 text-[#ff6b35]" />
-                <span>{Array.isArray(args) ? args.length : 0} arguments</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <Clock className="w-6 h-6 text-[#ff6b35]" />
-                <Badge variant={debate.status === 'active' ? 'default' : 'secondary'} className="bg-[#ff6b35] text-black text-base px-4 py-2">
-                  {debate.status}
-                </Badge>
-              </div>
-              {onlineUsers.length > 0 && (
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-[#00ff88] rounded-full animate-pulse"></div>
-                  <span>{onlineUsers.length} online</span>
+          {/* Glass morphism header card */}
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-2xl">
+            <h1 className="text-3xl md:text-4xl font-bold text-white leading-relaxed break-words mb-6">
+              {debate?.topic || "Loading..."}
+            </h1>
+            
+            {debate && (
+              <div className="flex flex-wrap justify-center gap-6 text-sm text-white/80">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#ff6b35]" />
+                  <span>{debate.participants?.length || 0}/{debate.maxUsers || 2}</span>
                 </div>
-              )}
-            </div>
-          )}
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-[#ff6b35]" />
+                  <span>{Array.isArray(args) ? args.length : 0} messages</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#ff6b35]" />
+                  <Badge variant={debate.status === 'active' ? 'default' : 'secondary'} className="bg-[#ff6b35]/20 backdrop-blur-sm text-white border border-[#ff6b35]/30">
+                    {debate.status}
+                  </Badge>
+                </div>
+                {onlineUsers.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-[#00ff88] rounded-full animate-pulse"></div>
+                    <span>{onlineUsers.length} online</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </motion.div>
 
         {/* Typing Indicator */}
@@ -453,9 +468,13 @@ export default function DebateRoomPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center text-sm text-muted-foreground"
+            className="text-center"
           >
-            {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 inline-block">
+              <span className="text-sm text-white/70">
+                {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+              </span>
+            </div>
           </motion.div>
         )}
 
@@ -466,23 +485,21 @@ export default function DebateRoomPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center"
           >
-            <Card className="border-[#ff6b35]/50 bg-[#ff6b35]/10">
-              <CardContent className="pt-6">
-                <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-[#ff6b35]" />
-                <p className="text-sm">
-                  Finalization requested by {finalizationRequestedBy}. Waiting for approval...
-                </p>
-              </CardContent>
-            </Card>
+            <div className="bg-[#ff6b35]/20 backdrop-blur-md border border-[#ff6b35]/30 rounded-xl p-6">
+              <AlertTriangle className="w-6 h-6 mx-auto mb-2 text-[#ff6b35]" />
+              <p className="text-sm text-white">
+                Finalization requested by {finalizationRequestedBy}. Waiting for approval...
+              </p>
+            </div>
           </motion.div>
         )}
 
         {/* Finalization Dialog */}
         <Dialog open={showFinalizationDialog} onOpenChange={setShowFinalizationDialog}>
-          <DialogContent className="bg-card border-[#ff6b35]/30">
+          <DialogContent className="bg-black/80 backdrop-blur-xl border border-white/20 rounded-2xl">
             <DialogHeader>
               <DialogTitle className="text-[#ff6b35]">Finalization Request</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-white/70">
                 {finalizationRequestedBy} wants to finalize this debate. Do you agree to end the debate and see the results?
               </DialogDescription>
             </DialogHeader>
@@ -490,14 +507,14 @@ export default function DebateRoomPage() {
               <Button 
                 variant="outline" 
                 onClick={() => handleFinalizationResponse(false)}
-                className="border-red-500 text-red-500 hover:bg-red-500/10"
+                className="bg-red-500/20 border-red-500/30 text-red-400 hover:bg-red-500/30"
               >
                 <XCircle className="w-4 h-4 mr-2" />
                 Reject
               </Button>
               <Button 
                 onClick={() => handleFinalizationResponse(true)}
-                className="bg-[#00ff88] text-black hover:bg-[#00ff88]/90"
+                className="bg-[#00ff88]/20 border-[#00ff88]/30 text-[#00ff88] hover:bg-[#00ff88]/30"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Approve
@@ -506,144 +523,160 @@ export default function DebateRoomPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Argument Form */}
+        {/* Chat Messages Container */}
+        <div className="flex-1 min-h-[60vh] max-h-[60vh] overflow-y-auto scrollbar-hide scroll-smooth">
+          <div className="space-y-4 pb-4">
+            <AnimatePresence mode="popLayout">
+              {!Array.isArray(args) || args.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-20"
+                >
+                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-12">
+                    <MessageSquare className="w-16 h-16 mx-auto text-white/30 mb-6" />
+                    <p className="text-lg text-white/60 font-medium">No messages yet. Start the conversation!</p>
+                  </div>
+                </motion.div>
+              ) : (
+                Array.isArray(args) && args.map((arg, idx) => {
+                  if (!arg || typeof arg !== 'object') return null;
+                  
+                  const scoreStr = getArgumentScore(arg.score);
+                  const isCurrentUser = arg.username === user?.username || arg.email === user?.email;
+                  
+                  return (
+                    <motion.div
+                      key={arg.id || `arg-${idx}`}
+                      initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
+                      transition={{ 
+                        delay: idx * 0.05,
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 25
+                      }}
+                      className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-4`}
+                    >
+                      <div className={`flex items-end gap-3 max-w-[70%] ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                        {/* Avatar */}
+                        <motion.div 
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white/20 flex-shrink-0"
+                          style={{ backgroundColor: arg.color || '#ff6b35' }}
+                          whileHover={{ scale: 1.1 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        >
+                          {(arg.username || arg.email || "A").charAt(0).toUpperCase()}
+                        </motion.div>
+                        
+                        {/* Message Bubble */}
+                        <motion.div 
+                          className={`relative ${isCurrentUser ? 'ml-0' : 'mr-0'}`}
+                          whileHover={{ scale: 1.02 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        >
+                          {/* Message bubble with tail */}
+                          <div className={`
+                            relative p-4 rounded-2xl backdrop-blur-md border shadow-lg transition-all duration-300
+                            ${isCurrentUser 
+                              ? 'bg-[#ff6b35]/20 border-[#ff6b35]/30 text-white rounded-br-md hover:bg-[#ff6b35]/30' 
+                              : 'bg-white/10 border-white/20 text-white rounded-bl-md hover:bg-white/15'
+                            }
+                          `}>
+                            {/* Message content */}
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs font-medium text-white/70">
+                                  {arg.username || arg.email || "Anonymous"}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <div className="text-xs text-white/50">
+                                    {parseFloat(scoreStr).toFixed(0)}%
+                                  </div>
+                                  <motion.div 
+                                    className="w-2 h-2 rounded-full"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ delay: 0.3, type: "spring", stiffness: 400 }}
+                                    style={{
+                                      backgroundColor: parseFloat(scoreStr) >= 80 ? '#00ff88' : 
+                                                      parseFloat(scoreStr) >= 60 ? '#ff6b35' : '#ff4444'
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              
+                              <p className="text-sm leading-relaxed">
+                                {arg.content || "No content available"}
+                              </p>
+                              
+                              <div className="text-xs text-white/50 text-right">
+                                {arg.createdAt ? new Date(arg.createdAt).toLocaleTimeString([], { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                }) : ""}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
+            </AnimatePresence>
+            {/* Invisible element for auto-scroll */}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+
+        {/* Message Input - Fixed at bottom */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mb-16"
+          className="sticky bottom-4"
         >
-          <Card className="shadow-2xl border-[#ff6b35]/40 bg-zinc-900/80 backdrop-blur-sm">
-            <CardHeader className="pb-8">
-              <CardTitle className="flex items-center gap-4 text-white text-2xl">
-                <MessageSquare className="w-6 h-6 text-[#ff6b35]" />
-                Submit Your Argument
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="relative">
-                  <Input
-                    value={newArg}
-                    onChange={(e) => setNewArg(e.target.value)}
-                    placeholder="Type your compelling argument here... (minimum 10 characters)"
-                    className="pr-20 min-h-[120px] resize-none bg-zinc-800/50 border-zinc-700/50 focus:border-[#ff6b35]/50 text-white placeholder:text-zinc-400 text-lg leading-relaxed p-6"
-                    disabled={submitting}
-                    maxLength={2000}
-                  />
-                  <div className="absolute bottom-3 right-4 text-sm text-zinc-400 font-medium">
-                    {newArg.length}/2000
-                  </div>
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-2xl">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="relative">
+                <Input
+                  value={newArg}
+                  onChange={(e) => setNewArg(e.target.value)}
+                  placeholder="Type your argument... (minimum 10 characters)"
+                  className="bg-white/10 backdrop-blur-sm border-white/20 focus:border-[#ff6b35]/50 text-white placeholder:text-white/50 text-base leading-relaxed p-4 pr-20 rounded-xl min-h-[60px]"
+                  disabled={submitting}
+                  maxLength={2000}
+                />
+                <div className="absolute bottom-3 right-16 text-xs text-white/40">
+                  {newArg.length}/2000
                 </div>
-                
-                <div className="flex items-center justify-between pt-4">
-                  <div className="text-base text-zinc-400">
-                    {newArg.length < 10 && newArg.length > 0 && (
-                      <span className="text-red-400 font-medium">Need {10 - newArg.length} more characters</span>
-                    )}
-                  </div>
-                  <Button 
-                    type="submit" 
-                    disabled={submitting || newArg.trim().length < 10} 
-                    className="px-10 py-3 text-lg bg-[#ff6b35] text-black hover:bg-[#ff6b35]/90 shadow-lg"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5 mr-3" />
-                        Submit Argument
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Arguments List */}
-        <div className="space-y-10">
-          <h2 className="text-3xl font-bold text-center text-white mb-12">Debate Arguments</h2>
-          
-          <AnimatePresence>
-            {!Array.isArray(args) || args.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-20"
-              >
-                <MessageSquare className="w-20 h-20 mx-auto text-zinc-600 mb-8" />
-                <p className="text-xl text-zinc-400 font-medium">No arguments yet. Be the first to contribute!</p>
-              </motion.div>
-            ) : (
-              <div className="space-y-8">
-                {Array.isArray(args) && args.map((arg, idx) => {
-                  // Safety check for arg object
-                  if (!arg || typeof arg !== 'object') return null;
-                  
-                  const scoreStr = getArgumentScore(arg.score);
-
-                  return (
-                    <motion.div
-                      key={arg.id || `arg-${idx}`}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      whileHover={{ scale: 1.01 }}
-                    >
-                      <Card className="shadow-xl hover:shadow-2xl transition-all duration-300 border border-white/20 bg-black/30 backdrop-blur-sm hover:border-[#ff6b35]/40 group hover:bg-black/40">
-                        <CardHeader className="pb-4">
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-4">
-                              <div 
-                                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-base shadow-lg ring-2 ring-white/20"
-                                style={{ backgroundColor: arg.color || '#ff6b35' }}
-                              >
-                                {(arg.username || arg.email || "A").charAt(0).toUpperCase()}
-                              </div>
-                              <div>
-                                <p className="font-semibold text-white text-lg">{arg.username || arg.email || "Anonymous"}</p>
-                                <p className="text-sm text-zinc-400">
-                                  {arg.createdAt ? new Date(arg.createdAt).toLocaleString() : "Unknown time"}
-                                </p>
-                              </div>
-                            </div>
-                            
-                            <div className="text-right">
-                              <div className="flex items-center justify-center mb-2">
-                                <CircularProgress
-                                  value={isNaN(parseFloat(scoreStr)) ? 0 : parseFloat(scoreStr)}
-                                  size={56}
-                                  strokeWidth={4}
-                                  color={scoreStr && !isNaN(parseFloat(scoreStr)) && parseFloat(scoreStr) >= 80 ? '#00ff88' : !isNaN(parseFloat(scoreStr)) && parseFloat(scoreStr) >= 60 ? '#ff6b35' : '#ff4444'}
-                                />
-                              </div>
-                              <div className="text-xs text-zinc-400 font-medium">Quality Score</div>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          {/* Argument Content */}
-                          <div className="bg-black/20 backdrop-blur-sm rounded-lg p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
-                            <p className="text-base leading-relaxed text-white/90 font-normal">{arg.content || "No content available"}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
+                <Button 
+                  type="submit" 
+                  disabled={submitting || newArg.trim().length < 10} 
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#ff6b35]/80 hover:bg-[#ff6b35] text-white rounded-lg px-4 py-2 transition-all duration-200"
+                >
+                  {submitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
               </div>
-            )}
-          </AnimatePresence>
-        </div>
+              
+              {newArg.length < 10 && newArg.length > 0 && (
+                <div className="text-xs text-red-400">
+                  Need {10 - newArg.length} more characters
+                </div>
+              )}
+            </form>
+          </div>
+        </motion.div>
 
         {/* Finalize Button */}
         <motion.div
-          className="flex justify-center pt-16 pb-12"
+          className="flex justify-center pt-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
@@ -652,21 +685,21 @@ export default function DebateRoomPage() {
             onClick={finalize}
             disabled={loading || !Array.isArray(args) || args.length < 2 || debate?.isFinalized || finalizationRequested}
             size="lg"
-            className="px-16 py-6 text-xl font-semibold bg-[#ff6b35] hover:bg-[#ff6b35]/90 text-black shadow-2xl border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200"
+            className="px-12 py-4 text-lg font-semibold bg-[#ff6b35]/20 hover:bg-[#ff6b35]/30 text-white backdrop-blur-md border border-[#ff6b35]/30 rounded-xl transition-all duration-200"
           >
             {loading ? (
               <>
-                <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                <Loader2 className="w-5 h-5 mr-3 animate-spin" />
                 Finalizing...
               </>
             ) : finalizationRequested ? (
               <>
-                <Clock className="w-6 h-6 mr-3" />
+                <Clock className="w-5 h-5 mr-3" />
                 Waiting for Approval
               </>
             ) : (
               <>
-                <Trophy className="w-6 h-6 mr-3" />
+                <Trophy className="w-5 h-5 mr-3" />
                 {debate?.participants && debate.participants.length > 1 ? "Request Finalization" : "Finalize & See Results"}
               </>
             )}
