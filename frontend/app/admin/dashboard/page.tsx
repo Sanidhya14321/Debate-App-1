@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog';
 import { Badge } from '../../../components/ui/badge';
 import { 
@@ -14,12 +14,8 @@ import {
   Trophy, 
   Plus, 
   Eye, 
-  Settings, 
   Calendar,
   DollarSign,
-  User,
-  Crown,
-  Target,
   BarChart3,
   Trash2,
   Edit,
@@ -437,7 +433,7 @@ const AdminDashboard = () => {
                         <select
                           id="difficulty"
                           value={newTournament.difficulty}
-                          onChange={(e) => setNewTournament(prev => ({ ...prev, difficulty: e.target.value as any }))}
+                          onChange={(e) => setNewTournament(prev => ({ ...prev, difficulty: e.target.value as 'beginner' | 'intermediate' | 'advanced' }))}
                           className="w-full p-2 rounded-lg bg-white/10 border border-white/20 text-white"
                           required
                         >

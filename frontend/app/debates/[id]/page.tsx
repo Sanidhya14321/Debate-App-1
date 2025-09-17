@@ -12,10 +12,8 @@ import { useAuth } from "@/context/AuthContext";
 import socketManager from "@/lib/socket";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { CircularProgress } from "@/components/ui/circular-progress";
 
 // Type definitions for socket events
 interface UserEventData {
@@ -40,19 +38,6 @@ interface ArgumentData {
   email?: string;
   color?: string;
   createdAt: string;
-}
-
-interface ArgumentEventData {
-  argument: ArgumentData;
-}
-
-interface ResultsData {
-  winner: 'for' | 'against' | 'tie';
-  forScore: number;
-  againstScore: number;
-  arguments: ArgumentData[];
-  analysisSource?: 'ml' | 'ai' | 'fallback';
-  finalizedAt?: string;
 }
 
 // interface DebateEventData {
@@ -195,7 +180,7 @@ export default function DebateRoomPage() {
         }
       });
 
-      socketManager.onFinalizationApproved(async (_data: unknown) => {
+      socketManager.onFinalizationApproved(async () => {
         setFinalizationRequested(false);
         setShowFinalizationDialog(false);
         toast.success("Debate finalization approved! Finalizing now...");
@@ -220,7 +205,7 @@ export default function DebateRoomPage() {
         }
       });
 
-      socketManager.onFinalizationRejected((_data: unknown) => {
+      socketManager.onFinalizationRejected(() => {
         setFinalizationRequested(false);
         setFinalizationRequestedBy("");
         toast.info("Finalization request was rejected");
@@ -409,14 +394,6 @@ export default function DebateRoomPage() {
     }
     
     return "0.00";
-  };
-
-  const getScoreColor = (scoreStr: string): string => {
-  const score = parseFloat(scoreStr);
-  if (score >= 80) return "text-accent neon-glow"; // neon cyan
-  if (score >= 60) return "text-primary neon-glow"; // neon orange
-  if (score >= 40) return "text-[#ff0080] neon-glow"; // neon pink
-  return "text-destructive neon-glow";
   };
 
   return (
