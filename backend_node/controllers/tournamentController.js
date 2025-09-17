@@ -58,9 +58,14 @@ export const getTournamentById = async (req, res) => {
   }
 };
 
-// Create new tournament
+// Create new tournament (Admin only)
 export const createTournament = async (req, res) => {
   try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Only administrators can create tournaments' });
+    }
+
     const {
       name,
       description,
@@ -69,12 +74,20 @@ export const createTournament = async (req, res) => {
       startDate,
       endDate,
       entryFee,
-      difficulty
+      difficulty,
+      topics
     } = req.body;
     
     // Validate required fields
     if (!name || !description || !maxParticipants || !prize || !startDate || !endDate) {
       return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Validate maxParticipants is power of 2 for bracket generation
+    if ((maxParticipants & (maxParticipants - 1)) !== 0) {
+      return res.status(400).json({ 
+        message: 'Maximum participants must be a power of 2 (2, 4, 8, 16, 32, etc.)' 
+      });
     }
     
     // Calculate number of rounds based on participants
@@ -90,15 +103,20 @@ export const createTournament = async (req, res) => {
       rounds,
       entryFee: entryFee || 0,
       difficulty: difficulty || 'intermediate',
+      topics: topics || [],
       createdBy: req.user.id
     });
     
     await tournament.save();
     
     const populatedTournament = await Tournament.findById(tournament._id)
-      .populate('createdBy', 'username');
+      .populate('createdBy', 'username')
+      .populate('participants', 'username color');
     
-    res.status(201).json(populatedTournament);
+    res.status(201).json({
+      message: 'Tournament created successfully',
+      tournament: populatedTournament
+    });
   } catch (error) {
     console.error('[create tournament]', error);
     res.status(500).json({ message: 'Failed to create tournament' });
@@ -232,9 +250,9 @@ export const updateTournamentStatus = async (req, res) => {
       return res.status(404).json({ message: 'Tournament not found' });
     }
     
-    // Only tournament creator or admin can update status
-    if (tournament.createdBy.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized' });
+    // Only admin can update tournament status
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Only administrators can update tournament status' });
     }
     
     tournament.status = status;
@@ -244,6 +262,179 @@ export const updateTournamentStatus = async (req, res) => {
   } catch (error) {
     console.error('[update tournament status]', error);
     res.status(500).json({ message: 'Failed to update tournament status' });
+  }
+};
+
+// Update tournament details (Admin only)
+export const updateTournament = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Only administrators can update tournaments' });
+    }
+
+    const tournament = await Tournament.findById(req.params.id);
+    
+    if (!tournament) {
+      return res.status(404).json({ message: 'Tournament not found' });
+    }
+
+    // Don't allow updates if tournament is active or completed
+    if (tournament.status !== 'upcoming') {
+      return res.status(400).json({ 
+        message: 'Cannot update tournament that has already started or completed' 
+      });
+    }
+
+    const {
+      name,
+      description,
+      maxParticipants,
+      prize,
+      startDate,
+      endDate,
+      entryFee,
+      difficulty,
+      topics
+    } = req.body;
+
+    // Update fields if provided
+    if (name) tournament.name = name;
+    if (description) tournament.description = description;
+    if (maxParticipants) {
+      // Validate maxParticipants is power of 2
+      if ((maxParticipants & (maxParticipants - 1)) !== 0) {
+        return res.status(400).json({ 
+          message: 'Maximum participants must be a power of 2 (2, 4, 8, 16, 32, etc.)' 
+        });
+      }
+      tournament.maxParticipants = maxParticipants;
+      tournament.rounds = Math.ceil(Math.log2(maxParticipants));
+    }
+    if (prize) tournament.prize = prize;
+    if (startDate) tournament.startDate = new Date(startDate);
+    if (endDate) tournament.endDate = new Date(endDate);
+    if (entryFee !== undefined) tournament.entryFee = entryFee;
+    if (difficulty) tournament.difficulty = difficulty;
+    if (topics) tournament.topics = topics;
+
+    await tournament.save();
+
+    const populatedTournament = await Tournament.findById(tournament._id)
+      .populate('createdBy', 'username')
+      .populate('participants', 'username color');
+
+    res.json({
+      message: 'Tournament updated successfully',
+      tournament: populatedTournament
+    });
+  } catch (error) {
+    console.error('[update tournament]', error);
+    res.status(500).json({ message: 'Failed to update tournament' });
+  }
+};
+
+// Delete tournament (Admin only)
+export const deleteTournament = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Only administrators can delete tournaments' });
+    }
+
+    const tournament = await Tournament.findById(req.params.id);
+    
+    if (!tournament) {
+      return res.status(404).json({ message: 'Tournament not found' });
+    }
+
+    // Don't allow deletion if tournament is active
+    if (tournament.status === 'active') {
+      return res.status(400).json({ 
+        message: 'Cannot delete an active tournament' 
+      });
+    }
+
+    await Tournament.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Tournament deleted successfully' });
+  } catch (error) {
+    console.error('[delete tournament]', error);
+    res.status(500).json({ message: 'Failed to delete tournament' });
+  }
+};
+
+// Force start tournament (Admin only)
+export const forceStartTournament = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Only administrators can force start tournaments' });
+    }
+
+    const tournament = await Tournament.findById(req.params.id);
+    
+    if (!tournament) {
+      return res.status(404).json({ message: 'Tournament not found' });
+    }
+
+    if (tournament.status !== 'upcoming') {
+      return res.status(400).json({ message: 'Tournament is not in upcoming status' });
+    }
+
+    if (tournament.participants.length < 2) {
+      return res.status(400).json({ message: 'Tournament needs at least 2 participants to start' });
+    }
+
+    // Generate bracket even if not full
+    await generateTournamentBracket(tournament._id);
+
+    res.json({ 
+      message: 'Tournament started successfully',
+      tournament: await Tournament.findById(tournament._id)
+        .populate('participants', 'username color')
+    });
+  } catch (error) {
+    console.error('[force start tournament]', error);
+    res.status(500).json({ message: 'Failed to start tournament' });
+  }
+};
+
+// Get admin tournament statistics
+export const getAdminTournamentStats = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+
+    const stats = await Promise.all([
+      Tournament.countDocuments({ status: 'upcoming' }),
+      Tournament.countDocuments({ status: 'active' }),
+      Tournament.countDocuments({ status: 'completed' }),
+      Tournament.countDocuments(),
+      Tournament.aggregate([
+        { $match: { status: 'completed' } },
+        { $group: { _id: null, totalParticipants: { $sum: { $size: '$participants' } } } }
+      ])
+    ]);
+
+    const [upcoming, active, completed, total, participantData] = stats;
+    const totalParticipants = participantData[0]?.totalParticipants || 0;
+
+    res.json({
+      tournaments: {
+        upcoming,
+        active,
+        completed,
+        total
+      },
+      totalParticipants,
+      averageParticipants: completed > 0 ? Math.round(totalParticipants / completed) : 0
+    });
+  } catch (error) {
+    console.error('[get admin tournament stats]', error);
+    res.status(500).json({ message: 'Failed to fetch tournament statistics' });
   }
 };
 

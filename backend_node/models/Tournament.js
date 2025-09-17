@@ -9,11 +9,16 @@ const tournamentSchema = new mongoose.Schema({
     enum: ['upcoming', 'active', 'completed', 'cancelled'], 
     default: 'upcoming' 
   },
-  participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  participants: [{ 
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    registeredAt: { type: Date, default: Date.now },
+    eliminated: { type: Boolean, default: false }
+  }],
   maxParticipants: { type: Number, required: true, min: 4, max: 128 },
   prize: { type: String, required: true },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
+  registrationDeadline: { type: Date, required: true },
   rounds: { type: Number, required: true, min: 1 },
   currentRound: { type: Number, default: 0 },
   entryFee: { type: Number, default: 0, min: 0 },
@@ -22,7 +27,14 @@ const tournamentSchema = new mongoose.Schema({
     enum: ['beginner', 'intermediate', 'advanced'], 
     default: 'intermediate' 
   },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  createdBy: { type: String, default: 'admin' }, // Changed to string for hardcoded admin
+  
+  // Rules and settings
+  rules: {
+    timeLimit: { type: Number, default: 30 }, // minutes
+    maxArguments: { type: Number, default: 10 },
+    topics: [String]
+  },
   
   // Tournament structure
   bracket: [{
@@ -43,6 +55,15 @@ const tournamentSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
+
+// Virtual for active participant count
+tournamentSchema.virtual('activeParticipantCount').get(function() {
+  return this.participants.filter(p => !p.eliminated).length;
+});
+
+// Indexes for better query performance
+tournamentSchema.index({ status: 1, startDate: 1 });
+tournamentSchema.index({ 'participants.user': 1 });
 
 // Update the updatedAt field before saving
 tournamentSchema.pre('save', function(next) {

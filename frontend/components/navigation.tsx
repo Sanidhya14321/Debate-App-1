@@ -129,6 +129,12 @@ export function Navigation() {
               <Button asChild className="bg-[#ff6b35] text-black font-semibold hover:bg-[#ff6b35]/90  transition-all duration-200">
                 <Link href="/register">Get Started</Link>
               </Button>
+              <Button variant="ghost" asChild className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10">
+                <Link href="/admin/login" className="flex items-center gap-1">
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </Link>
+              </Button>
             </div>
           )}
         </div>
@@ -193,14 +199,24 @@ export function Navigation() {
                 ))}
 
                 {!token && (
-                  <div className="flex flex-col space-y-3 pt-4 border-t border-white/20">
-                    <Button variant="ghost" asChild className="justify-start text-white hover:text-[#ff6b35] hover:bg-[#ff6b35]/10">
-                      <Link href="/login" onClick={handleLinkClick}>Login</Link>
-                    </Button>
-                    <Button asChild className="justify-start bg-[#ff6b35] text-black font-semibold hover:bg-[#ff6b35]/90 border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200">
-                      <Link href="/register" onClick={handleLinkClick}>Get Started</Link>
-                    </Button>
-                  </div>
+                  <>
+                    <div className="flex flex-col space-y-3 pt-4 border-t border-white/20">
+                      <Button variant="ghost" asChild className="justify-start text-white hover:text-[#ff6b35] hover:bg-[#ff6b35]/10">
+                        <Link href="/login" onClick={handleLinkClick}>Login</Link>
+                      </Button>
+                      <Button asChild className="justify-start bg-[#ff6b35] text-black font-semibold hover:bg-[#ff6b35]/90 border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200">
+                        <Link href="/register" onClick={handleLinkClick}>Get Started</Link>
+                      </Button>
+                    </div>
+                    <div className="pt-4 border-t border-white/20">
+                      <Button variant="ghost" asChild className="justify-start text-amber-400 hover:text-amber-300 hover:bg-amber-500/10">
+                        <Link href="/admin/login" onClick={handleLinkClick} className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          Admin Access
+                        </Link>
+                      </Button>
+                    </div>
+                  </>
                 )}
               </div>
             </SheetContent>
