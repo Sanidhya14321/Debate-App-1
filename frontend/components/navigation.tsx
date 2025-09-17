@@ -97,7 +97,7 @@ export function Navigation() {
           {token ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="relative h-10 w-10 rounded-full border-2 border-[#ff6b35]/30 hover:border-[#ff6b35]">
+                <Button className="relative h-10 w-10 rounded-full border-2 border-[#ff6b35]/30 hover:border-[#ff6b35]/20">
                   <Avatar className="h-9 w-9">
                     <AvatarFallback 
                       className="text-black font-bold text-sm"
@@ -138,7 +138,7 @@ export function Navigation() {
           {token && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full border-2 border-[#ff6b35]/30 hover:border-[#ff6b35]">
+                <Button className="relative h-9 w-9 rounded-full border-2 border-[#ff6b35]/30 hover:border-[#ff6b35]/20">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback 
                       className="text-black font-bold text-sm"

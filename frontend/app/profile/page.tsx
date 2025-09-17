@@ -88,7 +88,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen">
       <ProtectedRoute>
         <div className="container mx-auto px-4 py-16 max-w-6xl">
         <motion.div
@@ -154,7 +154,7 @@ export default function ProfilePage() {
                   showValue={false}
                 />
               </div>
-              <div className="text-2xl font-bold text-white">{stats?.averageScore || 0}/10</div>
+              <div className="text-2xl font-bold text-white">{stats?.averageScore || 0}/100</div>
               <div className="text-sm text-zinc-400">Average Score</div>
             </Card>
             

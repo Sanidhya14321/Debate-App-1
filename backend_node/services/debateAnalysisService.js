@@ -1,7 +1,7 @@
 // services/debateAnalysisService.js
-// Centralized debate analysis - JavaScript version for backend use
+// Backend integration with enhanced AI debate analysis workflow
 
-// Enhanced Analysis Functions
+// Enhanced Analysis Functions (fallback versions)
 const calculateCoherence = (text) => {
   const flowWords = ['because', 'therefore', 'however', 'furthermore', 'additionally', 'consequently'];
   const flowCount = flowWords.filter(word => text.toLowerCase().includes(word)).length;
@@ -114,42 +114,76 @@ const analyzeUserArguments = (userArgs, topic) => {
   };
 };
 
-// Main analysis function
+// Main analysis function - uses ML-first, AI-fallback approach matching debate-analysis.ts
 export const analyzeDebateForBackend = async (argumentsArray, topic) => {
-  console.log('🤖 Using centralized debate analysis for topic:', topic);
+  console.log('🤖 Using enhanced ML-first AI workflow for debate analysis, topic:', topic);
   
+  // Normalize input arguments to match frontend schema
+  const normalizedArgs = argumentsArray.map(arg => ({
+    username: arg.username,
+    argumentText: arg.content || arg.argumentText || '',
+    content: arg.content || arg.argumentText || '',
+    timestamp: arg.timestamp,
+    userId: arg.userId
+  }));
+
   try {
-    // Try ML API first
+    // Step 1: Try ML API first (matching frontend workflow)
     if (process.env.DEBATE_ML_URL) {
       try {
+        console.log('🔬 Attempting ML API analysis...');
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        
         const mlResult = await fetch(`${process.env.DEBATE_ML_URL}/finalize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ arguments: argumentsArray, topic }),
+          body: JSON.stringify({ arguments: normalizedArgs, topic }),
+          signal: controller.signal
         });
+        
+        clearTimeout(timeout);
         
         if (mlResult.ok) {
           const result = await mlResult.json();
-          console.log('✅ ML evaluation');
+          console.log('✅ ML evaluation completed');
           return {
             ...result,
             analysisSource: 'ml',
             finalizedAt: new Date()
           };
         }
-        console.warn('⚠️ ML evaluation failed');
+        console.warn('⚠️ ML evaluation failed with status:', mlResult.status);
       } catch (mlErr) {
-        console.warn('⚠️ ML service unavailable:', mlErr);
+        console.warn('⚠️ ML service unavailable:', mlErr.message);
       }
     }
 
-    // Enhanced local analysis
+    // Step 2: AI Analysis Fallback (Gemini)
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        console.log('🤖 Attempting AI analysis fallback...');
+        const aiResult = await performAIAnalysis(normalizedArgs, topic);
+        if (aiResult) {
+          console.log('✅ AI evaluation completed');
+          return {
+            ...aiResult,
+            analysisSource: 'ai',
+            finalizedAt: new Date()
+          };
+        }
+      } catch (aiErr) {
+        console.warn('⚠️ AI analysis failed:', aiErr.message);
+      }
+    }
+
+    // Step 3: Enhanced Local Analysis (matching frontend logic)
     console.log('📊 Using enhanced local analysis');
-    const usernames = [...new Set(argumentsArray.map(arg => arg.username))];
+    const usernames = [...new Set(normalizedArgs.map(arg => arg.username))];
     const results = {};
 
     for (const username of usernames) {
-      const userArgs = argumentsArray.filter(arg => arg.username === username);
+      const userArgs = normalizedArgs.filter(arg => arg.username === username);
       results[username] = analyzeUserArguments(userArgs, topic);
     }
 
@@ -166,7 +200,110 @@ export const analyzeDebateForBackend = async (argumentsArray, topic) => {
     };
 
   } catch (error) {
-    console.error('❌ Centralized analysis failed:', error);
+    console.error('❌ All analysis methods failed:', error);
+    throw error;
+  }
+};
+
+// AI Analysis using Gemini (simplified version of frontend logic)
+const performAIAnalysis = async (argumentsArray, topic) => {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('Gemini API key not available');
+  }
+
+  const argsString = argumentsArray
+    .map(a => `**${a.username}**: ${a.argumentText}`)
+    .join('\n\n');
+
+  const prompt = `
+You are a professional debate evaluator.
+Analyze the provided arguments and return a structured evaluation.
+
+### Scoring Rubric:
+- Sentiment (0–100)
+- Clarity (0–100)
+- Vocabulary Richness (0–100)
+- Average Word Length (0–100)
+- Coherence (0–100)
+- Evidence (0–100)
+- Logic (0–100)
+- Persuasiveness (0–100)
+
+### Rules:
+1. Provide descriptive scores (0–100) for each metric.
+2. Compute totals using weights: Clarity (30%), Sentiment (30%), Vocabulary Richness (20%), Avg Word Length (10%), Coherence (10%)
+3. Winner = participant with highest total.
+4. Return strictly valid JSON in this format:
+{
+  "results": {
+    "username1": {
+      "scores": {
+        "sentiment": {"score": number, "rating": "string"},
+        "clarity": {"score": number, "rating": "string"},
+        "vocab_richness": {"score": number, "rating": "string"},
+        "avg_word_len": {"score": number, "rating": "string"},
+        "coherence": number,
+        "evidence": number,
+        "logic": number,
+        "persuasiveness": number
+      },
+      "total": number,
+      "argumentCount": number,
+      "averageLength": number,
+      "analysis": {
+        "strengths": ["string"],
+        "weaknesses": ["string"],
+        "feedback": "string"
+      }
+    }
+  },
+  "winner": "string"
+}
+
+Arguments: ${argsString}
+`;
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Gemini API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!content) {
+      throw new Error('No content received from Gemini');
+    }
+
+    // Extract JSON from the response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in Gemini response');
+    }
+
+    const analysisResult = JSON.parse(jsonMatch[0]);
+    return analysisResult;
+
+  } catch (error) {
+    console.error('Gemini AI analysis error:', error);
     throw error;
   }
 };
