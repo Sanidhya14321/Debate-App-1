@@ -179,7 +179,7 @@ export default function DebateResultsPage() {
                     animate={{ opacity: 1, y: 0 }}
                 >
                     <h1 className="text-4xl md:text-5xl font-bold text-white">
-                        � Debate Results
+                        🏆 Debate Results
                     </h1>
                     {debateData?.topic && (
                         <p className="text-xl text-white/80 max-w-2xl mx-auto">
@@ -305,11 +305,11 @@ export default function DebateResultsPage() {
 
                                             {/* Quick Stats */}
                                             <div className="grid grid-cols-2 gap-4 text-center">
-                                                <div className="bg-white/5 rounded-lg p-3">
+                                                <div className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-all duration-300">
                                                     <div className="text-xl font-bold text-white">{participantData?.argumentCount || 0}</div>
                                                     <div className="text-xs text-white/60">Arguments</div>
                                                 </div>
-                                                <div className="bg-white/5 rounded-lg p-3">
+                                                <div className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-all duration-300">
                                                     <div className="text-xl font-bold text-white">{participantData?.averageLength || 0}</div>
                                                     <div className="text-xs text-white/60">Avg Length</div>
                                                 </div>
@@ -323,78 +323,162 @@ export default function DebateResultsPage() {
                                             <CardTitle className="text-white text-center">Detailed Analysis</CardTitle>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
-                                            {/* Core Metrics */}
-                                            <div className="space-y-3">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-white/80">Sentiment</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-white font-medium">
-                                                            {participantData?.scores?.sentiment?.score || 0}%
-                                                        </span>
-                                                        <Badge variant="outline" className="text-xs bg-white/10 text-white/70">
-                                                            {participantData?.scores?.sentiment?.rating || 'N/A'}
-                                                        </Badge>
+                                            {/* Core Metrics with Progress Bars */}
+                                            <div className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-white/80">Sentiment</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-white font-medium">
+                                                                {participantData?.scores?.sentiment?.score || 0}%
+                                                            </span>
+                                                            <Badge variant="outline" className="text-xs bg-white/10 text-white/70">
+                                                                {participantData?.scores?.sentiment?.rating || 'N/A'}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full bg-white/10 rounded-full h-2">
+                                                        <div 
+                                                            className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-1000"
+                                                            style={{ width: `${participantData?.scores?.sentiment?.score || 0}%` }}
+                                                        ></div>
                                                     </div>
                                                 </div>
                                                 
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-white/80">Clarity</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-white font-medium">
-                                                            {participantData?.scores?.clarity?.score || 0}%
-                                                        </span>
-                                                        <Badge variant="outline" className="text-xs bg-white/10 text-white/70">
-                                                            {participantData?.scores?.clarity?.rating || 'N/A'}
-                                                        </Badge>
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-white/80">Clarity</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-white font-medium">
+                                                                {participantData?.scores?.clarity?.score || 0}%
+                                                            </span>
+                                                            <Badge variant="outline" className="text-xs bg-white/10 text-white/70">
+                                                                {participantData?.scores?.clarity?.rating || 'N/A'}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full bg-white/10 rounded-full h-2">
+                                                        <div 
+                                                            className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-1000"
+                                                            style={{ width: `${participantData?.scores?.clarity?.score || 0}%` }}
+                                                        ></div>
                                                     </div>
                                                 </div>
                                                 
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-white/80">Vocabulary</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-white font-medium">
-                                                            {participantData?.scores?.vocab_richness?.score || 0}%
-                                                        </span>
-                                                        <Badge variant="outline" className="text-xs bg-white/10 text-white/70">
-                                                            {participantData?.scores?.vocab_richness?.rating || 'N/A'}
-                                                        </Badge>
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-white/80">Vocabulary</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-white font-medium">
+                                                                {participantData?.scores?.vocab_richness?.score || 0}%
+                                                            </span>
+                                                            <Badge variant="outline" className="text-xs bg-white/10 text-white/70">
+                                                                {participantData?.scores?.vocab_richness?.rating || 'N/A'}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full bg-white/10 rounded-full h-2">
+                                                        <div 
+                                                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-1000"
+                                                            style={{ width: `${participantData?.scores?.vocab_richness?.score || 0}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-white/80">Average Word Length</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-white font-medium">
+                                                                {participantData?.scores?.avg_word_len?.score || 0}%
+                                                            </span>
+                                                            <Badge variant="outline" className="text-xs bg-white/10 text-white/70">
+                                                                {participantData?.scores?.avg_word_len?.rating || 'N/A'}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full bg-white/10 rounded-full h-2">
+                                                        <div 
+                                                            className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-1000"
+                                                            style={{ width: `${participantData?.scores?.avg_word_len?.score || 0}%` }}
+                                                        ></div>
                                                     </div>
                                                 </div>
 
                                                 {/* Extended Metrics (if available) */}
-                                                {participantData?.scores?.coherence && (
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-white/80">Coherence</span>
-                                                        <span className="text-white font-medium">
-                                                            {participantData.scores.coherence}%
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                
-                                                {participantData?.scores?.evidence && (
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-white/80">Evidence</span>
-                                                        <span className="text-white font-medium">
-                                                            {participantData.scores.evidence}%
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                
-                                                {participantData?.scores?.logic && (
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-white/80">Logic</span>
-                                                        <span className="text-white font-medium">
-                                                            {participantData.scores.logic}%
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                
-                                                {participantData?.scores?.persuasiveness && (
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-white/80">Persuasiveness</span>
-                                                        <span className="text-white font-medium">
-                                                            {participantData.scores.persuasiveness}%
-                                                        </span>
+                                                {(participantData?.scores?.coherence || participantData?.scores?.evidence || 
+                                                  participantData?.scores?.logic || participantData?.scores?.persuasiveness) && (
+                                                    <div className="pt-4 border-t border-white/10">
+                                                        <h4 className="text-white/90 font-semibold mb-3">Advanced Metrics</h4>
+                                                        <div className="space-y-3">
+                                                            {participantData?.scores?.coherence && (
+                                                                <div className="space-y-1">
+                                                                    <div className="flex justify-between items-center">
+                                                                        <span className="text-white/80">Coherence</span>
+                                                                        <span className="text-white font-medium">
+                                                                            {participantData.scores.coherence}%
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="w-full bg-white/10 rounded-full h-1.5">
+                                                                        <div 
+                                                                            className="bg-gradient-to-r from-cyan-500 to-blue-500 h-1.5 rounded-full transition-all duration-1000"
+                                                                            style={{ width: `${participantData.scores.coherence}%` }}
+                                                                        ></div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {participantData?.scores?.evidence && (
+                                                                <div className="space-y-1">
+                                                                    <div className="flex justify-between items-center">
+                                                                        <span className="text-white/80">Evidence</span>
+                                                                        <span className="text-white font-medium">
+                                                                            {participantData.scores.evidence}%
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="w-full bg-white/10 rounded-full h-1.5">
+                                                                        <div 
+                                                                            className="bg-gradient-to-r from-yellow-500 to-orange-500 h-1.5 rounded-full transition-all duration-1000"
+                                                                            style={{ width: `${participantData.scores.evidence}%` }}
+                                                                        ></div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {participantData?.scores?.logic && (
+                                                                <div className="space-y-1">
+                                                                    <div className="flex justify-between items-center">
+                                                                        <span className="text-white/80">Logic</span>
+                                                                        <span className="text-white font-medium">
+                                                                            {participantData.scores.logic}%
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="w-full bg-white/10 rounded-full h-1.5">
+                                                                        <div 
+                                                                            className="bg-gradient-to-r from-indigo-500 to-purple-500 h-1.5 rounded-full transition-all duration-1000"
+                                                                            style={{ width: `${participantData.scores.logic}%` }}
+                                                                        ></div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {participantData?.scores?.persuasiveness && (
+                                                                <div className="space-y-1">
+                                                                    <div className="flex justify-between items-center">
+                                                                        <span className="text-white/80">Persuasiveness</span>
+                                                                        <span className="text-white font-medium">
+                                                                            {participantData.scores.persuasiveness}%
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="w-full bg-white/10 rounded-full h-1.5">
+                                                                        <div 
+                                                                            className="bg-gradient-to-r from-pink-500 to-red-500 h-1.5 rounded-full transition-all duration-1000"
+                                                                            style={{ width: `${participantData.scores.persuasiveness}%` }}
+                                                                        ></div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -450,6 +534,79 @@ export default function DebateResultsPage() {
                         })}
                     </div>
                 </motion.div>
+
+                {/* Head-to-Head Comparison */}
+                {participants.length === 2 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                    >
+                        <Card className="border-0 bg-white/10 backdrop-blur-md shadow-xl">
+                            <CardHeader>
+                                <CardTitle className="text-white text-center">Head-to-Head Comparison</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {['sentiment', 'clarity', 'vocab_richness', 'avg_word_len'].map((metric) => {
+                                        const participant1 = participants[0];
+                                        const participant2 = participants[1];
+                                        const getScore = (participant: string, metric: string) => {
+                                            const scoreValue = results?.results?.[participant]?.scores?.[metric as keyof ScoreData];
+                                            return typeof scoreValue === 'object' && scoreValue && 'score' in scoreValue 
+                                                ? scoreValue.score 
+                                                : typeof scoreValue === 'number' ? scoreValue : 0;
+                                        };
+                                        const score1 = getScore(participant1, metric);
+                                        const score2 = getScore(participant2, metric);
+                                        const maxScore = Math.max(score1, score2);
+                                        
+                                        return (
+                                            <div key={metric} className="space-y-2">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-white/80 capitalize">
+                                                        {metric.replace('_', ' ').replace('avg word len', 'Word Length')}
+                                                    </span>
+                                                    <div className="text-xs text-white/60">
+                                                        Higher is better
+                                                    </div>
+                                                </div>
+                                                <div className="relative">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className={`text-sm font-medium ${score1 >= score2 ? 'text-green-400' : 'text-white/70'}`}>
+                                                            {participant1}: {score1}%
+                                                        </span>
+                                                        <span className={`text-sm font-medium ${score2 >= score1 ? 'text-green-400' : 'text-white/70'}`}>
+                                                            {participant2}: {score2}%
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex gap-1">
+                                                        <div className="flex-1 bg-white/10 rounded-l h-3 relative overflow-hidden">
+                                                            <div 
+                                                                className={`h-full transition-all duration-1000 ${
+                                                                    score1 >= score2 ? 'bg-green-500' : 'bg-blue-500'
+                                                                }`}
+                                                                style={{ width: `${maxScore > 0 ? (score1 / maxScore) * 100 : 0}%` }}
+                                                            ></div>
+                                                        </div>
+                                                        <div className="flex-1 bg-white/10 rounded-r h-3 relative overflow-hidden">
+                                                            <div 
+                                                                className={`h-full ml-auto transition-all duration-1000 ${
+                                                                    score2 >= score1 ? 'bg-green-500' : 'bg-blue-500'
+                                                                }`}
+                                                                style={{ width: `${maxScore > 0 ? (score2 / maxScore) * 100 : 0}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                )}
 
                 {/* Action Buttons */}
                 <motion.div
