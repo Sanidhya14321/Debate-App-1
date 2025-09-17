@@ -159,48 +159,148 @@ const performDirectAnalysis = async (inputData) => {
   };
 };
 
-// Enhanced Analysis Functions (matching frontend logic exactly)
+// Enhanced Analysis Functions with better differentiation
 const calculateCoherence = (text) => {
-  const flowWords = ['because', 'therefore', 'however', 'furthermore', 'additionally', 'consequently'];
+  const words = text.toLowerCase().split(/\s+/);
+  const wordCount = words.length;
+  
+  // Base score based on length (longer texts generally more coherent)
+  let score = Math.min(40 + (wordCount * 0.5), 70);
+  
+  // Flow and transition words
+  const flowWords = ['because', 'therefore', 'however', 'furthermore', 'additionally', 'consequently', 'moreover', 'meanwhile', 'nevertheless', 'thus', 'hence'];
   const flowCount = flowWords.filter(word => text.toLowerCase().includes(word)).length;
+  score += flowCount * 8;
   
-  let score = 60 + (flowCount * 5);
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
-  if (sentences.length > 2) score += 10;
+  // Sentence structure complexity
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 5);
+  if (sentences.length > 1) score += 5;
+  if (sentences.length > 3) score += 10;
   
-  return Math.min(100, Math.max(30, score));
+  // Punctuation use (indicates structure)
+  const punctuationCount = (text.match(/[,.;:!?]/g) || []).length;
+  score += Math.min(punctuationCount * 2, 15);
+  
+  // Repetition penalty
+  const uniqueWords = new Set(words.filter(w => w.length > 3));
+  const repetitionRatio = uniqueWords.size / Math.max(wordCount, 1);
+  score *= (0.5 + repetitionRatio * 0.5);
+  
+  return Math.min(100, Math.max(20, Math.round(score)));
 };
 
 const calculateEvidence = (text) => {
-  const evidenceWords = ['study', 'research', 'data', 'statistics', 'evidence', 'survey', 'report'];
-  const evidenceCount = evidenceWords.filter(word => text.toLowerCase().includes(word)).length;
+  const words = text.toLowerCase().split(/\s+/);
+  const wordCount = words.length;
   
-  let score = 50 + (evidenceCount * 10);
-  if (/\d+%|\d+\.\d+%/.test(text)) score += 15;
-  if (/according to|studies show|research indicates/.test(text.toLowerCase())) score += 20;
+  // Base score (longer arguments might have more evidence)
+  let score = Math.min(30 + (wordCount * 0.3), 50);
   
-  return Math.min(100, Math.max(20, score));
+  // Evidence keywords with different weights
+  const strongEvidence = ['study', 'research', 'survey', 'experiment', 'data', 'statistics', 'report', 'analysis'];
+  const moderateEvidence = ['evidence', 'proof', 'example', 'case', 'instance', 'fact', 'source'];
+  const weakEvidence = ['think', 'believe', 'opinion', 'feel'];
+  
+  const strongCount = strongEvidence.filter(word => text.toLowerCase().includes(word)).length;
+  const moderateCount = moderateEvidence.filter(word => text.toLowerCase().includes(word)).length;
+  const weakCount = weakEvidence.filter(word => text.toLowerCase().includes(word)).length;
+  
+  score += strongCount * 15;
+  score += moderateCount * 8;
+  score -= weakCount * 5; // Opinion words reduce evidence score
+  
+  // Numbers and percentages indicate data
+  const numberMatches = text.match(/\d+(\.\d+)?%?/g) || [];
+  score += numberMatches.length * 10;
+  
+  // Citations or references
+  if (/according to|studies show|research indicates|scientists say|experts/i.test(text)) {
+    score += 20;
+  }
+  
+  // Specific examples
+  if (/for example|such as|including|like/i.test(text)) {
+    score += 10;
+  }
+  
+  return Math.min(100, Math.max(10, Math.round(score)));
 };
 
 const calculateLogic = (text) => {
-  const logicalWords = ['if', 'then', 'because', 'since', 'given that', 'assuming'];
+  const words = text.toLowerCase().split(/\s+/);
+  const wordCount = words.length;
+  
+  // Base score
+  let score = Math.min(35 + (wordCount * 0.4), 55);
+  
+  // Logical connectors and structure
+  const logicalWords = ['if', 'then', 'because', 'since', 'given that', 'assuming', 'therefore', 'thus', 'consequently'];
   const logicalCount = logicalWords.filter(word => text.toLowerCase().includes(word)).length;
+  score += logicalCount * 10;
   
-  let score = 55 + (logicalCount * 8);
-  if (/however|although|despite|while/.test(text.toLowerCase())) score += 15;
+  // Counter-arguments and balance
+  const balanceWords = ['however', 'although', 'despite', 'while', 'but', 'nevertheless', 'on the other hand'];
+  const balanceCount = balanceWords.filter(word => text.toLowerCase().includes(word)).length;
+  score += balanceCount * 12;
   
-  return Math.min(100, Math.max(25, score));
+  // Cause and effect language
+  if (/cause|effect|result|lead to|due to/i.test(text)) {
+    score += 15;
+  }
+  
+  // Conditional statements
+  const conditionalPattern = /if.+then|when.+will|should.+would/i;
+  if (conditionalPattern.test(text)) {
+    score += 10;
+  }
+  
+  // Avoid overly emotional language (reduces logical score)
+  const emotionalWords = ['hate', 'love', 'amazing', 'terrible', 'awful', 'fantastic'];
+  const emotionalCount = emotionalWords.filter(word => text.toLowerCase().includes(word)).length;
+  score -= emotionalCount * 8;
+  
+  return Math.min(100, Math.max(15, Math.round(score)));
 };
 
 const calculatePersuasiveness = (text, topic) => {
-  const persuasiveWords = ['should', 'must', 'important', 'crucial', 'essential', 'urgent'];
+  const words = text.toLowerCase().split(/\s+/);
+  const wordCount = words.length;
+  
+  // Base score
+  let score = Math.min(40 + (wordCount * 0.3), 60);
+  
+  // Persuasive language
+  const persuasiveWords = ['should', 'must', 'need to', 'important', 'crucial', 'essential', 'urgent', 'vital', 'necessary'];
   const persuasiveCount = persuasiveWords.filter(word => text.toLowerCase().includes(word)).length;
+  score += persuasiveCount * 8;
   
-  let score = 50 + (persuasiveCount * 7);
-  if (/significant|critical|vital|devastating|beneficial/.test(text.toLowerCase())) score += 10;
-  if (topic && text.toLowerCase().includes(topic.toLowerCase().split(' ')[0])) score += 15;
+  // Impact words
+  const impactWords = ['significant', 'major', 'critical', 'vital', 'devastating', 'beneficial', 'harmful', 'positive', 'negative'];
+  const impactCount = impactWords.filter(word => text.toLowerCase().includes(word)).length;
+  score += impactCount * 6;
   
-  return Math.min(100, Math.max(30, score));
+  // Action-oriented language
+  if (/we should|we must|we need|let's|action|solution|address/i.test(text)) {
+    score += 15;
+  }
+  
+  // Appeals to values or emotions
+  if (/future|children|society|economy|environment|safety|security/i.test(text)) {
+    score += 10;
+  }
+  
+  // Topic relevance
+  if (topic) {
+    const topicWords = topic.toLowerCase().split(/\s+/);
+    const relevanceCount = topicWords.filter(word => text.toLowerCase().includes(word)).length;
+    score += relevanceCount * 5;
+  }
+  
+  // Questions that engage the audience
+  const questionCount = (text.match(/\?/g) || []).length;
+  score += Math.min(questionCount * 5, 15);
+  
+  return Math.min(100, Math.max(20, Math.round(score)));
 };
 
 const rateScore = (score) => {
@@ -211,41 +311,88 @@ const rateScore = (score) => {
 
 const generateStrengths = (coherence, evidence, logic, persuasiveness) => {
   const strengths = [];
-  if (coherence >= 70) strengths.push("Clear and coherent arguments");
-  if (evidence >= 70) strengths.push("Strong supporting evidence");
-  if (logic >= 70) strengths.push("Sound logical reasoning");
-  if (persuasiveness >= 70) strengths.push("Compelling and persuasive");
+  if (coherence >= 75) strengths.push("Exceptionally clear and well-structured arguments");
+  else if (coherence >= 65) strengths.push("Clear and coherent presentation of ideas");
   
-  if (strengths.length === 0) strengths.push("Shows engagement in the debate");
+  if (evidence >= 75) strengths.push("Strong supporting evidence and factual backing");
+  else if (evidence >= 65) strengths.push("Good use of supporting information");
+  
+  if (logic >= 75) strengths.push("Excellent logical reasoning and sound conclusions");
+  else if (logic >= 65) strengths.push("Solid logical flow and reasoning");
+  
+  if (persuasiveness >= 75) strengths.push("Highly compelling and persuasive arguments");
+  else if (persuasiveness >= 65) strengths.push("Effective persuasive techniques");
+  
+  // Add some variety based on combinations
+  if (evidence >= 70 && logic >= 70) strengths.push("Strong analytical thinking");
+  if (coherence >= 70 && persuasiveness >= 70) strengths.push("Effective communication style");
+  
+  if (strengths.length === 0) {
+    strengths.push("Shows active participation in the debate");
+  }
+  
   return strengths;
 };
 
 const generateWeaknesses = (coherence, evidence, logic, persuasiveness) => {
   const weaknesses = [];
-  if (coherence < 60) weaknesses.push("Could improve logical flow between points");
-  if (evidence < 60) weaknesses.push("Would benefit from more supporting evidence");
-  if (logic < 60) weaknesses.push("Logical reasoning could be strengthened");
-  if (persuasiveness < 60) weaknesses.push("Arguments could be more compelling");
+  
+  if (coherence < 50) weaknesses.push("Arguments lack clear structure and organization");
+  else if (coherence < 65) weaknesses.push("Could improve logical flow between points");
+  
+  if (evidence < 50) weaknesses.push("Needs more factual evidence and supporting data");
+  else if (evidence < 65) weaknesses.push("Would benefit from stronger supporting evidence");
+  
+  if (logic < 50) weaknesses.push("Logical reasoning needs significant improvement");
+  else if (logic < 65) weaknesses.push("Could strengthen logical connections");
+  
+  if (persuasiveness < 50) weaknesses.push("Arguments lack convincing power and impact");
+  else if (persuasiveness < 65) weaknesses.push("Could be more persuasive and engaging");
+  
+  // Specific advice based on low scores
+  if (evidence < 60 && logic < 60) {
+    weaknesses.push("Focus on building stronger fact-based arguments");
+  }
   
   return weaknesses;
 };
 
 const generateFeedback = (score) => {
-  if (score >= 85) return "Excellent argumentation with strong logical structure and evidence";
-  if (score >= 70) return "Good arguments with room for minor improvements";
-  if (score >= 55) return "Decent arguments that could benefit from better structure or evidence";
-  return "Arguments need significant improvement in logic, evidence, or structure";
+  if (score >= 85) return "Outstanding performance with excellent argumentation across all criteria. Shows mastery of debate skills.";
+  if (score >= 75) return "Strong debate performance with well-developed arguments and good analytical thinking.";
+  if (score >= 65) return "Good argumentation with solid points, though some areas could be strengthened.";
+  if (score >= 55) return "Decent arguments showing understanding of the topic, but significant room for improvement in structure and evidence.";
+  if (score >= 45) return "Basic arguments presented, but needs improvement in logic, evidence, and persuasiveness.";
+  return "Arguments need substantial development in structure, evidence, and logical reasoning to be more effective.";
 };
 
 const analyzeUserArguments = (userArgs, topic) => {
   const argTexts = userArgs.map(arg => arg.argumentText || arg.content || '').join(' ');
   
+  // Calculate individual scores
   const coherenceScore = calculateCoherence(argTexts);
   const evidenceScore = calculateEvidence(argTexts);
   const logicScore = calculateLogic(argTexts);
   const persuasivenessScore = calculatePersuasiveness(argTexts, topic);
   
-  const total = Math.round((coherenceScore + evidenceScore + logicScore + persuasivenessScore) / 4);
+  // More sophisticated weighting for total score
+  const weights = {
+    coherence: 0.25,      // 25% - How well structured
+    evidence: 0.30,       // 30% - Supporting data/facts
+    logic: 0.25,          // 25% - Logical reasoning
+    persuasiveness: 0.20  // 20% - Convincing power
+  };
+  
+  const total = Math.round(
+    coherenceScore * weights.coherence +
+    evidenceScore * weights.evidence +
+    logicScore * weights.logic +
+    persuasivenessScore * weights.persuasiveness
+  );
+  
+  // Calculate argument statistics
+  const totalLength = argTexts.length;
+  const avgLength = userArgs.length > 0 ? Math.round(totalLength / userArgs.length) : 0;
   
   return {
     scores: {
@@ -260,7 +407,7 @@ const analyzeUserArguments = (userArgs, topic) => {
     },
     total,
     argumentCount: userArgs.length,
-    averageLength: Math.round(argTexts.length / userArgs.length) || 0,
+    averageLength: avgLength,
     analysis: {
       strengths: generateStrengths(coherenceScore, evidenceScore, logicScore, persuasivenessScore),
       weaknesses: generateWeaknesses(coherenceScore, evidenceScore, logicScore, persuasivenessScore),
