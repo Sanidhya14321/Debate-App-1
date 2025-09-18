@@ -464,7 +464,7 @@ export const requestFinalization = async (req, res) => {
       io.to(`debate-${debateId}`).emit('finalization-requested', {
         requestedBy: req.user.username,
         userId: req.user.id,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString(),  
         totalRequests: debate.finalizationRequests.length,
         requiredApprovals: debate.joinedUsers.length
       });

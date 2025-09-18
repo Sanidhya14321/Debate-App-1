@@ -18,6 +18,7 @@ interface UserStats {
   totalDebates: number;
   wins: number;
   losses: number;
+  draws: number;
   winRate: number;
   averageScore: number;
   streak: number;
@@ -28,10 +29,11 @@ interface UserStats {
 interface RecentDebate {
   id: string;
   topic: string;
-  result: 'win' | 'loss' | 'draw';
+  result: 'won' | 'lost' | 'draw';
   score: number;
   date: string;
   opponent: string;
+  analysisSource?: 'ml' | 'ai' | 'enhanced_local' | 'fallback';
   finalizedAt?: string;
 }
 
@@ -84,6 +86,28 @@ export default function ProfilePage() {
       case 'Gold': return '#ffd700';
       case 'Silver': return '#c0c0c0';
       default: return '#cd7f32';
+    }
+  };
+
+  // Get analysis source color (matching results page)
+  const getAnalysisSourceColor = (source: string): string => {
+    switch (source) {
+      case 'ml': return 'bg-purple-500';
+      case 'ai': return 'bg-blue-500';
+      case 'enhanced_local': return 'bg-green-500';
+      case 'fallback': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  // Get analysis source label (matching results page)
+  const getAnalysisSourceLabel = (source: string): string => {
+    switch (source) {
+      case 'ml': return 'ML Analysis';
+      case 'ai': return 'AI Analysis';
+      case 'enhanced_local': return 'Enhanced Local';
+      case 'fallback': return 'Basic Analysis';
+      default: return 'Unknown';
     }
   };
 
@@ -147,7 +171,7 @@ export default function ProfilePage() {
             <Card className="p-6 text-center bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/35 transition-all duration-300 hover:border-white/30">
               <div className="flex justify-center mb-2">
                 <CircularProgress
-                  value={(stats?.averageScore || 0) * 10}
+                  value={stats?.averageScore || 0}
                   size={48}
                   strokeWidth={4}
                   color="#00ff88"
@@ -173,9 +197,10 @@ export default function ProfilePage() {
 
           {/* Tabs Section */}
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 bg-black/30 backdrop-blur-sm border-white/20">
+            <TabsList className="grid w-full grid-cols-3 bg-black/30 backdrop-blur-sm border-white/20">
               <TabsTrigger value="overview" className="text-white data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black">Overview</TabsTrigger>
               <TabsTrigger value="history" className="text-white data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black">Recent Debates</TabsTrigger>
+              <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black">Analytics</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -202,7 +227,7 @@ export default function ProfilePage() {
                       
                       <div className="text-center">
                         <CircularProgress
-                          value={(stats?.averageScore || 0) * 10}
+                          value={stats?.averageScore || 0}
                           size={100}
                           strokeWidth={8}
                           color="#ff6b35"
@@ -211,7 +236,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="grid grid-cols-4 gap-4 text-center">
                       <div className="bg-zinc-800/30 rounded-lg p-3">
                         <div className="text-xl font-bold text-[#00ff88]">{stats?.wins || 0}</div>
                         <div className="text-xs text-zinc-400">Wins</div>
@@ -219,6 +244,10 @@ export default function ProfilePage() {
                       <div className="bg-zinc-800/30 rounded-lg p-3">
                         <div className="text-xl font-bold text-[#ff4444]">{stats?.losses || 0}</div>
                         <div className="text-xs text-zinc-400">Losses</div>
+                      </div>
+                      <div className="bg-zinc-800/30 rounded-lg p-3">
+                        <div className="text-xl font-bold text-[#ffaa00]">{stats?.draws || 0}</div>
+                        <div className="text-xs text-zinc-400">Draws</div>
                       </div>
                       <div className="bg-zinc-800/30 rounded-lg p-3">
                         <div className="text-xl font-bold text-[#ffd700]">{stats?.streak || 0}</div>
@@ -253,8 +282,20 @@ export default function ProfilePage() {
                         </Badge>
                       </div>
                       <div className="flex justify-between">
+                        <span className="text-zinc-400">Total Debates:</span>
+                        <span className="text-white font-medium">{stats?.totalDebates || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
                         <span className="text-zinc-400">Total Arguments:</span>
                         <span className="text-white font-medium">{stats?.totalArguments || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-zinc-400">Win/Loss/Draw:</span>
+                        <span className="text-white font-medium">
+                          <span className="text-[#00ff88]">{stats?.wins || 0}</span>/
+                          <span className="text-[#ff4444]">{stats?.losses || 0}</span>/
+                          <span className="text-[#ffaa00]">{stats?.draws || 0}</span>
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-zinc-400">Current Streak:</span>
@@ -271,7 +312,7 @@ export default function ProfilePage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-white">
                     <Calendar className="h-5 w-5 text-[#ff6b35]" />
-                    Last 5 Debates
+                    Recent Debates (Last 5)
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -282,7 +323,7 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {recentDebates.map((debate, index) => (
+                      {recentDebates.slice(0, 5).map((debate, index) => (
                         <motion.div 
                           key={debate.id}
                           initial={{ opacity: 0, x: -20 }}
@@ -291,24 +332,34 @@ export default function ProfilePage() {
                           className="flex items-center justify-between p-4 rounded-lg bg-zinc-800/30 border border-zinc-700/30 hover:border-[#ff6b35]/30 transition-colors"
                         >
                           <div className="flex-1">
-                            <h4 className="font-medium text-white mb-1">{debate.topic}</h4>
-                            <p className="text-sm text-zinc-400">
-                              vs {debate.opponent} • {new Date(debate.date).toLocaleDateString()}
-                            </p>
+                            <h4 className="font-medium text-white mb-2">{debate.topic}</h4>
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-sm text-zinc-400">
+                                vs {debate.opponent} • {new Date(debate.date).toLocaleDateString()}
+                              </p>
+                              {debate.analysisSource && (
+                                <div className="inline-flex items-center px-2 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+                                  <div className={`w-2 h-2 rounded-full mr-1 ${getAnalysisSourceColor(debate.analysisSource)}`}></div>
+                                  <span className="text-xs font-medium text-white">
+                                    {getAnalysisSourceLabel(debate.analysisSource)}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <div className="text-right flex items-center gap-4">
                             <div className="text-center">
-                              <div className="text-lg font-bold text-white">{debate.score || 0}/10</div>
+                              <div className="text-lg font-bold text-white">{debate.score || 0}/100</div>
                               <div className="text-xs text-zinc-400">Score</div>
                             </div>
                             <Badge 
-                              variant={debate.result === 'win' ? 'default' : debate.result === 'loss' ? 'destructive' : 'secondary'}
+                              variant={debate.result === 'won' ? 'default' : debate.result === 'lost' ? 'destructive' : 'secondary'}
                               className={
-                                debate.result === 'win' 
+                                debate.result === 'won' 
                                   ? 'bg-[#00ff88] text-black' 
-                                  : debate.result === 'loss' 
+                                  : debate.result === 'lost' 
                                   ? 'bg-[#ff4444] text-white' 
-                                  : 'bg-zinc-600 text-white'
+                                  : 'bg-[#ffaa00] text-black'
                               }
                             >
                               {debate.result.toUpperCase()}
@@ -320,6 +371,133 @@ export default function ProfilePage() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="analytics" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Analysis Source Breakdown */}
+                <Card className="p-6 bg-zinc-900/30 border-zinc-800/50">
+                  <CardHeader className="px-0 pt-0">
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <BarChart3 className="h-5 w-5 text-[#ff6b35]" />
+                      Analysis Source Breakdown
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-0 space-y-4">
+                    {recentDebates.length > 0 ? (
+                      (() => {
+                        const sourceCounts = recentDebates.reduce((acc, debate) => {
+                          const source = debate.analysisSource || 'unknown';
+                          acc[source] = (acc[source] || 0) + 1;
+                          return acc;
+                        }, {} as Record<string, number>);
+                        
+                        return Object.entries(sourceCounts).map(([source, count]) => (
+                          <div key={source} className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded-full ${getAnalysisSourceColor(source)}`}></div>
+                                <span className="text-white/80">{getAnalysisSourceLabel(source)}</span>
+                              </div>
+                              <span className="text-white font-medium">{count} debates</span>
+                            </div>
+                            <div className="w-full bg-white/10 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-1000 ${getAnalysisSourceColor(source)}`}
+                                style={{ width: `${(count / recentDebates.length) * 100}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        ));
+                      })()
+                    ) : (
+                      <p className="text-zinc-400 text-center py-4">No data available</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Performance Trends */}
+                <Card className="p-6 bg-zinc-900/30 border-zinc-800/50">
+                  <CardHeader className="px-0 pt-0">
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <TrendingUp className="h-5 w-5 text-[#ff6b35]" />
+                      Performance Insights
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-0 space-y-4">
+                    {recentDebates.length > 0 ? (
+                      <>
+                        <div className="bg-zinc-800/30 rounded-lg p-4">
+                          <div className="text-lg font-bold text-white">
+                            {Math.round(recentDebates.reduce((sum, d) => sum + d.score, 0) / recentDebates.length) || 0}
+                          </div>
+                          <div className="text-sm text-zinc-400">Average Score (Recent)</div>
+                        </div>
+                        <div className="bg-zinc-800/30 rounded-lg p-4">
+                          <div className="text-lg font-bold text-white">
+                            {Math.max(...recentDebates.map(d => d.score))}
+                          </div>
+                          <div className="text-sm text-zinc-400">Highest Score</div>
+                        </div>
+                        <div className="bg-zinc-800/30 rounded-lg p-4">
+                          <div className="text-lg font-bold text-white">
+                            {recentDebates.filter(d => d.result === 'won').length}
+                          </div>
+                          <div className="text-sm text-zinc-400">Recent Wins</div>
+                        </div>
+                        <div className="bg-zinc-800/30 rounded-lg p-4">
+                          <div className="text-lg font-bold text-white">
+                            {Math.round((recentDebates.filter(d => d.result === 'won').length / recentDebates.length) * 100) || 0}%
+                          </div>
+                          <div className="text-sm text-zinc-400">Recent Win Rate</div>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-zinc-400 text-center py-4">No data available</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Debate Quality Analysis */}
+              {recentDebates.length > 0 && (
+                <Card className="p-6 bg-zinc-900/30 border-zinc-800/50">
+                  <CardHeader className="px-0 pt-0">
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <Award className="h-5 w-5 text-[#ff6b35]" />
+                      Debate Quality Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="text-center bg-zinc-800/30 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-[#00ff88]">
+                          {recentDebates.filter(d => d.score >= 80).length}
+                        </div>
+                        <div className="text-sm text-zinc-400">Excellent (80+)</div>
+                      </div>
+                      <div className="text-center bg-zinc-800/30 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-[#ffd700]">
+                          {recentDebates.filter(d => d.score >= 60 && d.score < 80).length}
+                        </div>
+                        <div className="text-sm text-zinc-400">Good (60-79)</div>
+                      </div>
+                      <div className="text-center bg-zinc-800/30 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-[#ff6b35]">
+                          {recentDebates.filter(d => d.score >= 40 && d.score < 60).length}
+                        </div>
+                        <div className="text-sm text-zinc-400">Fair (40-59)</div>
+                      </div>
+                      <div className="text-center bg-zinc-800/30 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-[#ff4444]">
+                          {recentDebates.filter(d => d.score < 40).length}
+                        </div>
+                        <div className="text-sm text-zinc-400">Needs Work (&lt;40)</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
         </motion.div>

@@ -25,6 +25,15 @@ export const getProfile = async (req, res) => {
     // Calculate derived stats
     const winRate = stats.totalDebates > 0 ? Math.round((stats.wins / stats.totalDebates) * 100) : 0;
     
+    // Calculate total arguments from all debates
+    const totalArguments = await Debate.aggregate([
+      { $match: { 'joinedUsers': user._id } },
+      { $unwind: '$arguments' },
+      { $match: { 'arguments.user': user._id } },
+      { $count: 'totalArguments' }
+    ]);
+    const argumentCount = totalArguments[0]?.totalArguments || 0;
+    
     // Calculate current streak
     let currentStreak = 0;
     for (const debate of recentDebates) {
@@ -46,11 +55,12 @@ export const getProfile = async (req, res) => {
       ...stats,
       winRate,
       streak: currentStreak,
-      rank
+      rank,
+      totalArguments: argumentCount
     };
 
-    // Format recent debates for response
-    const formattedDebates = recentDebates.map(debate => ({
+    // Format recent debates for response (limit to 5 most recent)
+    const formattedDebates = recentDebates.slice(0, 5).map(debate => ({
       id: debate.debateId?._id || debate.debateId,
       topic: debate.debateId?.topic || debate.topic,
       result: debate.result,
