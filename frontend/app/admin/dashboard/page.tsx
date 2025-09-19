@@ -23,6 +23,13 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { apiFetch } from '../../../lib/apiFetch';
+import { 
+  AnalyticsCardSkeleton, 
+  StatsGridSkeleton, 
+  DebateListSkeleton,
+  TournamentCardSkeleton 
+} from '../../../components/ui/skeleton-components';
+import { LazyLoad } from '../../../components/ui/lazy-loading';
 
 interface DashboardStats {
   userCount: number;
@@ -242,11 +249,20 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="text-white text-center">
-          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
-          Loading dashboard...
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <Button variant="outline">Logout</Button>
         </div>
+        
+        <StatsGridSkeleton />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <AnalyticsCardSkeleton />
+          <AnalyticsCardSkeleton />
+        </div>
+        
+        <DebateListSkeleton />
       </div>
     );
   }
@@ -279,7 +295,8 @@ const AdminDashboard = () => {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <LazyLoad fallback={<StatsGridSkeleton />}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="backdrop-blur-xl bg-white/10 border border-white/20">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
@@ -336,9 +353,11 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
+        </LazyLoad>
 
         {/* Tournament Management */}
-        <Card className="backdrop-blur-xl bg-white/10 border border-white/20 mb-8">
+        <LazyLoad fallback={<AnalyticsCardSkeleton />}>
+          <Card className="backdrop-blur-xl bg-white/10 border border-white/20 mb-8">
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle className="text-white">Tournament Management</CardTitle>
@@ -586,6 +605,7 @@ const AdminDashboard = () => {
             </div>
           </CardContent>
         </Card>
+        </LazyLoad>
       </div>
     </div>
   );

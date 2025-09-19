@@ -8,6 +8,12 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Trophy, Users, Medal, TrendingUp, Award, Crown} from "lucide-react";
 import { api } from "../../lib/api";
+import { 
+  StatsGridSkeleton, 
+  DebateListSkeleton, 
+  PageHeaderSkeleton 
+} from "@/components/ui/skeleton-components";
+import { LazyLoad } from "@/components/ui/lazy-loading";
 
 interface LeaderboardUser {
   id: string
@@ -119,8 +125,12 @@ export default function LeaderboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen">
+        <div className="relative container mx-auto px-4 py-16 max-w-6xl">
+          <PageHeaderSkeleton />
+          <StatsGridSkeleton />
+          <DebateListSkeleton />
+        </div>
       </div>
     )
   }
@@ -154,12 +164,13 @@ export default function LeaderboardPage() {
           </p>
 
           {/* Stats Cards */}
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-6 gap-6 auto-rows-[150px] mb-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-          >
+          <LazyLoad fallback={<StatsGridSkeleton />}>
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-6 gap-6 auto-rows-[150px] mb-10"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+            >
             {/* Active Debaters */}
             <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-card/50 backdrop-blur-sm border-[#ff6b35]/30">
               <Users className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
@@ -185,9 +196,11 @@ export default function LeaderboardPage() {
             </Card>
             
           </motion.div>
+          </LazyLoad>
         </motion.div>
 
         {/* Leaderboard Tabs */}
+        <LazyLoad fallback={<DebateListSkeleton />}>
         <Tabs defaultValue="global" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 bg-card/50 border-[#ff6b35]/30">
             <TabsTrigger value="global" className="data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black text-white">Global Rankings</TabsTrigger>
@@ -203,7 +216,9 @@ export default function LeaderboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <LeaderboardTable users={globalLeaders} />
+                <LazyLoad fallback={<DebateListSkeleton />}>
+                  <LeaderboardTable users={globalLeaders} />
+                </LazyLoad>
               </CardContent>
             </Card>
           </TabsContent>
@@ -217,11 +232,14 @@ export default function LeaderboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <LeaderboardTable users={weeklyLeaders} />
+                <LazyLoad fallback={<DebateListSkeleton />}>
+                  <LeaderboardTable users={weeklyLeaders} />
+                </LazyLoad>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+        </LazyLoad>
       </motion.div>
     </div>
   )

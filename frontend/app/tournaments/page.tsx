@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Trophy, Users, Clock, Calendar, Star, Zap } from "lucide-react"
+import { 
+  TournamentCardSkeleton, 
+  StatsGridSkeleton, 
+  PageHeaderSkeleton 
+} from "@/components/ui/skeleton-components"
+import { LazyLoad } from "@/components/ui/lazy-loading"
 
 interface Tournament {
   id: string
@@ -120,8 +126,14 @@ export default function TournamentsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <PageHeaderSkeleton />
+        <StatsGridSkeleton />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <TournamentCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -149,7 +161,8 @@ export default function TournamentsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <LazyLoad fallback={<StatsGridSkeleton />}>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="p-6 text-center">
             <Zap className="h-8 w-8 mx-auto mb-2 text-green-500" />
             <div className="text-2xl font-bold">{activeTournaments.length}</div>
@@ -174,10 +187,12 @@ export default function TournamentsPage() {
             <div className="text-sm text-muted-foreground">Completed</div>
           </Card>
         </div>
+        </LazyLoad>
 
         {/* Active Tournaments */}
         {activeTournaments.length > 0 && (
-          <section>
+          <LazyLoad fallback={<div className="grid gap-6 md:grid-cols-2">{Array.from({ length: 2 }).map((_, i) => <TournamentCardSkeleton key={i} />)}</div>}>
+            <section>
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
               <Zap className="h-6 w-6 text-green-500" />
               Active Tournaments
@@ -233,10 +248,12 @@ export default function TournamentsPage() {
               ))}
             </div>
           </section>
+          </LazyLoad>
         )}
 
         {/* Upcoming Tournaments */}
-        <section>
+        <LazyLoad fallback={<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <TournamentCardSkeleton key={i} />)}</div>}>
+          <section>
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <Clock className="h-6 w-6 text-blue-500" />
             Upcoming Tournaments
@@ -312,10 +329,12 @@ export default function TournamentsPage() {
             ))}
           </div>
         </section>
+        </LazyLoad>
 
         {/* Completed Tournaments */}
         {completedTournaments.length > 0 && (
-          <section>
+          <LazyLoad fallback={<div className="grid gap-6 md:grid-cols-2">{Array.from({ length: 2 }).map((_, i) => <TournamentCardSkeleton key={i} />)}</div>}>
+            <section>
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
               <Trophy className="h-6 w-6 text-yellow-500" />
               Completed Tournaments
@@ -348,6 +367,7 @@ export default function TournamentsPage() {
               ))}
             </div>
           </section>
+          </LazyLoad>
         )}
       </motion.div>
     </div>

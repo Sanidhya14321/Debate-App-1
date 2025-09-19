@@ -48,6 +48,13 @@ import {
   Target,
   Sparkles
 } from "lucide-react";
+import { 
+  DebateListSkeleton, 
+  FormSkeleton, 
+  PageHeaderSkeleton,
+  TournamentCardSkeleton 
+} from "@/components/ui/skeleton-components";
+import { LazyLoad } from "@/components/ui/lazy-loading";
 
 export default function DebatesPage() {
   useAuthGuard();
@@ -59,13 +66,18 @@ export default function DebatesPage() {
   const [isPrivate, setIsPrivate] = useState(false);
   const [duration, setDuration] = useState("30");
   const [creating, setCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchOpenDebates = async () => {
+    setIsLoading(true);
     try {
       const data = await apiFetch("/debates/open");
       setOpenDebates(data as DebateData[]);
     }
     catch { toast.error("Failed to fetch open debates"); }
+    finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => { fetchOpenDebates(); }, []);
@@ -204,12 +216,13 @@ export default function DebatesPage() {
         </motion.section>
 
         {/* SECTION 2: CREATE PUBLIC/PRIVATE DEBATE */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mb-16"
-        >
+        <LazyLoad fallback={<FormSkeleton />}>
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mb-16"
+          >
           <div className="flex items-center gap-3 mb-8">
             <Plus className="h-6 w-6 text-[#ff6b35]" />
             <h2 className="text-3xl font-bold text-white">Create New Debate</h2>
@@ -353,13 +366,15 @@ export default function DebatesPage() {
             </CardContent>
           </Card>
         </motion.section>
+        </LazyLoad>
 
         {/* SECTION 3: OPEN DEBATES */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
+        <LazyLoad fallback={<DebateListSkeleton />}>
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+          >
           <div className="flex items-center gap-3 mb-8">
             <Globe className="h-6 w-6 text-[#ff6b35]" />
             <h2 className="text-3xl font-bold text-white">Public Arenas</h2>
@@ -369,7 +384,9 @@ export default function DebatesPage() {
           <div 
             className="w-2/3 justify-center justify-self-center mx-auto"
           >
-            {openDebates.length === 0 ? (
+            {isLoading ? (
+              <DebateListSkeleton />
+            ) : openDebates.length === 0 ? (
               <Card className="p-12 text-center bg-card/30 backdrop-blur-sm border-border/50">
                 <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-xl font-semibold text-white mb-2">No Active Debates</h3>
@@ -425,6 +442,7 @@ export default function DebatesPage() {
             )}
           </div>
         </motion.section>
+        </LazyLoad>
       </div>
     </div>
   );
