@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -14,8 +14,7 @@ import { Trophy, Users, Clock, Calendar, Star, Zap, Plus, Crown, User } from "lu
 import { 
   TournamentCardSkeleton, 
   StatsGridSkeleton, 
-  PageHeaderSkeleton,
-  FormSkeleton 
+  PageHeaderSkeleton
 } from "@/components/ui/skeleton-components"
 import { LazyLoad } from "@/components/ui/lazy-loading"
 import { useAuthGuard } from "@/lib/auth"
@@ -164,29 +163,6 @@ export default function TournamentsPage() {
       toast.error('Failed to join tournament');
     }
   };
-
-  const getStatusColor = (status: Tournament['status']) => {
-    switch (status) {
-      case 'upcoming': return 'bg-blue-500'
-      case 'active': return 'bg-green-500'
-      case 'completed': return 'bg-gray-500'
-    }
-  }
-
-  const getDifficultyColor = (difficulty: Tournament['difficulty']) => {
-    switch (difficulty) {
-      case 'beginner': return 'bg-green-100 text-green-800'
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800'
-      case 'advanced': return 'bg-red-100 text-red-800'
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    })
-  }
 
   if (loading) {
     return (

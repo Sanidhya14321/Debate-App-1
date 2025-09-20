@@ -50,9 +50,7 @@ import {
 } from "lucide-react";
 import { 
   DebateListSkeleton, 
-  FormSkeleton, 
-  PageHeaderSkeleton,
-  TournamentCardSkeleton 
+  FormSkeleton
 } from "@/components/ui/skeleton-components";
 import { LazyLoad } from "@/components/ui/lazy-loading";
 

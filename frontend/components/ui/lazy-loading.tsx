@@ -1,23 +1,7 @@
 "use client";
 
-import { lazy, Suspense, ComponentType } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-
-// Generic lazy loading wrapper
-export function createLazyComponent<T extends ComponentType<any>>(
-  importFunc: () => Promise<{ default: T }>,
-  fallback?: React.ReactNode
-) {
-  const LazyComponent = lazy(importFunc);
-  
-  return function LazyWrapper(props: React.ComponentProps<T>) {
-    return (
-      <Suspense fallback={fallback || <ComponentFallback />}>
-        <LazyComponent {...props} />
-      </Suspense>
-    );
-  };
-}
+import { useEffect, useRef, useState } from "react";
 
 // Default fallback component
 function ComponentFallback() {
@@ -34,7 +18,6 @@ function ComponentFallback() {
 }
 
 // Intersection Observer hook for lazy loading elements
-import { useEffect, useRef, useState } from "react";
 
 export function useIntersectionObserver(
   options: IntersectionObserverInit = {}
@@ -96,14 +79,12 @@ export function LazyLoad({
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
-  placeholder?: string;
   className?: string;
 }
 
 export function LazyImage({ 
   src, 
   alt, 
-  placeholder, 
   className, 
   ...props 
 }: LazyImageProps) {

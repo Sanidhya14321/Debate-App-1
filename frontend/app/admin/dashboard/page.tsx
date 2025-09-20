@@ -26,8 +26,7 @@ import { apiFetch } from '../../../lib/apiFetch';
 import { 
   AnalyticsCardSkeleton, 
   StatsGridSkeleton, 
-  DebateListSkeleton,
-  TournamentCardSkeleton 
+  DebateListSkeleton
 } from '../../../components/ui/skeleton-components';
 import { LazyLoad } from '../../../components/ui/lazy-loading';
 
