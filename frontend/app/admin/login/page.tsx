@@ -28,6 +28,14 @@ const AdminLogin = () => {
     if (error) setError('');
   };
 
+  const handleAutoFill = () => {
+    setCredentials({
+      username: 'admin',
+      password: 'admin123'
+    });
+    setError('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -154,9 +162,24 @@ const AdminLogin = () => {
           </form>
 
           <div className="mt-6 pt-6 border-t border-white/20">
-            <p className="text-xs text-gray-400 text-center">
-              For demo purposes only. Contact system administrator for access.
-            </p>
+            <div className="space-y-3">
+              <p className="text-xs text-gray-400 text-center">
+                Demo Credentials for Testing:
+              </p>
+              <div className="bg-white/5 rounded-lg p-3 space-y-2 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors" onClick={handleAutoFill}>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-300">Username:</span>
+                  <code className="text-amber-300 bg-black/20 px-2 py-1 rounded text-xs">admin</code>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-300">Password:</span>
+                  <code className="text-amber-300 bg-black/20 px-2 py-1 rounded text-xs">admin123</code>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 text-center">
+                Click credentials to auto-fill the form
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

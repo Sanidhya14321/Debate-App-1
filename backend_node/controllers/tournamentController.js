@@ -6,14 +6,15 @@ import Debate from "../models/Debate.js";
 // Get all tournaments with pagination and filtering
 export const getTournaments = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, difficulty } = req.query;
+    const { page = 1, limit = 10, status, difficulty, createdByType } = req.query;
     const query = {};
     
     if (status) query.status = status;
     if (difficulty) query.difficulty = difficulty;
+    if (createdByType) query.createdByType = createdByType;
     
     const tournaments = await Tournament.find(query)
-      .populate('participants', 'username color')
+      .populate('participants.user', 'username color')
       .populate('createdBy', 'username')
       .populate('winner', 'username color')
       .sort({ createdAt: -1 })
@@ -38,7 +39,7 @@ export const getTournaments = async (req, res) => {
 export const getTournamentById = async (req, res) => {
   try {
     const tournament = await Tournament.findById(req.params.id)
-      .populate('participants', 'username color')
+      .populate('participants.user', 'username color')
       .populate('createdBy', 'username')
       .populate('winner', 'username color')
       .populate('runnerUp', 'username color')
@@ -103,15 +104,16 @@ export const createTournament = async (req, res) => {
       rounds,
       entryFee: entryFee || 0,
       difficulty: difficulty || 'intermediate',
-      topics: topics || [],
-      createdBy: req.user.id
+      rules: { topics: topics || [] },
+      createdBy: req.user.id,
+      createdByType: 'admin'
     });
     
     await tournament.save();
     
     const populatedTournament = await Tournament.findById(tournament._id)
       .populate('createdBy', 'username')
-      .populate('participants', 'username color');
+      .populate('participants.user', 'username color');
     
     res.status(201).json({
       message: 'Tournament created successfully',
@@ -120,6 +122,178 @@ export const createTournament = async (req, res) => {
   } catch (error) {
     console.error('[create tournament]', error);
     res.status(500).json({ message: 'Failed to create tournament' });
+  }
+};
+
+// Create new user tournament
+export const createUserTournament = async (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      maxParticipants,
+      prize,
+      startDate,
+      endDate,
+      entryFee,
+      difficulty,
+      topics
+    } = req.body;
+    
+    // Validate required fields
+    if (!name || !description || !maxParticipants || !prize || !startDate || !endDate) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Validate maxParticipants is power of 2 for bracket generation
+    if ((maxParticipants & (maxParticipants - 1)) !== 0) {
+      return res.status(400).json({ 
+        message: 'Maximum participants must be a power of 2 (2, 4, 8, 16, 32, etc.)' 
+      });
+    }
+
+    // Limit user tournaments to smaller sizes
+    if (maxParticipants > 32) {
+      return res.status(400).json({ 
+        message: 'User tournaments are limited to maximum 32 participants' 
+      });
+    }
+    
+    // Calculate number of rounds based on participants
+    const rounds = Math.ceil(Math.log2(maxParticipants));
+    
+    const tournament = new Tournament({
+      name,
+      description,
+      maxParticipants,
+      prize,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      rounds,
+      entryFee: entryFee || 0,
+      difficulty: difficulty || 'intermediate',
+      rules: { topics: topics || [] },
+      createdBy: req.user.id,
+      createdByType: 'user'
+    });
+    
+    await tournament.save();
+    
+    const populatedTournament = await Tournament.findById(tournament._id)
+      .populate('createdBy', 'username')
+      .populate('participants.user', 'username color');
+    
+    res.status(201).json({
+      message: 'Tournament created successfully',
+      tournament: populatedTournament
+    });
+  } catch (error) {
+    console.error('[create user tournament]', error);
+    res.status(500).json({ message: 'Failed to create tournament' });
+  }
+};
+
+// Update user tournament
+export const updateUserTournament = async (req, res) => {
+  try {
+    const tournament = await Tournament.findById(req.params.id);
+    
+    if (!tournament) {
+      return res.status(404).json({ message: 'Tournament not found' });
+    }
+
+    // Check if user owns this tournament
+    if (tournament.createdBy.toString() !== req.user.id || tournament.createdByType !== 'user') {
+      return res.status(403).json({ message: 'You can only update your own tournaments' });
+    }
+
+    // Don't allow updates if tournament is active or completed
+    if (tournament.status !== 'upcoming') {
+      return res.status(400).json({ 
+        message: 'Cannot update tournament that has already started or completed' 
+      });
+    }
+
+    const {
+      name,
+      description,
+      maxParticipants,
+      prize,
+      startDate,
+      endDate,
+      entryFee,
+      difficulty,
+      topics
+    } = req.body;
+
+    // Update fields if provided
+    if (name) tournament.name = name;
+    if (description) tournament.description = description;
+    if (maxParticipants) {
+      // Validate maxParticipants is power of 2
+      if ((maxParticipants & (maxParticipants - 1)) !== 0) {
+        return res.status(400).json({ 
+          message: 'Maximum participants must be a power of 2 (2, 4, 8, 16, 32, etc.)' 
+        });
+      }
+      if (maxParticipants > 32) {
+        return res.status(400).json({ 
+          message: 'User tournaments are limited to maximum 32 participants' 
+        });
+      }
+      tournament.maxParticipants = maxParticipants;
+      tournament.rounds = Math.ceil(Math.log2(maxParticipants));
+    }
+    if (prize) tournament.prize = prize;
+    if (startDate) tournament.startDate = new Date(startDate);
+    if (endDate) tournament.endDate = new Date(endDate);
+    if (entryFee !== undefined) tournament.entryFee = entryFee;
+    if (difficulty) tournament.difficulty = difficulty;
+    if (topics) tournament.rules.topics = topics;
+
+    await tournament.save();
+
+    const populatedTournament = await Tournament.findById(tournament._id)
+      .populate('createdBy', 'username')
+      .populate('participants.user', 'username color');
+
+    res.json({
+      message: 'Tournament updated successfully',
+      tournament: populatedTournament
+    });
+  } catch (error) {
+    console.error('[update user tournament]', error);
+    res.status(500).json({ message: 'Failed to update tournament' });
+  }
+};
+
+// Delete user tournament
+export const deleteUserTournament = async (req, res) => {
+  try {
+    const tournament = await Tournament.findById(req.params.id);
+    
+    if (!tournament) {
+      return res.status(404).json({ message: 'Tournament not found' });
+    }
+
+    // Check if user owns this tournament
+    if (tournament.createdBy.toString() !== req.user.id || tournament.createdByType !== 'user') {
+      return res.status(403).json({ message: 'You can only delete your own tournaments' });
+    }
+
+    // Don't allow deletion if tournament is active
+    if (tournament.status === 'active') {
+      return res.status(400).json({ 
+        message: 'Cannot delete an active tournament' 
+      });
+    }
+
+    await Tournament.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Tournament deleted successfully' });
+  } catch (error) {
+    console.error('[delete user tournament]', error);
+    res.status(500).json({ message: 'Failed to delete tournament' });
   }
 };
 
@@ -136,7 +310,12 @@ export const joinTournament = async (req, res) => {
       return res.status(400).json({ message: 'Tournament is not open for registration' });
     }
     
-    if (tournament.participants.includes(req.user.id)) {
+    // Check if user is already registered
+    const alreadyRegistered = tournament.participants.some(
+      p => p.user && p.user.toString() === req.user.id
+    );
+    
+    if (alreadyRegistered) {
       return res.status(400).json({ message: 'Already registered for this tournament' });
     }
     
@@ -144,11 +323,11 @@ export const joinTournament = async (req, res) => {
       return res.status(400).json({ message: 'Tournament is full' });
     }
     
-    tournament.participants.push(req.user.id);
+    tournament.participants.push({ user: req.user.id });
     await tournament.save();
     
     const populatedTournament = await Tournament.findById(tournament._id)
-      .populate('participants', 'username color');
+      .populate('participants.user', 'username color');
     
     // If tournament is full, generate bracket
     if (tournament.participants.length === tournament.maxParticipants) {
@@ -169,12 +348,15 @@ export const joinTournament = async (req, res) => {
 const generateTournamentBracket = async (tournamentId) => {
   try {
     const tournament = await Tournament.findById(tournamentId)
-      .populate('participants', 'username');
+      .populate('participants.user', 'username');
     
     if (!tournament) return;
     
+    // Extract user objects from participants
+    const users = tournament.participants.map(p => p.user);
+    
     // Shuffle participants for random seeding
-    const participants = [...tournament.participants];
+    const participants = [...users];
     for (let i = participants.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [participants[i], participants[j]] = [participants[j], participants[i]];
@@ -392,7 +574,7 @@ export const forceStartTournament = async (req, res) => {
     res.json({ 
       message: 'Tournament started successfully',
       tournament: await Tournament.findById(tournament._id)
-        .populate('participants', 'username color')
+        .populate('participants.user', 'username color')
     });
   } catch (error) {
     console.error('[force start tournament]', error);
@@ -444,7 +626,7 @@ export const getTournamentResults = async (req, res) => {
     const tournament = await Tournament.findById(req.params.id)
       .populate('winner', 'username color')
       .populate('runnerUp', 'username color')
-      .populate('participants', 'username color')
+      .populate('participants.user', 'username color')
       .populate('bracket.matches.participant1', 'username color')
       .populate('bracket.matches.participant2', 'username color')
       .populate('bracket.matches.winner', 'username color');
@@ -459,21 +641,22 @@ export const getTournamentResults = async (req, res) => {
     
     // Calculate participant statistics
     const participantStats = tournament.participants.map(participant => {
+      const user = participant.user;
       const wins = tournament.bracket.reduce((total, round) => {
         return total + round.matches.filter(match => 
-          match.winner && match.winner._id.toString() === participant._id.toString()
+          match.winner && match.winner._id.toString() === user._id.toString()
         ).length;
       }, 0);
       
       const totalMatches = tournament.bracket.reduce((total, round) => {
         return total + round.matches.filter(match => 
-          (match.participant1 && match.participant1._id.toString() === participant._id.toString()) ||
-          (match.participant2 && match.participant2._id.toString() === participant._id.toString())
+          (match.participant1 && match.participant1._id.toString() === user._id.toString()) ||
+          (match.participant2 && match.participant2._id.toString() === user._id.toString())
         ).length;
       }, 0);
       
       return {
-        participant,
+        participant: user,
         wins,
         losses: totalMatches - wins,
         winRate: totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0

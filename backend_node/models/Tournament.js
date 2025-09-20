@@ -27,7 +27,13 @@ const tournamentSchema = new mongoose.Schema({
     enum: ['beginner', 'intermediate', 'advanced'], 
     default: 'intermediate' 
   },
-  createdBy: { type: String, default: 'admin' }, // Changed to string for hardcoded admin
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  createdByType: { 
+    type: String, 
+    enum: ['admin', 'user'], 
+    required: true,
+    default: 'user'
+  },
   
   // Rules and settings
   rules: {

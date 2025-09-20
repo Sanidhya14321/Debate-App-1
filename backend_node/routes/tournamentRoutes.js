@@ -7,6 +7,9 @@ import {
   getTournaments,
   getTournamentById,
   createTournament,
+  createUserTournament,
+  updateUserTournament,
+  deleteUserTournament,
   joinTournament,
   getTournamentBracket,
   updateTournamentStatus,
@@ -35,6 +38,15 @@ router.get("/:id/results", validateDebateId, getTournamentResults);
 // User routes (require authentication)
 // Join tournament
 router.post("/:id/join", authMiddleware, validateDebateId, joinTournament);
+
+// Create user tournament
+router.post("/user", authMiddleware, createUserTournament);
+
+// Update user's own tournament
+router.put("/user/:id", authMiddleware, validateDebateId, updateUserTournament);
+
+// Delete user's own tournament
+router.delete("/user/:id", authMiddleware, validateDebateId, deleteUserTournament);
 
 // Admin routes (require admin authentication)
 // Create tournament
