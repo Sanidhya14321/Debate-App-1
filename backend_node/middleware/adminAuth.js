@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'secret123';
 // Hardcoded admin credentials (NOT stored in database)
 const ADMIN_CREDENTIALS = {
   username: process.env.ADMIN_USERNAME || "admin",
-  password: process.env.ADMIN_PASSWORD || "admin123!",
+  password: process.env.ADMIN_PASSWORD || "admin123",
   email: process.env.ADMIN_EMAIL || "admin@debateapp.com"
 };
 
@@ -34,7 +34,7 @@ export const adminLogin = (req, res) => {
 
     if (!username || !password) {
       return res.status(400).json({ 
-        error: "Username and password required" 
+        message: "Username and password required" 
       });
     }
 
@@ -53,7 +53,7 @@ export const adminLogin = (req, res) => {
       res.json({
         success: true,
         token,
-        admin: {
+        user: {
           username: ADMIN_CREDENTIALS.username,
           email: ADMIN_CREDENTIALS.email,
           role: 'admin'
@@ -61,14 +61,13 @@ export const adminLogin = (req, res) => {
       });
     } else {
       res.status(401).json({ 
-        error: "Invalid admin credentials" 
+        message: "Invalid admin credentials" 
       });
     }
   } catch (error) {
     console.error('Admin login error:', error);
     res.status(500).json({ 
-      error: "Login failed", 
-      message: error.message 
+      message: "Login failed: " + error.message 
     });
   }
 };
