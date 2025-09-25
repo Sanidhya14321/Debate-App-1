@@ -129,10 +129,10 @@ export default function Home() {
         >
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { icon: Users, label: "Active Debaters", value: "10K+", color: UI_CONFIG.PRIMARY_COLOR },
-              { icon: MessageSquare, label: "Debates Hosted", value: "50K+", color: UI_CONFIG.SECONDARY_COLOR },
-              { icon: Trophy, label: "Tournaments", value: "500+", color: UI_CONFIG.ACCENT_COLOR },
-              { icon: BarChart3, label: "AI Analyses", value: "1M+", color: UI_CONFIG.PRIMARY_COLOR }
+              { icon: Users, label: "Active Debaters", value: "100+", color: UI_CONFIG.PRIMARY_COLOR },
+              { icon: MessageSquare, label: "Debates Hosted", value: "500+", color: UI_CONFIG.SECONDARY_COLOR },
+              { icon: Trophy, label: "Tournaments", value: "10+", color: UI_CONFIG.ACCENT_COLOR },
+              { icon: BarChart3, label: "AI Analyses", value: "2K+", color: UI_CONFIG.PRIMARY_COLOR }
             ].map((stat, index) => (
               <Card key={index} className="p-8 text-center bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 hover:border-white/30">
                 <stat.icon className="h-10 w-10 mx-auto mb-4" style={{ color: stat.color }} />
