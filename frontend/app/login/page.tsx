@@ -46,7 +46,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center  p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -54,29 +54,29 @@ export default function LoginPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="border-white/20 shadow-2xl bg-black/30 backdrop-blur-sm hover:bg-black/35 transition-all duration-300 hover:border-white/30">
+        <Card className="skeuo-gloss">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <motion.div 
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="p-4 rounded-full bg-black/20 backdrop-blur-sm border border-white/20"
+                className="p-4 rounded-full skeuo-inset"
               >
                 <LogIn className="h-10 w-10" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
               </motion.div>
             </div>
-            <CardTitle className="text-3xl font-bold text-white">
-              Welcome Back
+            <CardTitle className="text-3xl font-bold text-foreground">
+              Welcome back
             </CardTitle>
-            <p className="text-gray-400 text-lg">
-              Sign in to continue your <span style={{ color: UI_CONFIG.SECONDARY_COLOR }} className="font-semibold">debate journey</span>
+            <p className="text-muted-foreground text-lg">
+              Sign in to continue using the debate platform.
             </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2 text-white font-medium">
+                <Label htmlFor="email" className="flex items-center gap-2 text-foreground font-medium">
                   <Mail className="h-4 w-4" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
                   Email Address
                 </Label>
@@ -87,11 +87,11 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-black/20 backdrop-blur-sm border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/30 hover:border-white/30"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:ring-2 focus:ring-ring/40"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="flex items-center gap-2 text-white font-medium">
+                <Label htmlFor="password" className="flex items-center gap-2 text-foreground font-medium">
                   <Lock className="h-4 w-4" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
                   Password
                 </Label>
@@ -103,7 +103,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="pr-10 bg-black/20 backdrop-blur-sm border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/30 hover:border-white/30"
+                    className="pr-10 bg-input border-border text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:ring-2 focus:ring-ring/40"
                   />
                   <Button
                     type="button"
@@ -113,17 +113,16 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+                      <EyeOff className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+                      <Eye className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
                     )}
                   </Button>
                 </div>
               </div>
               <Button
                 type="submit"
-                className="w-full text-black font-semibold py-3 rounded-xl transition-all duration-300"
-                style={{ backgroundColor: UI_CONFIG.PRIMARY_COLOR }}
+                className="w-full text-primary-foreground font-semibold py-3 rounded-xl transition-all duration-300 bg-primary hover:opacity-90"
                 disabled={loading}
               >
                 {loading ? (
@@ -134,18 +133,17 @@ export default function LoginPage() {
                 ) : (
                   <div className="flex items-center gap-2">
                     <LogIn className="h-5 w-5" />
-                    Sign In to Arena
+                    Sign in
                   </div>
                 )}
               </Button>
             </form>
             <div className="mt-8 text-center">
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 New to the platform?{" "}
                 <Link
                   href="/register"
-                  className="font-medium transition-colors hover:underline"
-                  style={{ color: UI_CONFIG.SECONDARY_COLOR }}
+                  className="font-medium transition-colors hover:underline text-primary"
                 >
                   Create Account
                 </Link>

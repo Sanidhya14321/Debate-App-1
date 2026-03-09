@@ -1,55 +1,43 @@
-// controllers/userController.js
-import User from "../models/User.js";
-import Debate from "../models/Debate.js";
-import Result from "../models/Result.js";
-import mongoose from "mongoose";
+import { prisma } from "../lib/prisma.js";
 
 export const getProfile = async (req, res) => {
   try {
-    // Disable caching so browser always fetches fresh data
     res.set("Cache-Control", "no-store");
 
-    const user = await User.findById(req.user.id).select("-password").populate('recentDebates.debateId', 'topic');
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      include: {
+        recentDebates: {
+          orderBy: { participatedAt: "desc" },
+          take: 10
+        }
+      }
+    });
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Use the new user model structure with recentDebates and stats
-    const recentDebates = user.recentDebates || [];
-    const stats = user.stats || {
-      totalDebates: 0,
-      wins: 0,
-      losses: 0,
-      draws: 0,
-      averageScore: 0
+    const stats = {
+      totalDebates: user.totalDebates,
+      wins: user.wins,
+      losses: user.losses,
+      draws: user.draws,
+      averageScore: user.averageScore
     };
 
-    // Calculate derived stats
     const winRate = stats.totalDebates > 0 ? Math.round((stats.wins / stats.totalDebates) * 100) : 0;
-    
-    // Calculate total arguments from all debates
-    const totalArguments = await Debate.aggregate([
-      { $match: { 'joinedUsers': user._id } },
-      { $unwind: '$arguments' },
-      { $match: { 'arguments.user': user._id } },
-      { $count: 'totalArguments' }
-    ]);
-    const argumentCount = totalArguments[0]?.totalArguments || 0;
-    
-    // Calculate current streak
+    const argumentCount = await prisma.argument.count({ where: { userId: user.id } });
+
     let currentStreak = 0;
-    for (const debate of recentDebates) {
-      if (debate.result === 'won') {
-        currentStreak++;
-      } else {
-        break;
-      }
+    for (const debate of user.recentDebates) {
+      if (debate.result === "won") currentStreak += 1;
+      else break;
     }
-    
-    // Determine rank based on performance
-    let rank = 'Bronze';
-    if (winRate >= 80 && stats.totalDebates >= 10) rank = 'Diamond';
-    else if (winRate >= 70 && stats.totalDebates >= 8) rank = 'Platinum';
-    else if (winRate >= 60 && stats.totalDebates >= 5) rank = 'Gold';
-    else if (winRate >= 50 && stats.totalDebates >= 3) rank = 'Silver';
+
+    let rank = "Bronze";
+    if (winRate >= 80 && stats.totalDebates >= 10) rank = "Diamond";
+    else if (winRate >= 70 && stats.totalDebates >= 8) rank = "Platinum";
+    else if (winRate >= 60 && stats.totalDebates >= 5) rank = "Gold";
+    else if (winRate >= 50 && stats.totalDebates >= 3) rank = "Silver";
 
     const enhancedStats = {
       ...stats,
@@ -59,10 +47,9 @@ export const getProfile = async (req, res) => {
       totalArguments: argumentCount
     };
 
-    // Format recent debates for response (limit to 5 most recent)
-    const formattedDebates = recentDebates.slice(0, 5).map(debate => ({
-      id: debate.debateId?._id || debate.debateId,
-      topic: debate.debateId?.topic || debate.topic,
+    const formattedDebates = user.recentDebates.slice(0, 5).map((debate) => ({
+      id: debate.debateId,
+      topic: debate.topic,
       result: debate.result,
       score: debate.score,
       date: debate.participatedAt,
@@ -70,9 +57,9 @@ export const getProfile = async (req, res) => {
       analysisSource: debate.analysisSource
     }));
 
-    res.json({ 
-      username: user.username, 
-      email: user.email, 
+    res.json({
+      username: user.username,
+      email: user.email,
       color: user.color,
       stats: enhancedStats,
       recentDebates: formattedDebates

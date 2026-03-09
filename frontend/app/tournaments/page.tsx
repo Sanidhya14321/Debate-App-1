@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/skeleton-components"
 import { LazyLoad } from "@/components/ui/lazy-loading"
 import { useAuthGuard } from "@/lib/auth"
-import { apiFetch } from "@/lib/apiFetch"
 import { toast } from "sonner"
 
 interface Tournament {
@@ -78,22 +77,9 @@ export default function TournamentsPage() {
 
   const fetchTournaments = async () => {
     setLoading(true);
-    try {
-      // Fetch admin tournaments
-      const adminResponse = await apiFetch('/tournaments?createdByType=admin');
-      const adminData = await adminResponse.json();
-      setAdminTournaments(adminData.tournaments || []);
-
-      // Fetch user tournaments  
-      const userResponse = await apiFetch('/tournaments?createdByType=user');
-      const userData = await userResponse.json();
-      setUserTournaments(userData.tournaments || []);
-    } catch (error) {
-      console.error('Error fetching tournaments:', error);
-      toast.error('Failed to fetch tournaments');
-    } finally {
-      setLoading(false);
-    }
+    setAdminTournaments([]);
+    setUserTournaments([]);
+    setLoading(false);
   };
 
   const handleCreateTournament = async (e: React.FormEvent) => {
@@ -104,64 +90,13 @@ export default function TournamentsPage() {
     }
 
     setCreating(true);
-    try {
-      const tournamentData = {
-        ...newTournament,
-        maxParticipants: parseInt(newTournament.maxParticipants),
-        entryFee: parseFloat(newTournament.entryFee),
-        topics: newTournament.topics.split(',').map(t => t.trim()).filter(t => t)
-      };
-
-      const response = await apiFetch('/tournaments/user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tournamentData)
-      });
-
-      if (response.ok) {
-        toast.success('Tournament created successfully!');
-        setShowCreateModal(false);
-        setNewTournament({
-          name: '',
-          description: '',
-          maxParticipants: '8',
-          prize: '',
-          startDate: '',
-          endDate: '',
-          entryFee: '0',
-          difficulty: 'intermediate',
-          topics: ''
-        });
-        fetchTournaments();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || 'Failed to create tournament');
-      }
-    } catch (error) {
-      console.error('Error creating tournament:', error);
-      toast.error('Failed to create tournament');
-    } finally {
-      setCreating(false);
-    }
+    toast.info('Tournament service is currently unavailable.');
+    setCreating(false);
   };
 
   const handleJoinTournament = async (tournamentId: string) => {
-    try {
-      const response = await apiFetch(`/tournaments/${tournamentId}/join`, {
-        method: 'POST'
-      });
-
-      if (response.ok) {
-        toast.success('Successfully joined tournament!');
-        fetchTournaments();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || 'Failed to join tournament');
-      }
-    } catch (error) {
-      console.error('Error joining tournament:', error);
-      toast.error('Failed to join tournament');
-    }
+    void tournamentId;
+    toast.info('Tournament service is currently unavailable.');
   };
 
   if (loading) {
@@ -267,7 +202,7 @@ export default function TournamentsPage() {
                       id="prize"
                       value={newTournament.prize}
                       onChange={(e) => setNewTournament(prev => ({ ...prev, prize: e.target.value }))}
-                      placeholder="e.g., 🏆 Winner Badge"
+                      placeholder="For example: Winner badge or gift card"
                       required
                     />
                   </div>
@@ -499,7 +434,7 @@ function TournamentCard({
               </p>
             </div>
             <div className="flex flex-col gap-1">
-              <Badge className={`${getStatusColor(tournament.status)} text-white text-xs`}>
+              <Badge className={`${getStatusColor(tournament.status)} text-primary-foreground text-xs`}>
                 {tournament.status}
               </Badge>
               <Badge className={getDifficultyColor(tournament.difficulty)}>

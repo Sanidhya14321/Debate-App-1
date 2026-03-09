@@ -77,7 +77,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -85,44 +85,44 @@ export default function RegisterPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="border-white/20 shadow-2xl bg-black/30 backdrop-blur-sm hover:bg-black/35 transition-all duration-300 hover:border-white/30">
+        <Card className="skeuo-gloss">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <motion.div 
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="p-4 rounded-full bg-black/20 backdrop-blur-sm border border-white/20"
+                className="p-4 rounded-full skeuo-inset"
               >
                 <UserPlus className="h-10 w-10" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
               </motion.div>
             </div>
-            <CardTitle className="text-3xl font-bold text-white">
-              Join the Arena
+            <CardTitle className="text-3xl font-bold text-foreground">
+              Create an account
             </CardTitle>
-            <p className="text-gray-400 text-lg">
-              Create your account and start your <span style={{ color: UI_CONFIG.SECONDARY_COLOR }} className="font-semibold">debate revolution</span>
+            <p className="text-muted-foreground text-lg">
+              Register to start creating and joining debates.
             </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleRegister} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="username" className="flex items-center gap-2 text-white font-medium">
+                <Label htmlFor="username" className="flex items-center gap-2 text-foreground font-medium">
                   <User className="h-4 w-4" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
                   Username
                 </Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Choose your battle name"
+                  placeholder="Choose a display name"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  className="bg-black/20 backdrop-blur-sm border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/30 hover:border-white/30"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:ring-2 focus:ring-ring/40"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2 text-white font-medium">
+                <Label htmlFor="email" className="flex items-center gap-2 text-foreground font-medium">
                   <Mail className="h-4 w-4" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
                   Email Address
                 </Label>
@@ -133,11 +133,11 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-black/20 backdrop-blur-sm border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/30 hover:border-white/30"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:ring-2 focus:ring-ring/40"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="flex items-center gap-2 text-white font-medium">
+                <Label htmlFor="password" className="flex items-center gap-2 text-foreground font-medium">
                   <Lock className="h-4 w-4" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
                   Password
                 </Label>
@@ -149,7 +149,7 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="pr-10 bg-black/20 backdrop-blur-sm border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/30 hover:border-white/30"
+                    className="pr-10 bg-input border-border text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:ring-2 focus:ring-ring/40"
                   />
                   <Button
                     type="button"
@@ -159,15 +159,15 @@ export default function RegisterPage() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+                      <EyeOff className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+                      <Eye className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
                     )}
                   </Button>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="flex items-center gap-2 text-white font-medium">
+                <Label htmlFor="confirmPassword" className="flex items-center gap-2 text-foreground font-medium">
                   <Shield className="h-4 w-4" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
                   Confirm Password
                 </Label>
@@ -179,7 +179,7 @@ export default function RegisterPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="pr-10 bg-black/20 backdrop-blur-sm border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-white/30 hover:border-white/30"
+                    className="pr-10 bg-input border-border text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:ring-2 focus:ring-ring/40"
                   />
                   <Button
                     type="button"
@@ -189,39 +189,37 @@ export default function RegisterPage() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+                      <EyeOff className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+                      <Eye className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
                     )}
                   </Button>
                 </div>
               </div>
               <Button
                 type="submit"
-                className="w-full text-black font-semibold py-3 rounded-xl transition-all duration-300"
-                style={{ backgroundColor: UI_CONFIG.PRIMARY_COLOR }}
+                className="w-full text-primary-foreground font-semibold py-3 rounded-xl transition-all duration-300 bg-primary hover:opacity-90"
                 disabled={loading}
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Creating account...
+                    Creating account…
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <UserPlus className="h-5 w-5" />
-                    Enter the Arena
+                    Create account
                   </div>
                 )}
               </Button>
             </form>
             <div className="mt-8 text-center">
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Already have an account?{" "}
                 <Link
                   href="/login"
-                  className="font-medium transition-colors hover:underline"
-                  style={{ color: UI_CONFIG.SECONDARY_COLOR }}
+                  className="font-medium transition-colors hover:underline text-primary"
                 >
                   Sign In
                 </Link>

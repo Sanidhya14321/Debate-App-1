@@ -1,353 +1,162 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { type ComponentType, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { Bolt, BrainCircuit, ChartNoAxesCombined, Gavel, Layers3, Shield, Sparkles, Trophy, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { UI_CONFIG } from "@/lib/api";
-import { 
-  MessageSquare, 
-  Trophy, 
-  Users, 
-  Zap, 
-  Brain, 
-  Target,
-  Star,
-  Globe,
-  Shield,
-  TrendingUp,
-  Award,
-  BarChart3,
-  Plus
-} from "lucide-react";
+
+const BentoTile = ({
+  className,
+  title,
+  copy,
+  icon: Icon,
+}: {
+  className: string;
+  title: string;
+  copy: string;
+  icon: ComponentType<{ className?: string }>;
+}) => (
+  <motion.article
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4 }}
+    className={`bento-card ${className}`}
+  >
+    <Icon className="mb-4 h-8 w-8 text-primary" />
+    <h3 className="text-xl font-semibold tracking-tight">{title}</h3>
+    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{copy}</p>
+  </motion.article>
+);
 
 export default function Home() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
 
-  useEffect(() => setToken(localStorage.getItem("token")), []);
+  useEffect(() => {
+    setToken(localStorage.getItem("token"));
+  }, []);
 
   return (
-    <div className="min-h-screen">
-      <main className="container mx-auto px-6 py-20">
-        {/* Hero Section */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
+    <main className="container mx-auto px-4 py-8 md:px-6 md:py-14">
+      <section className="bento-grid">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-32"
+          transition={{ duration: 0.5 }}
+          className="bento-card col-span-12 md:col-span-8"
         >
-          <div className="mb-12">
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 border border-white/10 mb-8"
-            >
-              <Brain className="h-5 w-5" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
-              <span className="text-sm font-medium text-white">AI-Powered Debate Platform</span>
-            </motion.div>
-          </div>
-
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-8"
-          >
-            {UI_CONFIG.APP_NAME}
-          </motion.h1>
-
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12"
-            whileInView={{opacity : 1}}
-          >
-            Experience intelligent debates with real-time AI analysis, comprehensive scoring, 
-            and competitive tournaments. Elevate your critical thinking skills.
-          </motion.p>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.7 }}
-            className="flex flex-col sm:flex-row gap-6 justify-center"
-            whileInView={{opacity : 1}}
-          >
+          <p className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            <Sparkles className="h-3.5 w-3.5 text-accent" /> Debate Studio
+          </p>
+          <h1 className="mt-4 text-4xl md:text-6xl font-black tracking-tight text-foreground">
+            Train arguments in an
+            <span className="block text-primary">AI-Based Debate Arena.</span>
+          </h1>
+          <p className="mt-5 max-w-2xl text-base md:text-lg text-muted-foreground">
+            Build arguments, get structured judging with Groq + LangChain, and inspect result cards that feel tactile instead of template-like.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
             {token ? (
               <>
-                <Button 
-                  onClick={() => router.push("/debates")} 
-                  size="lg" 
-                  className="gap-3 px-8 py-4 rounded-xl text-white font-semibold"
-                  style={{ backgroundColor: UI_CONFIG.PRIMARY_COLOR }}
-                >
-                  <Plus className="h-6 w-6" /> Create Debate
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => router.push("/debates")}
-                  className="gap-3 border-white/20 text-white hover:bg-white/5 px-8 py-4 rounded-xl"
-                >
-                  <Users className="h-6 w-6" /> Browse Debates
-                </Button>
+                <Button onClick={() => router.push("/debates/create")} className="px-6">Create Debate</Button>
+                <Button variant="outline" onClick={() => router.push("/debates")} className="px-6">Browse Rooms</Button>
               </>
             ) : (
               <>
-                <Button 
-                  onClick={() => router.push("/register")} 
-                  size="lg" 
-                  className="gap-3 px-8 py-4 rounded-xl text-white font-semibold"
-                  style={{ backgroundColor: UI_CONFIG.PRIMARY_COLOR }}
-                >
-                  <Star className="h-6 w-6" /> Get Started
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => router.push("/login")}
-                  className="gap-3 border-white/20 text-white hover:bg-white/5 px-8 py-4 rounded-xl"
-                >
-                  <Shield className="h-6 w-6" /> Sign In
-                </Button>
+                <Button onClick={() => router.push("/register")} className="px-6">Get Started</Button>
+                <Button variant="outline" onClick={() => router.push("/login")} className="px-6">Sign In</Button>
               </>
             )}
-          </motion.div>
-        </motion.section>
+          </div>
+        </motion.div>
 
-        {/* Stats Section */}
-        <motion.section 
-          initial={{ opacity: 0, y: 40 }}
+        <motion.aside
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.9 }}
-          className="mb-32"
-          whileInView={{opacity : 1}}
+          transition={{ duration: 0.55 }}
+          className="bento-card col-span-12 md:col-span-4"
         >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {[
-              { icon: Users, label: "Active Debaters", value: "100+", color: UI_CONFIG.PRIMARY_COLOR },
-              { icon: MessageSquare, label: "Debates Hosted", value: "500+", color: UI_CONFIG.SECONDARY_COLOR },
-              { icon: Trophy, label: "Tournaments", value: "10+", color: UI_CONFIG.ACCENT_COLOR },
-              { icon: BarChart3, label: "AI Analyses", value: "2K+", color: UI_CONFIG.PRIMARY_COLOR }
-            ].map((stat, index) => (
-              <Card key={index} className="p-8 text-center bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 hover:border-white/30">
-                <stat.icon className="h-10 w-10 mx-auto mb-4" style={{ color: stat.color }} />
-                <div className="text-3xl font-bold text-white mb-2">{stat.value}</div>
-                <div className="text-sm text-gray-400">{stat.label}</div>
-              </Card>
-            ))}
+          <h2 className="text-lg font-bold">Live Pulse</h2>
+          <div className="mt-4 space-y-3 text-sm">
+            <div className="skeuo-inset rounded-xl p-3">
+              <p className="font-semibold text-primary">128</p>
+              <p className="text-muted-foreground">Active debaters now</p>
+            </div>
+            <div className="skeuo-inset rounded-xl p-3">
+              <p className="font-semibold text-primary">92%</p>
+              <p className="text-muted-foreground">Debates finalized successfully</p>
+            </div>
+            <div className="skeuo-inset rounded-xl p-3">
+              <p className="font-semibold text-primary">2.4s</p>
+              <p className="text-muted-foreground">Median analysis time</p>
+            </div>
           </div>
-        </motion.section>
+        </motion.aside>
 
-        {/* Features Section */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          animate = {{ opacity:1, y:0}}
-          whileInView="visible"
-          viewport={{ once: true }}
-          transition={{  duration: 0.8, delay: 0.3 }}
-          variants={{
-            visible: { opacity: 1, scale: 1 },
-            hidden: { opacity: 0, scale: 0 }
-          }}
-          className="mb-20"
+        <BentoTile
+          className="col-span-12 md:col-span-4"
+          icon={BrainCircuit}
+          title="AI Judge Chain"
+          copy="Arguments are fused into a compact prompt sequence with strict JSON scoring and fast fallback behavior."
+        />
+        <BentoTile
+          className="col-span-12 md:col-span-4"
+          icon={Gavel}
+          title="Mutual Finalization"
+          copy="Two participants can approve finalization in real-time, then receive synchronized winner and score cards."
+        />
+        <BentoTile
+          className="col-span-12 md:col-span-4"
+          icon={Shield}
+          title="Secure Profiles"
+          copy="JWT auth, protected routes, and persistent user records with streaks, win-rate, and recent rounds."
+        />
+
+        <BentoTile
+          className="col-span-12 md:col-span-3"
+          icon={Users2}
+          title="Head-to-Head"
+          copy="Private codes and direct matchup flow."
+        />
+        <BentoTile
+          className="col-span-12 md:col-span-3"
+          icon={Trophy}
+          title="League Ready"
+          copy="Ranking-compatible score output."
+        />
+        <BentoTile
+          className="col-span-12 md:col-span-3"
+          icon={ChartNoAxesCombined}
+          title="Readable Metrics"
+          copy="Per-user coherence, logic, evidence."
+        />
+        <BentoTile
+          className="col-span-12 md:col-span-3"
+          icon={Bolt}
+          title="Low Latency"
+          copy="Timeout-guarded model path with local failover."
+        />
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="bento-card col-span-12"
         >
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Powered by Advanced AI
-            </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Experience debate like never before with cutting-edge technology
-            </p>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+                <Layers3 className="h-6 w-6 text-accent" /> Built for deliberate practice
+              </h2>
+              <p className="mt-2 text-muted-foreground">
+                The interface is intentionally tactile: raised cards, inset data wells, and bento flow for scan speed on desktop and mobile.
+              </p>
+            </div>
+            <Button variant="outline" onClick={() => router.push("/about")}>See Architecture</Button>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[
-              {
-                icon: Brain,
-                title: "Neural Analysis",
-                description: "Advanced sentiment analysis and argument strength evaluation using transformer models and deep learning algorithms.",
-                color: UI_CONFIG.PRIMARY_COLOR
-              },
-              {
-                icon: Zap,
-                title: "Real-Time Scoring",
-                description: "Instant feedback on argument quality, logical coherence, and persuasiveness with comprehensive scoring metrics.",
-                color: UI_CONFIG.SECONDARY_COLOR
-              },
-              {
-                icon: Target,
-                title: "Smart Matching",
-                description: "Intelligent opponent matching based on skill level, debate style, and topic expertise for balanced competitions.",
-                color: UI_CONFIG.ACCENT_COLOR
-              }
-            ].map((feature, index) => (
-              <motion.div
-              key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView="visible"
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                variants={{
-                  visible: { opacity: 1, y: 0 },
-                  hidden: { opacity: 0, y: 20 }
-                }}
-              >
-                <Card className="p-10 text-center bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 group h-full hover:border-white/30">
-                  <div className="mb-8">
-                    <feature.icon 
-                      className="h-16 w-16 mx-auto group-hover:scale-110 transition-transform duration-300" 
-                      style={{ color: feature.color }} 
-                    />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-6 text-white">{feature.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* Additional Features */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView="visible"
-          viewport={{ once: true }}
-          transition={{  duration: 0.8, delay: 0.3 }}
-          variants={{
-            visible: { opacity: 1, scale: 1 },
-            hidden: { opacity: 0, scale: 0 }
-          }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <Card className="p-10 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 hover:border-white/30">
-              <div className="flex items-center gap-6 mb-8">
-                <Trophy className="h-16 w-16" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
-                <div>
-                  <h3 className="text-2xl font-bold text-white">Competitive Tournaments</h3>
-                  <p className="text-gray-400">Weekly championships with prizes</p>
-                </div>
-              </div>
-              <ul className="space-y-4 text-gray-400">
-                <li className="flex items-center gap-3">
-                  <Award className="h-5 w-5" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
-                  Global leaderboards and rankings
-                </li>
-                <li className="flex items-center gap-3">
-                  <Star className="h-5 w-5" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
-                  Achievement system and badges
-                </li>
-                <li className="flex items-center gap-3">
-                  <TrendingUp className="h-5 w-5" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
-                  Performance analytics and insights
-                </li>
-              </ul>
-            </Card>
-
-            <Card className="p-10 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 hover:border-white/30">
-              <div className="flex items-center gap-6 mb-8">
-                <Globe className="h-16 w-16" style={{ color: UI_CONFIG.SECONDARY_COLOR }} />
-                <div>
-                  <h3 className="text-2xl font-bold text-white">Global Community</h3>
-                  <p className="text-gray-400">Connect with debaters worldwide</p>
-                </div>
-              </div>
-              <ul className="space-y-4 text-gray-400">
-                <li className="flex items-center gap-3">
-                  <Users className="h-5 w-5" style={{ color: UI_CONFIG.SECONDARY_COLOR }} />
-                  Public and private debate rooms
-                </li>
-                <li className="flex items-center gap-3">
-                  <MessageSquare className="h-5 w-5" style={{ color: UI_CONFIG.SECONDARY_COLOR }} />
-                  Real-time chat and reactions
-                </li>
-                <li className="flex items-center gap-3">
-                  <Shield className="h-5 w-5" style={{ color: UI_CONFIG.SECONDARY_COLOR }} />
-                  Moderated and safe environment
-                </li>
-              </ul>
-            </Card>
-          </div>
-        </motion.section>
-
-        {/* Testimonials */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView="visible"
-          viewport={{ once: true }}
-          transition={{  duration: 0.8, delay: 0.4 }}
-          variants={{
-            visible: { opacity: 1, scale: 1 },
-            hidden: { opacity: 0, scale: 0 }
-          }}
-          className="text-center"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-16 mt-16 text-white">
-            What Debaters Say
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Alex Chen",
-                role: "Philosophy Student",
-                avatar: "AC",
-                color: "#ff6b35",
-                quote: "DebAI has revolutionized how I practice argumentation. The AI feedback is incredibly insightful and has improved my debate skills tremendously."
-              },
-              {
-                name: "Sarah Rodriguez",
-                role: "Law School Graduate",
-                avatar: "SR", 
-                color: "#00ff88",
-                quote: "The real-time scoring system keeps me engaged and motivated. It's like having a debate coach available 24/7."
-              },
-              {
-                name: "Marcus Thompson",
-                role: "Policy Debate Coach",
-                avatar: "MT",
-                color: "#ff0080", 
-                quote: "I use DebAI with my students to help them understand argument structure and persuasive techniques. The analytics are fantastic."
-              }
-            ].map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView="visible"
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                variants={{
-                  visible: { opacity: 1, y: 0 },
-                  hidden: { opacity: 0, y: 20 }
-                }}
-              >
-                <Card className="p-8 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-black/40 transition-all duration-300 h-full hover:border-white/30">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div 
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-black font-bold"
-                      style={{ backgroundColor: testimonial.color }}
-                    >
-                      {testimonial.avatar}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-white">{testimonial.name}</h4>
-                      <p className="text-sm text-gray-400">{testimonial.role}</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-300 italic leading-relaxed">
-                    &ldquo;{testimonial.quote}&rdquo;
-                  </p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-      </main>
-    </div>
+        </motion.div>
+      </section>
+    </main>
   );
 }

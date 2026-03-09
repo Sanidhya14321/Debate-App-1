@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DebateStatus {
+  waiting
+  active
+  completed
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+model User {
+  id            String             @id @default(cuid())
+  username      String             @unique
+  email         String             @unique
+  password      String
+  color         String
+  role          UserRole           @default(user)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  totalDebates  Int                @default(0)
+  wins          Int                @default(0)
+  losses        Int                @default(0)
+  draws         Int                @default(0)
+  averageScore  Float              @default(0)
+
+  debates       DebateParticipant[]
+  arguments     Argument[]
+  recentDebates RecentDebate[]
+  finalizationRequests FinalizationRequest[]
+}
+
+model Debate {
+  id                  String                @id @default(cuid())
+  topic               String
+  description         String
+  isPrivate           Boolean               @default(false)
+  inviteCode          String?               @unique
+  status              DebateStatus          @default(waiting)
+  maxUsers            Int                   @default(2)
+  startedAt           DateTime?
+  finalizedAt         DateTime?
+  result              Json?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  participants        DebateParticipant[]
+  arguments           Argument[]
+  resultRecord        Result?
+  finalizationRequests FinalizationRequest[]
+}
+
+model DebateParticipant {
+  id        String   @id @default(cuid())
+  debateId  String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  debate    Debate   @relation(fields: [debateId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([debateId, userId])
+}
+
+model Argument {
+  id        String   @id @default(cuid())
+  debateId  String
+  userId    String
+  content   String
+  score     Json
+  createdAt DateTime @default(now())
+
+  debate    Debate   @relation(fields: [debateId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FinalizationRequest {
+  id          String   @id @default(cuid())
+  debateId    String
+  userId      String
+  username    String
+  requestedAt DateTime @default(now())
+
+  debate      Debate   @relation(fields: [debateId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([debateId, userId])
+}
+
+model Result {
+  id            String   @id @default(cuid())
+  debateId       String   @unique
+  winner         String
+  results        Json
+  analysisSource String
+  finalizedAt    DateTime @default(now())
+  scores         Json?
+  totals         Json?
+
+  debate         Debate   @relation(fields: [debateId], references: [id], onDelete: Cascade)
+}
+
+model RecentDebate {
+  id             String   @id @default(cuid())
+  userId         String
+  debateId       String
+  topic          String
+  result         String
+  score          Float
+  participatedAt DateTime @default(now())
+  opponent       String
+  analysisSource String
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

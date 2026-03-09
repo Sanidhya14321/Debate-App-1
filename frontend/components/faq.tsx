@@ -12,12 +12,12 @@ interface FAQItem {
 
 const faqData1: FAQItem[] = [
   {
-    question: "How does the AI scoring system work?",
-    answer: "Our AI scoring system evaluates arguments based on multiple criteria including clarity, logical structure, evidence quality, vocabulary richness, and sentiment analysis. The AI uses advanced natural language processing to provide real-time feedback and scores that help you improve your debating skills."
+    question: "How does the scoring system work?",
+    answer: "The scoring system looks at clarity, structure, evidence, vocabulary, and tone. It combines these into simple scores so you can quickly see where your arguments are strong and where they can improve."
   },
   {
     question: "Can I practice debates alone?",
-    answer: "Yes! You can create practice debates and submit arguments to receive AI feedback even without other participants. The system will analyze your arguments and provide detailed scoring to help you improve your debate techniques."
+    answer: "Yes. You can create practice debates and submit arguments on your own. The system will score what you write and show where you can adjust your approach."
   },
   {
     question: "How are debate topics selected?",
@@ -25,7 +25,7 @@ const faqData1: FAQItem[] = [
   },
   {
     question: "What makes a high-scoring argument?",
-    answer: "High-scoring arguments typically feature clear logical structure, strong evidence or reasoning, sophisticated vocabulary, balanced tone, and direct engagement with the debate topic. The AI also rewards creativity and original thinking."
+    answer: "High-scoring arguments are clear, stay on topic, use relevant evidence or reasoning, and keep a steady, respectful tone. Directly answering the motion usually helps as well."
   },
 ];
 
@@ -44,7 +44,7 @@ const faqData2: FAQItem[] = [
   },
   {
     question: "How can I improve my debate skills?",
-    answer: "Practice regularly, pay attention to AI feedback, study high-scoring arguments from other users, participate in different types of debates, and focus on the scoring criteria: clarity, logic, evidence, vocabulary, and engagement with opposing viewpoints."
+    answer: "Practice regularly, review your scores, read stronger arguments from other users, take part in different topics, and focus on the scoring areas: clarity, logic, evidence, vocabulary, and engagement with opposing viewpoints."
   }
 ];
 

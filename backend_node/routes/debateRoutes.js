@@ -21,6 +21,7 @@ import {
   getOpenDebates,
   addArgument,
   getArguments,
+  getDebateRoomData,
   finalizeDebate,
   requestFinalization,
   getResults
@@ -40,6 +41,7 @@ router.post("/:id/join", authMiddleware, validateDebateId, joinDebate);
 
 // Get status
 router.get("/:id/status", validateDebateId, getDebateStatus);
+router.get("/:id/room", validateDebateId, getDebateRoomData);
 
 // Open debates
 router.get("/open", validatePagination, getOpenDebates);

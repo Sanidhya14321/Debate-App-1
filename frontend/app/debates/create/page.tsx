@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { apiFetch } from "@/lib/apiFetch";
-import { API_ROUTES, UI_CONFIG } from "@/lib/api";
+import { API_ROUTES } from "@/lib/api";
 import { 
   ArrowLeft,
   Globe,
@@ -77,30 +77,30 @@ export default function CreateDebatePage() {
             <Button
               variant="ghost"
               onClick={() => router.back()}
-              className="mb-6 text-gray-400 hover:text-white"
+              className="mb-6 text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
             
-            <h1 className="text-4xl font-bold text-white mb-4">Create New Debate</h1>
-            <p className="text-xl text-gray-400">
+            <h1 className="text-4xl font-bold text-foreground mb-4">Create New Debate</h1>
+            <p className="text-xl text-muted-foreground">
               Start a new debate and engage with the community
             </p>
           </div>
 
           {/* Creation Form */}
-          <Card className="max-w-2xl mx-auto bg-white/5 border-white/10">
+          <Card className="max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle className="text-2xl text-white flex items-center gap-3">
-                <Plus className="h-6 w-6" style={{ color: UI_CONFIG.PRIMARY_COLOR }} />
+              <CardTitle className="text-2xl text-foreground flex items-center gap-3">
+                <Plus className="h-6 w-6 text-primary" />
                 Debate Details
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-8">
               {/* Topic */}
               <div className="space-y-3">
-                <Label htmlFor="topic" className="text-white font-medium text-lg">
+                <Label htmlFor="topic" className="text-foreground font-medium text-lg">
                   Debate Topic *
                 </Label>
                 <Textarea
@@ -109,13 +109,13 @@ export default function CreateDebatePage() {
                   value={debateTopic}
                   onChange={(e) => setDebateTopic(e.target.value)}
                   rows={3}
-                  className="bg-white/5 border-white/20 focus:border-white/40 text-white placeholder:text-gray-500 text-lg"
+                  className="text-lg"
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-3">
-                <Label htmlFor="description" className="text-white font-medium text-lg">
+                <Label htmlFor="description" className="text-foreground font-medium text-lg">
                   Description (Optional)
                 </Label>
                 <Textarea
@@ -124,7 +124,7 @@ export default function CreateDebatePage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
-                  className="bg-white/5 border-white/20 focus:border-white/40 text-white placeholder:text-gray-500"
+                  className=""
                 />
               </div>
 
@@ -132,7 +132,7 @@ export default function CreateDebatePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Duration */}
                 <div className="space-y-3">
-                  <Label htmlFor="duration" className="text-white font-medium flex items-center gap-2">
+                  <Label htmlFor="duration" className="text-foreground font-medium flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Duration (minutes)
                   </Label>
@@ -143,17 +143,17 @@ export default function CreateDebatePage() {
                     max="120"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
-                    className="bg-white/5 border-white/20 focus:border-white/40 text-white"
+                    className=""
                   />
                 </div>
 
                 {/* Privacy */}
                 <div className="space-y-3">
-                  <Label className="text-white font-medium flex items-center gap-2">
+                  <Label className="text-foreground font-medium flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     Privacy Setting
                   </Label>
-                  <div className="flex items-center space-x-3 p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center space-x-3 p-4 bg-muted/30 rounded-lg border border-border">
                     <Switch
                       checked={isPrivate}
                       onCheckedChange={setIsPrivate}
@@ -161,15 +161,15 @@ export default function CreateDebatePage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         {isPrivate ? (
-                          <Lock className="h-4 w-4 text-gray-400" />
+                          <Lock className="h-4 w-4 text-muted-foreground" />
                         ) : (
-                          <Globe className="h-4 w-4 text-gray-400" />
+                          <Globe className="h-4 w-4 text-muted-foreground" />
                         )}
-                        <span className="text-white font-medium">
+                        <span className="text-foreground font-medium">
                           {isPrivate ? "Private" : "Public"}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         {isPrivate 
                           ? "Only users with invite code can join" 
                           : "Anyone can join this debate"
@@ -185,12 +185,11 @@ export default function CreateDebatePage() {
                 <Button
                   onClick={handleCreateDebate}
                   disabled={creating || !debateTopic.trim()}
-                  className="flex-1 py-6 text-lg font-semibold text-white"
-                  style={{ backgroundColor: UI_CONFIG.PRIMARY_COLOR }}
+                  className="flex-1 py-6 text-lg font-semibold bg-primary text-primary-foreground hover:opacity-90"
                 >
                   {creating ? (
                     <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-3"></div>
                       Creating...
                     </>
                   ) : (
@@ -209,7 +208,7 @@ export default function CreateDebatePage() {
                   variant="outline"
                   onClick={() => router.back()}
                   disabled={creating}
-                  className="border-white/20 text-white hover:bg-white/5 py-6 px-8"
+                  className="border-border text-foreground hover:bg-accent/12 py-6 px-8"
                 >
                   Cancel
                 </Button>

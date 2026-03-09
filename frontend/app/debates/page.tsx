@@ -143,49 +143,49 @@ export default function DebatesPage() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#ff6b35]/30 mb-6">
-            <Flame className="h-4 w-4 text-[#ff6b35]" />
-            <span className="text-sm font-medium text-white">Battle Arena</span>
-            <Zap className="h-4 w-4 text-[#00ff88]" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-card mb-6 shadow-[var(--shadow-surface-pressed)]">
+            <Flame className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">Debate Room</span>
+            <Zap className="h-4 w-4 text-accent" />
           </div>
 
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
-            DEBATE ARENA
+            Debates
           </h1>
 
           <div className="max-w-4xl mx-auto mb-12">
             <p className="text-xl text-muted-foreground mb-8">
-              Welcome to the ultimate AI-powered debate platform where ideas clash and minds evolve
+              Start a new debate or join an existing one. The platform scores arguments and keeps the format consistent.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-full border border-[#ff6b35]/30">
-                  <Brain className="h-6 w-6 text-[#ff6b35]" />
+                <div className="p-3 rounded-full border border-primary/30">
+                  <Brain className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">AI-Powered Scoring</h3>
-                  <p className="text-sm text-muted-foreground">Advanced AI analyzes your arguments for sentiment, clarity, and persuasiveness in real-time</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Scoring</h3>
+                  <p className="text-sm text-muted-foreground">The system scores arguments for clarity, structure, and basic use of evidence.</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-full border border-[#00ff88]/30">
-                  <Target className="h-6 w-6 text-[#00ff88]" />
+                <div className="p-3 rounded-full border border-accent/30">
+                  <Target className="h-6 w-6 text-accent" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Real-Time Debates</h3>
-                  <p className="text-sm text-muted-foreground">Engage in live debates with structured rounds and instant feedback on your performance</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Live Debates</h3>
+                  <p className="text-sm text-muted-foreground">Hold live debates with simple rounds and quick feedback on how each side is doing.</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-full border border-[#ff0080]/30">
-                  <Sparkles className="h-6 w-6 text-[#ff0080]" />
+                <div className="p-3 rounded-full border border-primary/30">
+                  <Sparkles className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Public & Private</h3>
-                  <p className="text-sm text-muted-foreground">Create public debates for everyone or private sessions with invite codes for exclusive discussions</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Public and Private</h3>
+                  <p className="text-sm text-muted-foreground">Create public debates for anyone to join or private sessions that require an invite code.</p>
                 </div>
               </div>
             </div>
@@ -193,20 +193,20 @@ export default function DebatesPage() {
 
           {/* Stats Bar */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-primary/30">
+            <Card className="p-6 text-center border-primary/30">
               <MessageSquare className="h-8 w-8 mx-auto mb-3 text-primary" />
               <div className="text-2xl font-bold mb-1">{openDebates.length}</div>
               <div className="text-sm text-muted-foreground">Active Debates</div>
             </Card>
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-green-500/30">
-              <Users className="h-8 w-8 mx-auto mb-3 text-green-500" />
+            <Card className="p-6 text-center border-accent/30">
+              <Users className="h-8 w-8 mx-auto mb-3 text-accent" />
               <div className="text-2xl font-bold mb-1">
                 {openDebates.reduce((acc, debate) => acc + debate.joinedUsers.length, 0)}
               </div>
               <div className="text-sm text-muted-foreground">Active Debaters</div>
             </Card>
-            <Card className="p-6 text-center bg-card/50 backdrop-blur-sm border-yellow-500/30">
-              <Trophy className="h-8 w-8 mx-auto mb-3 text-yellow-500" />
+            <Card className="p-6 text-center border-primary/30">
+              <Trophy className="h-8 w-8 mx-auto mb-3 text-primary" />
               <div className="text-2xl font-bold mb-1">Live</div>
               <div className="text-sm text-muted-foreground">AI Scoring</div>
             </Card>
@@ -222,16 +222,16 @@ export default function DebatesPage() {
             className="mb-16"
           >
           <div className="flex items-center gap-3 mb-8">
-            <Plus className="h-6 w-6 text-[#ff6b35]" />
-            <h2 className="text-3xl font-bold text-white">Create New Debate</h2>
+            <Plus className="h-6 w-6 text-primary" />
+            <h2 className="text-3xl font-bold text-foreground">Create New Debate</h2>
             <div className="flex-1 h-px"></div>
           </div>
 
-          <Card className="max-w-4xl mx-auto  border-[#ff6b35]/30 backdrop-blur-sm">
+          <Card className="max-w-4xl mx-auto border-primary/30">
             <CardContent className="p-8 space-y-8">
               {/* Topic */}
               <div className="space-y-3">
-                <Label htmlFor="topic" className="text-white font-medium text-lg">
+                <Label htmlFor="topic" className="text-foreground font-medium text-lg">
                   Debate Topic *
                 </Label>
                 <Textarea
@@ -240,13 +240,13 @@ export default function DebatesPage() {
                   value={newTopic}
                   onChange={(e) => setNewTopic(e.target.value)}
                   rows={3}
-                  className="bg-background/50 border-border/50 focus:border-[#ff6b35]/50 text-white placeholder:text-muted-foreground text-lg"
+                  className="text-lg"
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-3">
-                <Label htmlFor="description" className="text-white font-medium text-lg">
+                <Label htmlFor="description" className="text-foreground font-medium text-lg">
                   Description (Optional)
                 </Label>
                 <Textarea
@@ -255,7 +255,7 @@ export default function DebatesPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="bg-background/50 border-border/50 focus:border-[#ff6b35]/50 text-white placeholder:text-muted-foreground"
+                  className=""
                 />
               </div>
 
@@ -263,7 +263,7 @@ export default function DebatesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Duration */}
                 <div className="space-y-3">
-                  <Label htmlFor="duration" className="text-white font-medium flex items-center gap-2">
+                  <Label htmlFor="duration" className="text-foreground font-medium flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Duration (minutes)
                   </Label>
@@ -274,13 +274,13 @@ export default function DebatesPage() {
                     max="120"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
-                    className="bg-background/50 border-border/50 focus:border-[#ff6b35]/50 text-white"
+                    className=""
                   />
                 </div>
 
                 {/* Privacy Setting */}
                 <div className="space-y-3">
-                  <Label className="text-white font-medium flex items-center gap-2">
+                  <Label className="text-foreground font-medium flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     Privacy Setting
                   </Label>
@@ -292,11 +292,11 @@ export default function DebatesPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         {isPrivate ? (
-                          <Lock className="h-4 w-4 text-[#ff6b35]" />
+                          <Lock className="h-4 w-4 text-primary" />
                         ) : (
-                          <Globe className="h-4 w-4 text-[#00ff88]" />
+                          <Globe className="h-4 w-4 text-accent" />
                         )}
-                        <span className="text-white font-medium">
+                        <span className="text-foreground font-medium">
                           {isPrivate ? "Private" : "Public"}
                         </span>
                       </div>
@@ -315,11 +315,11 @@ export default function DebatesPage() {
               <Button
                 onClick={handleCreateDebate}
                 disabled={creating || !newTopic.trim() || newTopic.trim().length < 5}
-                className="w-full bg-[#ff6b35] hover:bg-[#ff6b35]/90 text-black font-semibold py-4 text-lg rounded-xl border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200"
+                className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold py-4 text-lg rounded-xl border border-primary/70 transition-all duration-200"
               >
                 {creating ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-3"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-3"></div>
                     Creating...
                   </>
                 ) : (
@@ -337,10 +337,10 @@ export default function DebatesPage() {
           </Card>
 
           {/* Join Private Debate */}
-          <Card className="max-w-2xl mx-auto mt-8 bg-card/50 backdrop-blur-sm border-[#00ff88]/30">
+          <Card className="max-w-2xl mx-auto mt-8 border-accent/30">
             <CardHeader>
-              <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
-                <Lock className="h-5 w-5 text-[#00ff88]" />
+              <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+                <Lock className="h-5 w-5 text-accent" />
                 Join Private Debate
               </CardTitle>
             </CardHeader>
@@ -350,11 +350,11 @@ export default function DebatesPage() {
                   placeholder="Enter invite code"
                   value={privateCode}
                   onChange={(e) => setPrivateCode(e.target.value)}
-                  className="bg-background/50 border-border/50 focus:border-[#00ff88]/50 text-white placeholder:text-muted-foreground"
+                  className=""
                 />
                 <Button
                   onClick={handleJoinPrivate}
-                  className="bg-[#00ff88] hover:bg-[#00ff88]/90 text-black font-semibold border border-[#ff6b35] hover:border-[#ff6b35]/80 transition-all duration-200"
+                  className="bg-accent hover:opacity-90 text-accent-foreground font-semibold border border-accent/70 transition-all duration-200"
                   disabled={!privateCode.trim()}
                 >
                   <Search className="h-4 w-4 mr-2" />
@@ -374,8 +374,8 @@ export default function DebatesPage() {
             transition={{ duration: 0.6, delay: 0.8 }}
           >
           <div className="flex items-center gap-3 mb-8">
-            <Globe className="h-6 w-6 text-[#ff6b35]" />
-            <h2 className="text-3xl font-bold text-white">Public Arenas</h2>
+            <Globe className="h-6 w-6 text-primary" />
+            <h2 className="text-3xl font-bold text-foreground">Open Debates</h2>
             <div className="flex-1 h-px"></div>
           </div>
 
@@ -387,11 +387,11 @@ export default function DebatesPage() {
             ) : openDebates.length === 0 ? (
               <Card className="p-12 text-center bg-card/30 backdrop-blur-sm border-border/50">
                 <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold text-white mb-2">No Active Debates</h3>
+                <h3 className="text-xl font-semibold text-foreground mb-2">No Active Debates</h3>
                 <p className="text-muted-foreground mb-6">Be the first to start a debate and get the conversation going!</p>
                 <Button
                   onClick={() => document.getElementById('topic')?.focus()}
-                  className="bg-[#ff6b35] hover:bg-[#ff6b35]/90 text-black font-semibold border border-[#00ff88] hover:border-[#00ff88]/80 transition-all duration-200"
+                  className="bg-primary hover:opacity-90 text-primary-foreground font-semibold border border-primary/70 transition-all duration-200"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Create First Debate
@@ -406,13 +406,13 @@ export default function DebatesPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
                   >
-                    <Card className="group hover:border-[#ff6b35]/50 transition-all duration-300 bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-lg hover:shadow-[#ff6b35]/20">
+                    <Card className="group hover:border-primary/50 transition-all duration-300 border-border/50 hover:shadow-[var(--shadow-surface-raised)]">
                       <CardHeader>
                         <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg font-semibold text-white group-hover:text-[#ff6b35] transition-colors line-clamp-2">
+                          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
                             {debate.topic}
                           </CardTitle>
-                          <div className="flex items-center gap-1 text-[#00ff88] text-sm font-medium">
+                          <div className="flex items-center gap-1 text-accent text-sm font-medium">
                             <Users className="h-4 w-4" />
                             {debate.joinedUsers.length}/{debate.maxUsers || 2}
                           </div>
@@ -426,10 +426,10 @@ export default function DebatesPage() {
                           </div>
                           <Button
                             onClick={() => handleJoinOpen(debate._id)}
-                            className="bg-[#ff6b35] hover:bg-[#ff6b35]/90 text-black font-semibold group-hover:scale-105 transition-transform border border-[#00ff88] hover:border-[#00ff88]/80"
+                            className="bg-primary hover:opacity-90 text-primary-foreground font-semibold group-hover:scale-105 transition-transform border border-primary/70"
                           >
                             <ArrowRight className="h-4 w-4 mr-2" />
-                            Join Battle
+                            Join Debate
                           </Button>
                         </div>
                       </CardContent>

@@ -44,7 +44,7 @@ A comprehensive, full-stack debate platform with real-time AI analysis, competit
 - **Authentication**: JWT tokens with bcrypt password hashing
 - **Real-time**: Socket.io for live debate updates and notifications
 - **Security**: Helmet.js, CORS, rate limiting, and input validation
-- **AI Integration**: Google Generative AI (Gemini) and ML API services
+- **AI Integration**: Groq + LangChain debate judge with deterministic local fallback
 
 ### Key Technologies
 ```json
@@ -64,7 +64,8 @@ Backend Dependencies:
 - JSON Web Token 9.0 (Authentication)
 - Bcrypt.js 2.4 (Password hashing)
 - Express Rate Limit 7.1 (API protection)
-- Google Generative AI 0.24 (AI services)
+- @langchain/groq (Groq model integration)
+- @langchain/core (prompt/runnable orchestration)
 ```
 
 ## 📁 Detailed Project Structure
@@ -108,8 +109,7 @@ debate-app/
 │   │   └── utils.ts            # General utilities
 │   └── .env.example            # Environment template
 ├── backend_node/               # Express.js API Server
-│   ├── ai/                     # AI Integration
-│   │   └── debate-analysis.js  # Argument analysis logic
+│   ├── ai/                     # AI Integration (reserved)
 │   ├── config/                 # Configuration
 │   │   └── db.js              # MongoDB connection
 │   ├── controllers/            # Route Handlers
@@ -146,9 +146,7 @@ debate-app/
 │   │   ├── tournamentRoutes.js  # Tournament API routes
 │   │   └── userRoutes.js        # User management routes
 │   ├── services/               # Business Logic Services
-│   │   ├── debateAnalysisService.js # Debate analysis
-│   │   ├── geminiService.js         # Google AI integration
-│   │   └── mlAnalysisService.js     # ML model integration
+│   │   └── debateAnalysisService.js # Groq/LangChain judge + local fallback
 │   ├── socket/                 # WebSocket Handlers
 │   │   └── socketHandlers.js   # Real-time event handling
 │   ├── sockets/                # Socket Logic
@@ -185,7 +183,6 @@ Edit `.env.local`:
 ```bash
 # API Configuration
 NEXT_PUBLIC_API_URL=http://localhost:5000
-NEXT_PUBLIC_ML_API_URL=https://debate-app-ml.hf.space
 
 # Route Configuration
 NEXT_PUBLIC_AUTH_ROUTE=/auth
@@ -217,7 +214,7 @@ MONGODB_URI=mongodb://localhost:27017/debate-app
 # For production: mongodb+srv://username:password@cluster.mongodb.net/debate-app
 
 # External Services
-ML_API_URL=https://debate-app-ml.hf.space
+GROQ_API_KEY=your-groq-api-key
 CORS_ORIGIN=http://localhost:3000
 
 # Admin Credentials
@@ -532,7 +529,6 @@ POST /achievements/unlock   # Unlock achievement
 **Frontend (.env.local)**
 ```bash
 NEXT_PUBLIC_API_URL=https://your-api-domain.com
-NEXT_PUBLIC_ML_API_URL=https://your-ml-api-domain.com
 NEXT_PUBLIC_APP_NAME=AI Debate Platform
 ```
 
@@ -542,7 +538,7 @@ NODE_ENV=production
 PORT=5000
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/debate-app
 JWT_SECRET=your-super-secure-production-jwt-secret-256-bit
-ML_API_URL=https://your-ml-api-domain.com
+GROQ_API_KEY=your-groq-api-key
 CORS_ORIGIN=https://your-frontend-domain.com
 
 # Admin Configuration

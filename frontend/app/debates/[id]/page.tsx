@@ -33,7 +33,6 @@ interface ArgumentData {
   userId: string;
   side: 'for' | 'against';
   timestamp: string;
-  score: number | string | ScoreObject;
   username?: string;
   email?: string;
   color?: string;
@@ -58,25 +57,9 @@ interface Debate {
   maxUsers?: number;
 }
 
-interface ScoreMetric {
-  score: number;
-  rating: string;
-}
-
-interface ScoreObject {
-  sentiment?: ScoreMetric;
-  clarity?: ScoreMetric;
-  vocab_richness?: ScoreMetric;
-  avg_word_len?: ScoreMetric;
-  length?: number;
-  total?: number;
-  [key: string]: number | ScoreMetric | undefined;
-}
-
 interface Argument {
   id: string;
   content: string;
-  score: number | string | ScoreObject;
   username?: string;
   email?: string;
   color?: string;
@@ -194,7 +177,7 @@ export default function DebateRoomPage() {
           
           // Log analysis source
           if (result?.analysisSource) {
-            console.log(`📊 Debate analyzed using: ${result.analysisSource}`);
+            console.log(`Debate analyzed using: ${result.analysisSource}`);
           }
           
           toast.success("Debate finalized! Redirecting to results...");
@@ -246,17 +229,22 @@ export default function DebateRoomPage() {
 
   const fetchDebate = useCallback(async () => {
     try {
-      const [d, a] = await Promise.all([
-        apiFetch(`/debates/${id}/status`),
-        apiFetch(`/debates/${id}/arguments`),
-      ]);
-      setDebate(d as Debate);
-      setArgs(a as Argument[]);
+      const data = await apiFetch(`/debates/${id}/room`);
+      const roomDebate = data?.debate as Debate;
+      const roomArguments = (data?.arguments || []) as Argument[];
+
+      if (roomDebate?.status === "completed") {
+        router.replace(`/debates/${id}/results`);
+        return;
+      }
+
+      setDebate(roomDebate);
+      setArgs(roomArguments);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch debate";
       toast.error(errorMessage);
     }
-  }, [id]);
+  }, [id, router]);
 
   useEffect(() => { fetchDebate(); }, [fetchDebate]);
 
@@ -278,10 +266,9 @@ export default function DebateRoomPage() {
     const optimisticArg: Argument = {
       id: `optimistic-${Date.now()}`,
       content: newArg.trim(),
-      score: 0,
       username: user?.username || user?.email || "You",
       email: user?.email,
-      color: user?.color || "#ff6b35",
+      color: user?.color || "hsl(var(--primary))",
       createdAt: new Date().toISOString(),
     };
     
@@ -322,13 +309,13 @@ export default function DebateRoomPage() {
     // Check if there are multiple participants
     if (debate.participants && debate.participants.length > 1) {
       // Request finalization from other participants
-      console.log("📤 Sending finalization request via socket to other participants");
+      console.log("Sending finalization request via socket to other participants");
       socketManager.requestFinalization(id);
       toast.info("Finalization request sent to other participants");
       return;
     }
 
-    console.log("🚀 Proceeding with direct finalization (single participant)");
+    console.log("Proceeding with direct finalization (single participant)");
     // Single participant or no socket - proceed with direct finalization
     setLoading(true);
     try {
@@ -336,15 +323,16 @@ export default function DebateRoomPage() {
       
       // Log analysis source for debugging
       if (result?.analysisSource) {
-        console.log(`📊 Debate analyzed using: ${result.analysisSource}`);
+        console.log(`Debate analyzed using: ${result.analysisSource}`);
         const sourceLabels: Record<string, string> = {
-          ml: 'ML Model',
-          ai: 'AI Fallback', 
-          fallback: 'Basic Scoring'
+          langchain_groq: 'LangChain + Groq judge',
+          local_heuristic: 'local heuristic analysis',
+          ai: 'model-based analysis (Groq / LangChain)',
+          fallback: 'basic analysis'
         };
-        toast.success(`Debate finalized using ${sourceLabels[result.analysisSource] || 'Unknown'}! Redirecting...`);
+        toast.success(`Debate finalized using ${sourceLabels[result.analysisSource] || 'unknown method'}. Redirecting to results...`);
       } else {
-        toast.success("Debate finalized! Redirecting to results...");
+        toast.success("Debate finalized. Redirecting to results...");
       }
       
       setTimeout(() => router.push(`/debates/${id}/results`), 1500);
@@ -369,35 +357,8 @@ export default function DebateRoomPage() {
     setFinalizationRequestedBy("");
   };
 
-  const getArgumentScore = (score: number | string | ScoreObject | undefined | null): string => {
-    // Handle undefined/null scores
-    if (score === undefined || score === null) return "0.00";
-    
-    if (typeof score === "number") return score.toFixed(2);
-    if (typeof score === "string" && !isNaN(Number(score))) return Number(score).toFixed(2);
-    
-    if (typeof score === "object" && score !== null) {
-      const scoreObj = score as ScoreObject;
-      if (scoreObj.total !== undefined && typeof scoreObj.total === 'number') return scoreObj.total.toFixed(2);
-      
-      // Calculate average of metric scores
-      const metrics = ['clarity', 'sentiment', 'vocab_richness', 'avg_word_len'];
-      const values = metrics
-        .map(metric => scoreObj[metric] as ScoreMetric)
-        .filter(metric => metric && typeof metric.score === 'number')
-        .map(metric => metric.score);
-      
-      if (values.length > 0) {
-        const avg = values.reduce((a, b) => a + b, 0) / values.length;
-        return avg.toFixed(2);
-      }
-    }
-    
-    return "0.00";
-  };
-
   return (
-    <div className="min-h-screen bg-transparent backdrop-blur-sm">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         
         {/* Header Section */}
@@ -408,30 +369,30 @@ export default function DebateRoomPage() {
           transition={{ duration: 0.5 }}
         >
           {/* Glass morphism header card */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-2xl">
-            <h1 className="text-3xl md:text-4xl font-bold text-white leading-relaxed break-words mb-6">
+          <div className="skeuo-panel skeuo-gloss rounded-2xl p-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-relaxed break-words mb-6">
               {debate?.topic || "Loading..."}
             </h1>
             
             {debate && (
-              <div className="flex flex-wrap justify-center gap-6 text-sm text-white/80">
+              <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#ff6b35]" />
+                  <Users className="w-4 h-4 text-primary" />
                   <span>{debate.participants?.length || 0}/{debate.maxUsers || 2}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-[#ff6b35]" />
+                  <MessageSquare className="w-4 h-4 text-primary" />
                   <span>{Array.isArray(args) ? args.length : 0} messages</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#ff6b35]" />
-                  <Badge variant={debate.status === 'active' ? 'default' : 'secondary'} className="bg-[#ff6b35]/20 backdrop-blur-sm text-white border border-[#ff6b35]/30">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <Badge variant={debate.status === 'active' ? 'default' : 'secondary'} className="bg-primary/15 text-foreground border border-primary/25">
                     {debate.status}
                   </Badge>
                 </div>
                 {onlineUsers.length > 0 && (
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-[#00ff88] rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                     <span>{onlineUsers.length} online</span>
                   </div>
                 )}
@@ -447,8 +408,8 @@ export default function DebateRoomPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 inline-block">
-              <span className="text-sm text-white/70">
+            <div className="skeuo-panel rounded-xl px-4 py-2 inline-block">
+              <span className="text-sm text-muted-foreground">
                 {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
               </span>
             </div>
@@ -462,9 +423,9 @@ export default function DebateRoomPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center"
           >
-            <div className="bg-[#ff6b35]/20 backdrop-blur-md border border-[#ff6b35]/30 rounded-xl p-6">
-              <AlertTriangle className="w-6 h-6 mx-auto mb-2 text-[#ff6b35]" />
-              <p className="text-sm text-white">
+            <div className="skeuo-panel rounded-xl p-6 border border-primary/25">
+              <AlertTriangle className="w-6 h-6 mx-auto mb-2 text-primary" />
+              <p className="text-sm text-foreground">
                 Finalization requested by {finalizationRequestedBy}. Waiting for approval...
               </p>
             </div>
@@ -473,10 +434,10 @@ export default function DebateRoomPage() {
 
         {/* Finalization Dialog */}
         <Dialog open={showFinalizationDialog} onOpenChange={setShowFinalizationDialog}>
-          <DialogContent className="bg-black/80 backdrop-blur-xl border border-white/20 rounded-2xl">
+          <DialogContent className="bg-popover border border-border rounded-2xl">
             <DialogHeader>
-              <DialogTitle className="text-[#ff6b35]">Finalization Request</DialogTitle>
-              <DialogDescription className="text-white/70">
+              <DialogTitle className="text-primary">Finalization Request</DialogTitle>
+              <DialogDescription className="text-muted-foreground">
                 {finalizationRequestedBy} wants to finalize this debate. Do you agree to end the debate and see the results?
               </DialogDescription>
             </DialogHeader>
@@ -484,14 +445,14 @@ export default function DebateRoomPage() {
               <Button 
                 variant="outline" 
                 onClick={() => handleFinalizationResponse(false)}
-                className="bg-red-500/20 border-red-500/30 text-red-400 hover:bg-red-500/30"
+                className="bg-destructive/15 border-destructive/30 text-destructive hover:bg-destructive/20"
               >
                 <XCircle className="w-4 h-4 mr-2" />
                 Reject
               </Button>
               <Button 
                 onClick={() => handleFinalizationResponse(true)}
-                className="bg-[#00ff88]/20 border-[#00ff88]/30 text-[#00ff88] hover:bg-[#00ff88]/30"
+                className="bg-primary/15 border-primary/30 text-primary hover:bg-primary/20"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Approve
@@ -510,16 +471,15 @@ export default function DebateRoomPage() {
                   animate={{ opacity: 1 }}
                   className="text-center py-20"
                 >
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-12">
-                    <MessageSquare className="w-16 h-16 mx-auto text-white/30 mb-6" />
-                    <p className="text-lg text-white/60 font-medium">No messages yet. Start the conversation!</p>
+                  <div className="skeuo-inset border border-border rounded-2xl p-12">
+                    <MessageSquare className="w-16 h-16 mx-auto text-muted-foreground mb-6" />
+                    <p className="text-lg text-muted-foreground font-medium">No messages yet. Start the conversation!</p>
                   </div>
                 </motion.div>
               ) : (
                 Array.isArray(args) && args.map((arg, idx) => {
                   if (!arg || typeof arg !== 'object') return null;
                   
-                  const scoreStr = getArgumentScore(arg.score);
                   const isCurrentUser = arg.username === user?.username || arg.email === user?.email;
                   
                   return (
@@ -539,8 +499,8 @@ export default function DebateRoomPage() {
                       <div className={`flex items-end gap-3 max-w-[70%] ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
                         {/* Avatar */}
                         <motion.div 
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white/20 flex-shrink-0"
-                          style={{ backgroundColor: arg.color || '#ff6b35' }}
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-primary-foreground font-bold text-sm shadow-lg ring-2 ring-border flex-shrink-0"
+                          style={{ backgroundColor: arg.color || 'hsl(var(--primary))' }}
                           whileHover={{ scale: 1.1 }}
                           transition={{ type: "spring", stiffness: 400, damping: 17 }}
                         >
@@ -557,38 +517,23 @@ export default function DebateRoomPage() {
                           <div className={`
                             relative p-4 rounded-2xl backdrop-blur-md border shadow-lg transition-all duration-300
                             ${isCurrentUser 
-                              ? 'bg-[#ff6b35]/20 border-[#ff6b35]/30 text-white rounded-br-md hover:bg-[#ff6b35]/30' 
-                              : 'bg-white/10 border-white/20 text-white rounded-bl-md hover:bg-white/15'
+                              ? 'bg-primary/18 border-primary/30 text-foreground rounded-br-md hover:bg-primary/24' 
+                              : 'bg-card/80 border-border text-foreground rounded-bl-md hover:bg-card'
                             }
                           `}>
                             {/* Message content */}
                             <div className="space-y-3">
                               <div className="flex items-center justify-between gap-3">
-                                <span className="text-xs font-medium text-white/70">
+                                <span className="text-xs font-medium text-muted-foreground">
                                   {arg.username || arg.email || "Anonymous"}
                                 </span>
-                                <div className="flex items-center gap-2">
-                                  <div className="text-xs text-white/50">
-                                    {parseFloat(scoreStr).toFixed(0)}%
-                                  </div>
-                                  <motion.div 
-                                    className="w-2 h-2 rounded-full"
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ delay: 0.3, type: "spring", stiffness: 400 }}
-                                    style={{
-                                      backgroundColor: parseFloat(scoreStr) >= 80 ? '#00ff88' : 
-                                                      parseFloat(scoreStr) >= 60 ? '#ff6b35' : '#ff4444'
-                                    }}
-                                  />
-                                </div>
                               </div>
                               
                               <p className="text-sm leading-relaxed">
                                 {arg.content || "No content available"}
                               </p>
                               
-                              <div className="text-xs text-white/50 text-right">
+                              <div className="text-xs text-muted-foreground text-right">
                                 {arg.createdAt ? new Date(arg.createdAt).toLocaleTimeString([], { 
                                   hour: '2-digit', 
                                   minute: '2-digit' 
@@ -615,24 +560,24 @@ export default function DebateRoomPage() {
           transition={{ delay: 0.2 }}
           className="sticky bottom-4"
         >
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-2xl">
+          <div className="skeuo-panel rounded-2xl p-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
                 <Input
                   value={newArg}
                   onChange={(e) => setNewArg(e.target.value)}
-                  placeholder="Type your argument... (minimum 10 characters)"
-                  className="bg-white/10 backdrop-blur-sm border-white/20 focus:border-[#ff6b35]/50 text-white placeholder:text-white/50 text-base leading-relaxed p-4 pr-20 rounded-xl min-h-[60px]"
+                  placeholder="Type your argument (minimum 10 characters)"
+                  className="bg-input border-border focus:border-ring/50 text-foreground placeholder:text-muted-foreground text-base leading-relaxed p-4 pr-20 rounded-xl min-h-[60px]"
                   disabled={submitting}
                   maxLength={2000}
                 />
-                <div className="absolute bottom-3 right-16 text-xs text-white/40">
+                <div className="absolute bottom-3 right-16 text-xs text-muted-foreground">
                   {newArg.length}/2000
                 </div>
                 <Button 
                   type="submit" 
                   disabled={submitting || newArg.trim().length < 10} 
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#ff6b35]/80 hover:bg-[#ff6b35] text-white rounded-lg px-4 py-2 transition-all duration-200"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary hover:opacity-90 text-primary-foreground rounded-lg px-4 py-2 transition-all duration-200"
                 >
                   {submitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -643,7 +588,7 @@ export default function DebateRoomPage() {
               </div>
               
               {newArg.length < 10 && newArg.length > 0 && (
-                <div className="text-xs text-red-400">
+                  <div className="text-xs text-destructive">
                   Need {10 - newArg.length} more characters
                 </div>
               )}
@@ -658,11 +603,15 @@ export default function DebateRoomPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
+          <div className="text-center space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Scores are generated only when you choose Review and Finalize.
+            </p>
           <Button
             onClick={finalize}
             disabled={loading || !Array.isArray(args) || args.length < 2 || debate?.isFinalized || finalizationRequested}
             size="lg"
-            className="px-12 py-4 text-lg font-semibold bg-[#ff6b35]/20 hover:bg-[#ff6b35]/30 text-white backdrop-blur-md border border-[#ff6b35]/30 rounded-xl transition-all duration-200"
+            className="px-12 py-4 text-lg font-semibold bg-primary/15 hover:bg-primary/20 text-foreground border border-primary/30 rounded-xl transition-all duration-200"
           >
             {loading ? (
               <>
@@ -677,10 +626,11 @@ export default function DebateRoomPage() {
             ) : (
               <>
                 <Trophy className="w-5 h-5 mr-3" />
-                {debate?.participants && debate.participants.length > 1 ? "Request Finalization" : "Finalize & See Results"}
+                {debate?.participants && debate.participants.length > 1 ? "Request Review" : "Review and Finalize"}
               </>
             )}
           </Button>
+          </div>
         </motion.div>
       </div>
     </div>

@@ -36,13 +36,23 @@ export default function LeaderboardPage() {
     const fetchLeaderboard = async () => {
       try {
         setLoading(true);
-        const data = await api.get("/leaderboard");
-        setGlobalLeaders(data);
-        // For now, we'll use the same data for weekly leaders.
-        // A separate endpoint could be created for this in the future.
-        setWeeklyLeaders(data);
+        const profile = await api.get("/users");
+        const currentUser: LeaderboardUser = {
+          id: profile?.id || "current-user",
+          username: profile?.username || "You",
+          color: profile?.color || "hsl(var(--primary))",
+          rank: 1,
+          score: profile?.stats?.averageScore || 0,
+          winRate: profile?.stats?.winRate || 0,
+          totalDebates: profile?.stats?.totalDebates || 0,
+          wins: profile?.stats?.wins || 0,
+          streak: profile?.stats?.streak || 0,
+        };
+        setGlobalLeaders([currentUser]);
+        setWeeklyLeaders([currentUser]);
       } catch (error) {
-        console.error("Error fetching leaderboard:", error);
+        setGlobalLeaders([]);
+        setWeeklyLeaders([]);
       } finally {
         setLoading(false);
       }
@@ -53,9 +63,9 @@ export default function LeaderboardPage() {
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
-      case 1: return <Trophy className="h-6 w-6 text-[#ff6b35]" />
-      case 2: return <Medal className="h-6 w-6 text-[#00ff88]" />
-      case 3: return <Award className="h-6 w-6 text-[#ff0080]" />
+      case 1: return <Trophy className="h-6 w-6 text-primary" />
+      case 2: return <Medal className="h-6 w-6 text-accent" />
+      case 3: return <Award className="h-6 w-6 text-primary" />
       default: return <span className="text-lg font-bold text-muted-foreground">#{rank}</span>
     }
   }
@@ -75,25 +85,25 @@ export default function LeaderboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
-          <Card className={`p-4 hover:border-[#ff6b35]/50 transition-all duration-300 bg-card/50 backdrop-blur-sm ${user.rank <= 3 ? 'border-[#ff6b35]/50 bg-[#ff6b35]/10' : 'border-border/30'}`}>
+          <Card className={`p-4 transition-all duration-300 ${user.rank <= 3 ? 'border-primary/50 bg-primary/10' : 'border-border/60'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center justify-center w-12 h-12">
                   {getRankIcon(user.rank)}
                 </div>
 
-                <Avatar className="h-12 w-12 border border-[#ff6b35]/30">
-                  <AvatarFallback style={{ backgroundColor: user.color }} className="text-white font-bold">
+                <Avatar className="h-12 w-12 border border-border">
+                  <AvatarFallback style={{ backgroundColor: user.color }} className="text-primary-foreground font-bold">
                     {user.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
 
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-lg text-white">{user.username}</h3>
+                    <h3 className="font-semibold text-lg text-foreground">{user.username}</h3>
                     <Badge 
                       variant={getRankBadge(user.rank)}
-                      className={user.rank <= 3 ? "bg-[#ff6b35]/20 text-[#ff6b35] border-[#ff6b35]/50" : ""}
+                      className={user.rank <= 3 ? "bg-primary/20 text-primary border-primary/50" : ""}
                     >
                       Rank #{user.rank}
                     </Badge>
@@ -107,12 +117,12 @@ export default function LeaderboardPage() {
               </div>
 
               <div className="text-right">
-                <div className="text-2xl font-bold text-[#ff6b35]">{user.score || 0}</div>
+                <div className="text-2xl font-bold text-primary">{user.score || 0}</div>
                 <div className="text-sm text-muted-foreground">points</div>
                 {user.streak > 0 && (
                   <div className="flex items-center gap-1 mt-1">
-                    <TrendingUp className="h-3 w-3 text-[#00ff88]" />
-                    <span className="text-xs text-[#00ff88]">{user.streak} streak</span>
+                    <TrendingUp className="h-3 w-3 text-accent" />
+                    <span className="text-xs text-accent">{user.streak} streak</span>
                   </div>
                 )}
               </div>
@@ -147,16 +157,16 @@ export default function LeaderboardPage() {
         >
           {/* Header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/30 border border-zinc-800/30 mb-6">
-              <Trophy className="h-4 w-4 text-[#ff6b35]" />
-              <span className="text-sm font-medium text-white">Hall of Fame</span>
-              <Crown className="h-4 w-4 text-[#00ff88]" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border mb-6 shadow-[var(--shadow-surface-pressed)]">
+              <Trophy className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Hall of Fame</span>
+              <Crown className="h-4 w-4 text-accent" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-4">
-              LEADERBOARD
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground mb-4">
+              Leaderboard
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Elite debaters ranked by <span className="text-[#ff6b35] font-semibold">performance</span> and <span className="text-[#00ff88] font-semibold">achievements</span>
+              Debaters ranked by <span className="text-primary font-semibold">results</span> and <span className="text-accent font-semibold">recent activity</span>
             </p>
           </div>
           <p className="text-muted-foreground text-lg">
@@ -172,16 +182,16 @@ export default function LeaderboardPage() {
               transition={{ duration: 0.6 }}
             >
             {/* Active Debaters */}
-            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-card/50 backdrop-blur-sm border-[#ff6b35]/30">
-              <Users className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
-              <div className="text-2xl font-bold text-white">{globalLeaders.length}</div>
+            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center border-primary/30">
+              <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
+              <div className="text-2xl font-bold text-foreground">{globalLeaders.length}</div>
               <div className="text-sm text-muted-foreground">Active Debaters</div>
             </Card>
 
             {/* Best Streak */}
-            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-card/50 backdrop-blur-sm border-[#00ff88]/30">
-              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-[#00ff88]" />
-              <div className="text-2xl font-bold text-white">
+            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center border-accent/30">
+              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-accent" />
+              <div className="text-2xl font-bold text-foreground">
                 {globalLeaders.length > 0
                   ? Math.max(...globalLeaders.map((u) => u.streak))
                   : 0}
@@ -189,9 +199,9 @@ export default function LeaderboardPage() {
               <div className="text-sm text-muted-foreground">Best Streak</div>
             </Card>
             {/* Top Score (highlight, spans more space) */}
-            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center bg-zinc-900/30 border-zinc-800/50">
-              <Trophy className="h-8 w-8 mx-auto mb-2 text-[#ff6b35]" />
-              <div className="text-3xl font-bold text-white">{globalLeaders[0]?.score || 0}</div>
+            <Card className="p-6 text-center col-span-2 row-span-2 flex flex-col justify-center">
+              <Trophy className="h-8 w-8 mx-auto mb-2 text-primary" />
+              <div className="text-3xl font-bold text-foreground">{globalLeaders[0]?.score || 0}</div>
               <div className="text-sm text-muted-foreground">Top Score</div>
             </Card>
             
@@ -202,16 +212,16 @@ export default function LeaderboardPage() {
         {/* Leaderboard Tabs */}
         <LazyLoad fallback={<DebateListSkeleton />}>
         <Tabs defaultValue="global" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-card/50 border-[#ff6b35]/30">
-            <TabsTrigger value="global" className="data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black text-white">Global Rankings</TabsTrigger>
-            <TabsTrigger value="weekly" className="data-[state=active]:bg-[#ff6b35] data-[state=active]:text-black text-white">This Week</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="global">Global Rankings</TabsTrigger>
+            <TabsTrigger value="weekly">This Week</TabsTrigger>
           </TabsList>
 
           <TabsContent value="global">
-            <Card className="bg-card/50 backdrop-blur-sm border-[#ff6b35]/30">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Trophy className="h-5 w-5 text-[#ff6b35]" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Trophy className="h-5 w-5 text-primary" />
                   Global Leaderboard
                 </CardTitle>
               </CardHeader>
@@ -224,10 +234,10 @@ export default function LeaderboardPage() {
           </TabsContent>
 
           <TabsContent value="weekly">
-            <Card className="bg-card/50 backdrop-blur-sm border-[#ff6b35]/30">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <TrendingUp className="h-5 w-5 text-[#00ff88]" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <TrendingUp className="h-5 w-5 text-accent" />
                   Weekly Rankings
                 </CardTitle>
               </CardHeader>

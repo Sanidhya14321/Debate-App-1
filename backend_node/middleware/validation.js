@@ -71,7 +71,8 @@ export const validateAddArgument = [
     .escape(),
   
   param('id')
-    .isMongoId()
+    .isString()
+    .isLength({ min: 8, max: 64 })
     .withMessage('Invalid debate ID'),
   
   handleValidationErrors
@@ -91,7 +92,8 @@ export const validateJoinPrivateDebate = [
 // Parameter validation
 export const validateDebateId = [
   param('id')
-    .isMongoId()
+    .isString()
+    .isLength({ min: 8, max: 64 })
     .withMessage('Invalid debate ID'),
   
   handleValidationErrors

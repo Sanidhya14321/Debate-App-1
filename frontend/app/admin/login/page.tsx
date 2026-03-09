@@ -11,7 +11,7 @@ import { apiFetch } from '../../../lib/apiFetch';
 
 const AdminLogin = () => {
   const [credentials, setCredentials] = useState({
-    username: '',
+    email: '',
     password: '',
   });
   const [loading, setLoading] = useState(false);
@@ -30,8 +30,8 @@ const AdminLogin = () => {
 
   const handleAutoFill = () => {
     setCredentials({
-      username: 'admin',
-      password: 'admin123'
+      email: 'admin@example.com',
+      password: 'adminpassword'
     });
     setError('');
   };
@@ -42,7 +42,7 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      const response = await apiFetch('/admin/login', {
+      const data = await apiFetch('/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,19 +50,14 @@ const AdminLogin = () => {
         body: JSON.stringify(credentials),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Store admin token
-        localStorage.setItem('adminToken', data.token);
-        localStorage.setItem('adminUser', JSON.stringify(data.user));
-        
-        // Redirect to admin dashboard
-        router.push('/admin/dashboard');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Invalid admin credentials');
+      if (data?.role !== 'admin') {
+        setError('This account does not have admin access.');
+        return;
       }
+
+      localStorage.setItem('adminToken', data.token);
+      localStorage.setItem('adminUser', JSON.stringify({ email: credentials.email, role: data.role }));
+      router.push('/admin/dashboard');
     } catch (error) {
       console.error('Admin login error:', error);
       setError('Failed to connect to server. Please try again.');
@@ -72,18 +67,18 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[url('/api/placeholder/1920/1080')] bg-cover bg-center opacity-10" />
       
-      <Card className="w-full max-w-md backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
+      <Card className="w-full max-w-md skeuo-gloss">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto p-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 w-fit">
-            <Shield className="h-8 w-8 text-white" />
+          <div className="mx-auto p-3 rounded-full skeuo-inset w-fit">
+            <Shield className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">
+          <CardTitle className="text-2xl font-bold text-foreground">
             Admin Access
           </CardTitle>
-          <CardDescription className="text-gray-300">
+          <CardDescription className="text-muted-foreground">
             Enter your administrator credentials to access the dashboard
           </CardDescription>
         </CardHeader>
@@ -98,24 +93,24 @@ const AdminLogin = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-white">
-                Username
+                <Label htmlFor="email" className="text-foreground">
+                  Email
               </Label>
               <Input
-                id="username"
-                name="username"
-                type="text"
-                value={credentials.username}
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={credentials.email}
                 onChange={handleInputChange}
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-amber-500/50 focus:ring-amber-500/30"
-                placeholder="Enter admin username"
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-ring/50 focus:ring-ring/30"
+                  placeholder="Enter admin email"
                 required
                 disabled={loading}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">
+              <Label htmlFor="password" className="text-foreground">
                 Password
               </Label>
               <div className="relative">
@@ -125,7 +120,7 @@ const AdminLogin = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={credentials.password}
                   onChange={handleInputChange}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-amber-500/50 focus:ring-amber-500/30 pr-10"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-ring/50 focus:ring-ring/30 pr-10"
                   placeholder="Enter admin password"
                   required
                   disabled={loading}
@@ -133,7 +128,7 @@ const AdminLogin = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   disabled={loading}
                 >
                   {showPassword ? (
@@ -147,12 +142,12 @@ const AdminLogin = () => {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-2.5 transition-all duration-200 shadow-lg hover:shadow-xl"
-              disabled={loading || !credentials.username || !credentials.password}
+              className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2.5 transition-all duration-200"
+              disabled={loading || !credentials.email || !credentials.password}
             >
               {loading ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                   Authenticating...
                 </div>
               ) : (
@@ -161,22 +156,22 @@ const AdminLogin = () => {
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-white/20">
+          <div className="mt-6 pt-6 border-t border-border">
             <div className="space-y-3">
-              <p className="text-xs text-gray-400 text-center">
+              <p className="text-xs text-muted-foreground text-center">
                 Demo Credentials for Testing:
               </p>
-              <div className="bg-white/5 rounded-lg p-3 space-y-2 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors" onClick={handleAutoFill}>
+              <div className="skeuo-inset rounded-lg p-3 space-y-2 border border-border cursor-pointer transition-colors" onClick={handleAutoFill}>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-300">Username:</span>
-                  <code className="text-amber-300 bg-black/20 px-2 py-1 rounded text-xs">admin</code>
+                  <span className="text-muted-foreground">Username:</span>
+                  <code className="text-primary bg-background px-2 py-1 rounded text-xs">admin@example.com</code>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-300">Password:</span>
-                  <code className="text-amber-300 bg-black/20 px-2 py-1 rounded text-xs">admin123</code>
+                  <span className="text-muted-foreground">Password:</span>
+                  <code className="text-primary bg-background px-2 py-1 rounded text-xs">adminpassword</code>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-xs text-muted-foreground text-center">
                 Click credentials to auto-fill the form
               </p>
             </div>

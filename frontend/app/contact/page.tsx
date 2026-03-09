@@ -20,7 +20,7 @@ export default function ContactPage() {
       icon: Mail,
       href: "mailto:hello@debai.com",
       label: "hello@debai.com",
-      color: "#ff6b35"
+      colorClass: "text-primary"
     },
     {
       name: "Instagram",
@@ -28,7 +28,7 @@ export default function ContactPage() {
       icon: Instagram,
       href: "https://instagram.com/debai",
       label: "@debai",
-      color: "#E4405F"
+      colorClass: "text-accent"
     },
     {
       name: "LinkedIn",
@@ -36,7 +36,7 @@ export default function ContactPage() {
       icon: Linkedin,
       href: "https://linkedin.com/company/debai",
       label: "DebAI Company",
-      color: "#0077B5"
+      colorClass: "text-primary"
     },
     {
       name: "GitHub",
@@ -44,12 +44,12 @@ export default function ContactPage() {
       icon: Github,
       href: "https://github.com/debai",
       label: "@debai",
-      color: "#00ff88"
+      colorClass: "text-accent"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-black/50">
+    <div className="min-h-screen">
       <div className="max-w-6xl mx-auto px-8 py-16 space-y-20">
         
         {/* Header */}
@@ -59,10 +59,10 @@ export default function ContactPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-5xl md:text-6xl font-bold text-white">
-            Get In <span className="text-[#ff6b35]">Touch</span>
+          <h1 className="text-5xl md:text-6xl font-bold text-foreground">
+            Get In <span className="text-primary">Touch</span>
           </h1>
-          <p className="text-xl text-zinc-400 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             We&apos;d love to hear from you! Whether you have questions, feedback, or just want to connect, 
             reach out to us through any of our channels.
           </p>
@@ -76,12 +76,12 @@ export default function ContactPage() {
           className="space-y-12"
         >
           <div className="text-center">
-            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-[#ff6b35]/20 border border-[#ff6b35]/30 mb-6">
-              <MessageSquare className="w-5 h-5 text-[#ff6b35]" />
-              <span className="text-[#ff6b35] font-medium">Connect With Us</span>
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/15 border border-primary/30 mb-6">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              <span className="text-primary font-medium">Connect With Us</span>
             </div>
-            <h2 className="text-4xl font-bold text-white mb-6">Choose Your Platform</h2>
-            <p className="text-lg text-zinc-400 max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold text-foreground mb-6">Choose Your Platform</h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               We&apos;re active on multiple platforms to make it easy for you to reach us wherever you are.
             </p>
           </div>
@@ -97,31 +97,27 @@ export default function ContactPage() {
                   transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
                   whileHover={{ scale: 1.02 }}
                 >
-                  <Card className="bg-zinc-900/80 border-zinc-800 hover:border-[#ff6b35]/50 transition-all duration-300 h-full">
+                  <Card className="border-border hover:border-primary/50 transition-all duration-300 h-full">
                     <CardHeader>
                       <div className="flex items-center gap-4">
-                        <div 
-                          className="w-14 h-14 rounded-full flex items-center justify-center"
-                          style={{ backgroundColor: `${method.color}20` }}
-                        >
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center skeuo-inset">
                           <IconComponent 
-                            className="w-7 h-7" 
-                            style={{ color: method.color }}
+                            className={`w-7 h-7 ${method.colorClass}`}
                           />
                         </div>
                         <div>
-                          <CardTitle className="text-white text-xl">{method.name}</CardTitle>
-                          <p className="text-zinc-400 text-sm mt-1">{method.label}</p>
+                          <CardTitle className="text-foreground text-xl">{method.name}</CardTitle>
+                          <p className="text-muted-foreground text-sm mt-1">{method.label}</p>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-zinc-300 leading-relaxed">
+                      <p className="text-muted-foreground leading-relaxed">
                         {method.description}
                       </p>
                       <Button
                         asChild
-                        className="w-full bg-transparent border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:border-[#ff6b35]/50 hover:text-white transition-all duration-200"
+                        className="w-full bg-transparent border border-border text-foreground hover:bg-accent/12 transition-all duration-200"
                       >
                         <a
                           href={method.href}
@@ -148,19 +144,19 @@ export default function ContactPage() {
           transition={{ duration: 0.5, delay: 0.5 }}
           className="max-w-4xl mx-auto"
         >
-          <Card className="bg-zinc-900/80 border-[#00ff88]/30 text-center">
+          <Card className="text-center skeuo-gloss">
             <CardHeader>
-              <CardTitle className="text-3xl text-white">Quick Contact</CardTitle>
+              <CardTitle className="text-3xl text-foreground">Quick Contact</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <p className="text-lg text-zinc-300">
+              <p className="text-lg text-muted-foreground">
                 For urgent matters or general inquiries, email is usually the fastest way to reach us.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   asChild
                   size="lg"
-                  className="bg-[#ff6b35] hover:bg-[#ff6b35]/90 text-black font-semibold"
+                  className="bg-primary hover:opacity-90 text-primary-foreground font-semibold"
                 >
                   <a
                     href="mailto:hello@debai.com"
@@ -174,7 +170,7 @@ export default function ContactPage() {
                   asChild
                   size="lg"
                   variant="outline"
-                  className="border-[#00ff88] text-[#00ff88] hover:bg-[#00ff88]/10"
+                  className="border-primary text-primary hover:bg-primary/10"
                 >
                   <a
                     href="https://github.com/debai"
@@ -187,7 +183,7 @@ export default function ContactPage() {
                   </a>
                 </Button>
               </div>
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-muted-foreground">
                 We typically respond within 24 hours during business days.
               </p>
             </CardContent>
@@ -201,27 +197,27 @@ export default function ContactPage() {
           transition={{ duration: 0.5, delay: 0.6 }}
           className="text-center"
         >
-          <h3 className="text-2xl font-bold text-white mb-8">Expected Response Times</h3>
+          <h3 className="text-2xl font-bold text-foreground mb-8">Expected Response Times</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            <div className="p-6 rounded-lg bg-zinc-900/50 border border-zinc-800">
-              <Mail className="w-8 h-8 text-[#ff6b35] mx-auto mb-3" />
-              <div className="text-lg font-semibold text-white">Email</div>
-              <div className="text-sm text-zinc-400">24 hours</div>
+            <div className="p-6 rounded-lg skeuo-panel">
+              <Mail className="w-8 h-8 text-primary mx-auto mb-3" />
+              <div className="text-lg font-semibold text-foreground">Email</div>
+              <div className="text-sm text-muted-foreground">24 hours</div>
             </div>
-            <div className="p-6 rounded-lg bg-zinc-900/50 border border-zinc-800">
-              <Instagram className="w-8 h-8 text-[#E4405F] mx-auto mb-3" />
-              <div className="text-lg font-semibold text-white">Instagram</div>
-              <div className="text-sm text-zinc-400">1-2 days</div>
+            <div className="p-6 rounded-lg skeuo-panel">
+              <Instagram className="w-8 h-8 text-accent mx-auto mb-3" />
+              <div className="text-lg font-semibold text-foreground">Instagram</div>
+              <div className="text-sm text-muted-foreground">1-2 days</div>
             </div>
-            <div className="p-6 rounded-lg bg-zinc-900/50 border border-zinc-800">
-              <Linkedin className="w-8 h-8 text-[#0077B5] mx-auto mb-3" />
-              <div className="text-lg font-semibold text-white">LinkedIn</div>
-              <div className="text-sm text-zinc-400">1-3 days</div>
+            <div className="p-6 rounded-lg skeuo-panel">
+              <Linkedin className="w-8 h-8 text-primary mx-auto mb-3" />
+              <div className="text-lg font-semibold text-foreground">LinkedIn</div>
+              <div className="text-sm text-muted-foreground">1-3 days</div>
             </div>
-            <div className="p-6 rounded-lg bg-zinc-900/50 border border-zinc-800">
-              <Github className="w-8 h-8 text-[#00ff88] mx-auto mb-3" />
-              <div className="text-lg font-semibold text-white">GitHub</div>
-              <div className="text-sm text-zinc-400">Issues only</div>
+            <div className="p-6 rounded-lg skeuo-panel">
+              <Github className="w-8 h-8 text-accent mx-auto mb-3" />
+              <div className="text-lg font-semibold text-foreground">GitHub</div>
+              <div className="text-sm text-muted-foreground">Issues only</div>
             </div>
           </div>
         </motion.section>

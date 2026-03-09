@@ -5,36 +5,29 @@ import { motion } from "framer-motion";
 export function AnimatedBackground() {
   return (
     <motion.div
-      className="fixed inset-0 -z-10 bg-gradient-to-br from-black via-zinc-900 to-zinc-800"
+      className="fixed inset-0 -z-10"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 2 }}
+      transition={{ duration: 0.8 }}
     >
-      {/* Animated gradient overlay */}
+      <div className="absolute inset-0 bg-background" />
+
       <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-purple-500/5 to-cyan-500/10 animate-gradient-x"
-        style={{ backgroundSize: "200% 200%" }}
+        className="absolute -top-16 left-[-8%] h-72 w-72 rounded-full opacity-55 blur-2xl animate-surface-float"
+        style={{ background: "color-mix(in srgb, var(--primary) 25%, transparent)" }}
       />
-      
-      {/* Floating shapes */}
       <motion.div
-        className="absolute top-20 left-10 w-32 h-32 bg-orange-500/20 rounded-full mix-blend-screen filter blur-3xl"
-        animate={{ x: [0, 100, 0], y: [0, 50, 0] }}
+        className="absolute bottom-[-10%] right-[-6%] h-96 w-96 rounded-full opacity-45 blur-3xl"
+        style={{ background: "color-mix(in srgb, var(--accent) 25%, transparent)" }}
+        animate={{ y: [0, -24, 0] }}
         transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute bottom-10 right-20 w-48 h-48 bg-emerald-500/15 rounded-full mix-blend-screen filter blur-3xl"
-        animate={{ x: [0, -80, 0], y: [0, -60, 0] }}
-        transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-500/10 rounded-full mix-blend-screen filter blur-3xl"
-        animate={{ 
-          x: [-100, 100, -100], 
-          y: [-50, 50, -50],
-          scale: [1, 1.2, 1]
+        className="absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--foreground) 5%, transparent) 0%, transparent 55%), radial-gradient(circle at 80% 70%, color-mix(in srgb, var(--foreground) 4%, transparent) 0%, transparent 50%)",
         }}
-        transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
       />
     </motion.div>
   );

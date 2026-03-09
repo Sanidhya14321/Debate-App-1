@@ -46,10 +46,10 @@
 **Impact**: Authentication vulnerabilities
 **Solution**: Generate strong 32+ character secrets
 
-#### 4. **ML API Dependency**
-**Risk**: ML API downtime affecting core functionality
-**Impact**: Arguments won't get scores, finalization may fail
-**Mitigation**: ✅ Added fallback scoring system
+#### 4. **AI Provider Dependency**
+**Risk**: Groq API downtime affecting finalization quality
+**Impact**: AI judging may degrade to local heuristic scoring
+**Mitigation**: ✅ Added deterministic local fallback scoring system
 
 #### 5. **Database Connection String**
 **Risk**: Hardcoded or invalid MongoDB URI
@@ -72,7 +72,7 @@
 - `/health` - Detailed system status
 - `/ready` - Kubernetes readiness probe
 - `/live` - Kubernetes liveness probe
-- Database and ML API status monitoring
+- Database and Groq configuration status monitoring
 
 #### 4. **Request Timeout Handling**
 - 30-second timeout for API requests
@@ -87,7 +87,7 @@
    JWT_SECRET=<strong-32-char-secret>
    MONGODB_URI=<your-mongodb-connection-string>
    CORS_ORIGIN=<your-frontend-domain>
-   ML_API_URL=https://debate-app-ml.hf.space
+   GROQ_API_KEY=<your-groq-api-key>
    ```
 
 2. Verify health endpoints:
@@ -100,7 +100,7 @@
 1. Set environment variables:
    ```
    NEXT_PUBLIC_API_URL=https://your-backend-domain
-   NEXT_PUBLIC_ML_API_URL=https://debate-app-ml.hf.space
+   NEXT_PUBLIC_API_URL=https://your-backend-domain
    ```
 
 2. Test build:
@@ -115,13 +115,13 @@
 - Database connection pool usage
 - API response times
 - Socket.io connection counts
-- ML API availability
+- AI analysis source availability (`langchain_groq` vs `local_heuristic`)
 - Error rates by endpoint
 
 #### Alert Thresholds
 - Database connection failures > 5%
 - API response time > 5 seconds
-- ML API downtime > 15 minutes
+- Elevated fallback usage (`local_heuristic`) > 15 minutes
 - Socket connection failures > 10%
 
 ### 🔒 **Security Enhancements**

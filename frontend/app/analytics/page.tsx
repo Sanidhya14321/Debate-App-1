@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { UI_CONFIG } from '@/lib/api';
 import { MessageSquare, Trophy, Target, Star} from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -33,12 +32,6 @@ interface AnalyticsData {
   };
 }
 
-const COLOR_MAP = {
-  primary: UI_CONFIG.PRIMARY_COLOR,
-  secondary: UI_CONFIG.SECONDARY_COLOR,
-  accent: UI_CONFIG.ACCENT_COLOR,
-};
-
 export default function AnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,10 +44,42 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const data = await api.get('/analytics');
-      setAnalyticsData(data);
+      const profile = await api.get('/users');
+
+      const mappedData: AnalyticsData = {
+        overview: {
+          totalDebates: profile?.stats?.totalDebates || 0,
+          totalArguments: profile?.stats?.totalArguments || 0,
+          averageScore: Math.max(0, Math.min(1, (profile?.stats?.averageScore || 0) / 100)),
+          winRate: profile?.stats?.winRate || 0,
+        },
+        performance: {
+          scoreHistory: (profile?.recentDebates || []).map((d: { date: string; score: number }) => ({
+            date: d.date,
+            score: Math.max(0, Math.min(1, (d.score || 0) / 100)),
+            debates: 1,
+          })),
+          categoryBreakdown: [
+            { category: 'Overall', score: Math.max(0, Math.min(1, (profile?.stats?.averageScore || 0) / 100)), count: profile?.stats?.totalDebates || 0 },
+          ],
+        },
+        engagement: {
+          debatesPerWeek: [],
+          peakHours: [],
+        },
+        achievements: {
+          recent: [],
+          progress: [],
+        },
+        leaderboard: {
+          global: [],
+          category: [],
+        },
+      };
+
+      setAnalyticsData(mappedData);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      setAnalyticsData(null);
     } finally {
       setLoading(false);
     }
@@ -86,88 +111,88 @@ export default function AnalyticsPage() {
   const safePercentage = (value: number) => Math.round(value * 100);
 
   return (
-  <div className="container mx-auto px-4 py-8 bg-dark-gradient">
+  <div className="container mx-auto px-4 py-8">
       <div className="mb-12">
-        <h1 className="text-4xl font-bold text-white mb-4">Analytics Dashboard</h1>
-        <p className="text-xl text-gray-400">Track your debate performance and growth</p>
+        <h1 className="text-4xl font-bold text-foreground mb-4">Analytics Dashboard</h1>
+        <p className="text-xl text-muted-foreground">Track your debate performance and growth</p>
       </div>
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-        <Card className="bg-black/5 border-black/10 p-8">
+        <Card className="p-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg font-medium text-gray-300">Total Debates</CardTitle>
-            <MessageSquare className="h-6 w-6" style={{ color: COLOR_MAP.primary }} />
+            <CardTitle className="text-lg font-medium text-muted-foreground">Total Debates</CardTitle>
+            <MessageSquare className="h-6 w-6 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-white mb-2">{analyticsData.overview.totalDebates}</div>
-            <p className="text-sm" style={{ color: COLOR_MAP.secondary }}>+12% from last month</p>
+            <div className="text-4xl font-bold text-foreground mb-2">{analyticsData.overview.totalDebates}</div>
+            <p className="text-sm text-primary">+12% from last month</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-black/5 border-black/10 p-8">
+        <Card className="p-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg font-medium text-gray-300">Arguments Made</CardTitle>
-            <Target className="h-6 w-6" style={{ color: COLOR_MAP.secondary }} />
+            <CardTitle className="text-lg font-medium text-muted-foreground">Arguments Made</CardTitle>
+            <Target className="h-6 w-6 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-white mb-2">{analyticsData.overview.totalArguments}</div>
-            <p className="text-sm" style={{ color: COLOR_MAP.secondary }}>+8% from last month</p>
+            <div className="text-4xl font-bold text-foreground mb-2">{analyticsData.overview.totalArguments}</div>
+            <p className="text-sm text-primary">+8% from last month</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-black/5 border-black/10 p-8">
+        <Card className="p-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg font-medium text-gray-300">Average Score</CardTitle>
-            <Star className="h-6 w-6" style={{ color: COLOR_MAP.accent }} />
+            <CardTitle className="text-lg font-medium text-muted-foreground">Average Score</CardTitle>
+            <Star className="h-6 w-6 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-white mb-2">{safePercentage(analyticsData.overview.averageScore)}%</div>
-            <p className="text-sm" style={{ color: COLOR_MAP.secondary }}>+5% from last month</p>
+            <div className="text-4xl font-bold text-foreground mb-2">{safePercentage(analyticsData.overview.averageScore)}%</div>
+            <p className="text-sm text-primary">+5% from last month</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-black/5 border-black/10 p-8">
+        <Card className="p-8">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg font-medium text-gray-300">Win Rate</CardTitle>
-            <Trophy className="h-6 w-6" style={{ color: COLOR_MAP.primary }} />
+            <CardTitle className="text-lg font-medium text-muted-foreground">Win Rate</CardTitle>
+            <Trophy className="h-6 w-6 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-white mb-2">{analyticsData.overview.winRate}%</div>
-            <p className="text-sm" style={{ color: COLOR_MAP.secondary }}>+3% from last month</p>
+            <div className="text-4xl font-bold text-foreground mb-2">{analyticsData.overview.winRate}%</div>
+            <p className="text-sm text-primary">+3% from last month</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Tabs (Performance, Engagement, Achievements, Rankings) */}
       <Tabs defaultValue="performance" className="space-y-8">
-        <TabsList className="grid w-full grid-cols-4 bg-black/5 border-black/10 p-2">
-          <TabsTrigger value="performance" className="data-[state=active]:text-white data-[state=active]:bg-blue-600">Performance</TabsTrigger>
-          <TabsTrigger value="engagement" className="data-[state=active]:text-white">Engagement</TabsTrigger>
-          <TabsTrigger value="achievements" className="data-[state=active]:text-white">Achievements</TabsTrigger>
-          <TabsTrigger value="leaderboard" className="data-[state=active]:text-white">Rankings</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 p-2">
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="engagement">Engagement</TabsTrigger>
+          <TabsTrigger value="achievements">Achievements</TabsTrigger>
+          <TabsTrigger value="leaderboard">Rankings</TabsTrigger>
         </TabsList>
 
         {/* Performance Tab */}
         <TabsContent value="performance" className="space-y-6">
           {/* Recent Performance & Category Performance */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-black/5 border-black/10">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-white">Recent Performance</CardTitle>
-                <CardDescription className="text-gray-400">Your latest debate scores</CardDescription>
+                <CardTitle className="text-foreground">Recent Performance</CardTitle>
+                <CardDescription className="text-muted-foreground">Your latest debate scores</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {analyticsData.performance.scoreHistory.map((entry, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-black/5 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-4 bg-card rounded-lg border border-border">
                     <div>
-                      <p className="text-white font-medium">{new Date(entry.date).toLocaleDateString()}</p>
-                      <p className="text-sm text-gray-400">{entry.debates} debates</p>
+                      <p className="text-foreground font-medium">{new Date(entry.date).toLocaleDateString()}</p>
+                      <p className="text-sm text-muted-foreground">{entry.debates} debates</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-white">{safePercentage(entry.score)}%</div>
-                      <div className="w-20 bg-black/10 rounded-full h-2 mt-1">
-                        <div className="h-2 rounded-full transition-all duration-300" style={{ width: `${safePercentage(entry.score)}%`, backgroundColor: COLOR_MAP.primary }} />
+                      <div className="text-2xl font-bold text-foreground">{safePercentage(entry.score)}%</div>
+                      <div className="w-20 bg-muted rounded-full h-2 mt-1">
+                        <div className="h-2 rounded-full transition-all duration-300 bg-primary" style={{ width: `${safePercentage(entry.score)}%` }} />
                       </div>
                     </div>
                   </div>
@@ -175,23 +200,23 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-black/5 border-black/10">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-white">Category Performance</CardTitle>
-                <CardDescription className="text-gray-400">Your scores by debate category</CardDescription>
+                <CardTitle className="text-foreground">Category Performance</CardTitle>
+                <CardDescription className="text-muted-foreground">Your scores by debate category</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {analyticsData.performance.categoryBreakdown.map((category, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-white font-medium">{category.category}</span>
+                      <span className="text-foreground font-medium">{category.category}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-white">{safePercentage(category.score)}%</span>
+                        <span className="text-2xl font-bold text-foreground">{safePercentage(category.score)}%</span>
                         <Badge variant="outline" className="text-xs">{category.count} debates</Badge>
                       </div>
                     </div>
-                    <div className="w-full bg-black/10 rounded-full h-3">
-                      <div className="h-3 rounded-full transition-all duration-500" style={{ width: `${safePercentage(category.score)}%`, backgroundColor: COLOR_MAP.secondary }} />
+                    <div className="w-full bg-muted rounded-full h-3">
+                      <div className="h-3 rounded-full transition-all duration-500 bg-accent" style={{ width: `${safePercentage(category.score)}%` }} />
                     </div>
                   </div>
                 ))}

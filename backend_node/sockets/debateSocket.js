@@ -63,7 +63,7 @@ export function debateSocketHandler(io, socket) {
   // Handle finalization requests
   socket.on("requestFinalization", (debateId) => {
     if (socket.user) {
-      console.log(`🏆 Finalization requested by ${socket.user.username} for debate ${debateId}`);
+      console.log(`Finalization requested by ${socket.user.username} for debate ${debateId}`);
       socket.to(`debate_${debateId}`).emit("finalizationRequested", {
         requestedBy: socket.user.username,
         userId: socket.user.id

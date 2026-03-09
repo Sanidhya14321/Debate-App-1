@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 // Profile Header Skeleton
 export function ProfileHeaderSkeleton() {
   return (
-    <Card className="mb-8 bg-black/30 backdrop-blur-sm border-white/20">
+    <Card className="mb-8 bg-card/60 backdrop-blur-sm border-border/70">
       <CardContent className="p-8">
         <div className="flex flex-col md:flex-row items-center gap-6">
           <div className="w-24 h-24 rounded-full">
@@ -33,7 +33,7 @@ export function StatsGridSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
       {Array.from({ length: 4 }).map((_, i) => (
-        <Card key={i} className="p-6 text-center bg-black/30 backdrop-blur-sm border-white/20">
+        <Card key={i} className="p-6 text-center bg-card/60 backdrop-blur-sm border-border/70">
           <Skeleton className="h-8 w-8 mx-auto mb-2 rounded" />
           <Skeleton className="h-8 w-16 mx-auto mb-1" />
           <Skeleton className="h-4 w-20 mx-auto" />
@@ -50,7 +50,7 @@ export function DebateListSkeleton({ count = 5 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center justify-between p-4 rounded-lg bg-zinc-800/30 border border-zinc-700/30"
+          className="flex items-center justify-between p-4 rounded-lg bg-card/50 border border-border/60"
         >
           <div className="flex-1 space-y-2">
             <Skeleton className="h-5 w-3/4" />
@@ -75,7 +75,7 @@ export function DebateListSkeleton({ count = 5 }: { count?: number }) {
 // Performance Metrics Skeleton
 export function PerformanceMetricsSkeleton() {
   return (
-    <Card className="p-6 bg-zinc-900/30 border-zinc-800/50">
+    <Card className="p-6 bg-card/50 border-border/70">
       <CardHeader className="px-0 pt-0">
         <div className="flex items-center gap-2">
           <Skeleton className="h-5 w-5" />
@@ -95,7 +95,7 @@ export function PerformanceMetricsSkeleton() {
         </div>
         <div className="grid grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-zinc-800/30 rounded-lg p-3 text-center">
+            <div key={i} className="bg-muted/25 rounded-lg p-3 text-center border border-border/60">
               <Skeleton className="h-6 w-8 mx-auto mb-1" />
               <Skeleton className="h-3 w-12 mx-auto" />
             </div>
@@ -109,7 +109,7 @@ export function PerformanceMetricsSkeleton() {
 // Analytics Card Skeleton
 export function AnalyticsCardSkeleton() {
   return (
-    <Card className="p-6 bg-zinc-900/30 border-zinc-800/50">
+    <Card className="p-6 bg-card/50 border-border/70">
       <CardHeader className="px-0 pt-0">
         <div className="flex items-center gap-2">
           <Skeleton className="h-5 w-5" />
@@ -137,7 +137,7 @@ export function AnalyticsCardSkeleton() {
 // Form Skeleton
 export function FormSkeleton() {
   return (
-    <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20">
+    <Card className="p-6 bg-card/60 backdrop-blur-sm border-border/70">
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Skeleton className="h-4 w-20" />
@@ -170,7 +170,7 @@ export function PageHeaderSkeleton() {
 // Table Row Skeleton
 export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
   return (
-    <tr className="border-b border-white/10">
+    <tr className="border-b border-border/60">
       {Array.from({ length: columns }).map((_, i) => (
         <td key={i} className="p-4">
           <Skeleton className="h-4 w-full" />
@@ -198,7 +198,7 @@ export function ChatMessageSkeleton() {
 // Tournament Card Skeleton
 export function TournamentCardSkeleton() {
   return (
-    <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20">
+    <Card className="p-6 bg-card/60 backdrop-blur-sm border-border/70">
       <CardContent className="space-y-4">
         <div className="flex justify-between items-start">
           <div className="space-y-2">

@@ -1,27 +1,33 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { Brain, LayoutGrid, UserRound } from "lucide-react"
 
 export default function Home() {
   return (
-    <main className="container mx-auto px-6 py-20 max-w-4xl">
-      <motion.div
-        className="space-y-8 text-center"
-        initial={{ opacity: 0, y: 40 }}
+    <main className="container mx-auto px-6 py-12">
+      <motion.section
+        className="bento-grid"
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
       >
-        <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-          Welcome to <span className="text-primary">AI Debate Platform</span>
-        </h1>
-        <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-          An AI-powered platform where you can create debates, join others, and
-          get your arguments judged by advanced machine learning models.
-          <br />
-          Compete, learn, and improve your argumentation skills with real-time
-          analysis and fair scoring.
-        </p>
-      </motion.div>
+        <article className="bento-card col-span-12 md:col-span-6">
+          <Brain className="h-8 w-8 text-primary" />
+          <h1 className="mt-4 text-3xl font-black tracking-tight">Debate Studio Home</h1>
+          <p className="mt-2 text-muted-foreground">A tactile workspace for drafting arguments and reviewing structured judgments.</p>
+        </article>
+        <article className="bento-card col-span-12 md:col-span-3">
+          <LayoutGrid className="h-8 w-8 text-primary" />
+          <h2 className="mt-4 text-xl font-bold">Bento Flow</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Quickly scan rooms, status, and score trends.</p>
+        </article>
+        <article className="bento-card col-span-12 md:col-span-3">
+          <UserRound className="h-8 w-8 text-primary" />
+          <h2 className="mt-4 text-xl font-bold">Profile Focus</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Track win rate, streaks, and quality over time.</p>
+        </article>
+      </motion.section>
     </main>
   )
 }
