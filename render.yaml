@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: debate-app-backend
+    runtime: docker
+    dockerContext: ./backend_node
+    dockerfilePath: ./backend_node/Dockerfile
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000

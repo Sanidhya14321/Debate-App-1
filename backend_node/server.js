@@ -25,22 +25,17 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
-const server = createServer(app);
+const isVercel = process.env.VERCEL === "1";
+const server = isVercel ? null : createServer(app);
 
 app.set("trust proxy", Number(process.env.TRUST_PROXY || 1));
 
-const io = new Server(server, {
-  cors: {
-    origin: [
-      process.env.CORS_ORIGIN,
-      "http://localhost:3000",
-      "https://debate-app-1.vercel.app",
-      "https://debate-app-1-git-main-sanidhya14321.vercel.app"
-    ].filter(Boolean),
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,
+  "http://localhost:3000",
+  "https://debate-app-1.vercel.app",
+  "https://debate-app-1-git-main-sanidhya14321.vercel.app"
+].filter(Boolean);
 
 app.use(
   helmet({
@@ -58,12 +53,6 @@ app.use(
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    const allowedOrigins = [
-      process.env.CORS_ORIGIN,
-      "http://localhost:3000",
-      "https://debate-app-1.vercel.app",
-      "https://debate-app-1-git-main-sanidhya14321.vercel.app"
-    ].filter(Boolean);
 
     if (allowedOrigins.includes(origin)) callback(null, true);
     else callback(new Error("Not allowed by CORS"));
@@ -87,6 +76,8 @@ const HEADERS_TIMEOUT = Number(process.env.HEADERS_TIMEOUT_MS || 66000);
 const REQUEST_TIMEOUT = Number(process.env.REQUEST_TIMEOUT_MS || 120000);
 
 const shutdown = async (signal) => {
+  if (!server) return;
+
   console.log(`${signal} received. Starting graceful shutdown.`);
 
   server.close(async () => {
@@ -106,32 +97,60 @@ const shutdown = async (signal) => {
   }, Number(process.env.SHUTDOWN_TIMEOUT_MS || 10000)).unref();
 };
 
-const boot = async () => {
-  try {
+let bootPromise;
+
+const ensureBoot = async () => {
+  if (bootPromise) return bootPromise;
+
+  bootPromise = (async () => {
     await prisma.$connect();
     await createInitialUsers();
 
-    setupSocketHandlers(io);
-    app.set("io", io);
-
-    app.use(process.env.MISC_ROUTE || "/misc", miscRoutes);
-    app.use(process.env.AUTH_ROUTE || "/auth", authRoutes);
-    app.use(process.env.DEBATES_ROUTE || "/debates", debateRoutes);
-    app.use(process.env.USERS_ROUTE || "/users", userRoutes);
-
-    app.get("/health", (req, res) => {
-      res.json({
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+    if (!isVercel && server) {
+      const io = new Server(server, {
+        cors: {
+          origin: allowedOrigins,
+          methods: ["GET", "POST"],
+          credentials: true
+        }
       });
-    });
 
-    app.use((req, res) => {
-      res.status(404).json({ message: "Not Found" });
-    });
+      setupSocketHandlers(io);
+      app.set("io", io);
+    }
+  })();
 
-    app.use(errorHandler);
+  return bootPromise;
+};
+
+const registerRoutes = () => {
+  app.use(process.env.MISC_ROUTE || "/misc", miscRoutes);
+  app.use(process.env.AUTH_ROUTE || "/auth", authRoutes);
+  app.use(process.env.DEBATES_ROUTE || "/debates", debateRoutes);
+  app.use(process.env.USERS_ROUTE || "/users", userRoutes);
+
+  app.get("/health", (req, res) => {
+    res.json({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+
+  app.use((req, res) => {
+    res.status(404).json({ message: "Not Found" });
+  });
+
+  app.use(errorHandler);
+};
+
+registerRoutes();
+
+const startLocalServer = async () => {
+  if (!server) return;
+
+  try {
+    await ensureBoot();
 
     server.listen(PORT, () => {
       server.keepAliveTimeout = KEEP_ALIVE_TIMEOUT;
@@ -145,9 +164,16 @@ const boot = async () => {
     process.on("SIGTERM", () => shutdown("SIGTERM"));
     process.on("SIGINT", () => shutdown("SIGINT"));
   } catch (error) {
-    console.error("Failed to boot server:", error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 };
 
-boot();
+if (!isVercel) {
+  startLocalServer();
+}
+
+export default async function handler(req, res) {
+  await ensureBoot();
+  return app(req, res);
+}
