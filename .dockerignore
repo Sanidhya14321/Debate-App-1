@@ -1,0 +1,16 @@
+.git
+.gitignore
+**/node_modules
+**/.next
+**/coverage
+**/.env
+**/.env.local
+**/.env.*.local
+backend_node/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.DS_Store
+.vscode/
