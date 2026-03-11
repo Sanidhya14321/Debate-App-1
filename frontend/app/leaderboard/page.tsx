@@ -50,7 +50,7 @@ export default function LeaderboardPage() {
         };
         setGlobalLeaders([currentUser]);
         setWeeklyLeaders([currentUser]);
-      } catch (error) {
+      } catch {
         setGlobalLeaders([]);
         setWeeklyLeaders([]);
       } finally {

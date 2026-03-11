@@ -78,7 +78,7 @@ export default function AnalyticsPage() {
       };
 
       setAnalyticsData(mappedData);
-    } catch (error) {
+    } catch {
       setAnalyticsData(null);
     } finally {
       setLoading(false);

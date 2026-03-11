@@ -132,7 +132,7 @@ const AdminDashboard = () => {
       });
       setTournaments([]);
       
-    } catch (error) {
+    } catch {
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);

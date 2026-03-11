@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useRef, useState } from "react";
 
@@ -76,7 +77,7 @@ export function LazyLoad({
 }
 
 // Progressive image loading
-interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface LazyImageProps extends Omit<React.ComponentProps<typeof Image>, "src" | "alt"> {
   src: string;
   alt: string;
   className?: string;
@@ -95,14 +96,16 @@ export function LazyImage({
   return (
     <div ref={ref} className={className}>
       {hasIntersected && (
-        <img
+        <Image
           src={src}
           alt={alt}
+          width={typeof props.width === "number" ? props.width : 1200}
+          height={typeof props.height === "number" ? props.height : 800}
           onLoad={() => setIsLoaded(true)}
           onError={() => setHasError(true)}
           className={`transition-opacity duration-300 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
-          } ${className}`}
+          }`}
           {...props}
         />
       )}
