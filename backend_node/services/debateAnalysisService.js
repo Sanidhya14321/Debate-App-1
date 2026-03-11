@@ -36,28 +36,28 @@ Rules:
 - Provide concise feedback and growth guidance for each participant.
 - Keep feedback plain, direct language.
 - Return JSON only in this exact structure:
-{
+{{
   "winner": "username",
-  "results": {
-    "username": {
-      "scores": {
+  "results": {{
+    "username": {{
+      "scores": {{
         "claim_quality": 0,
         "evidence_quality": 0,
         "rebuttal_effectiveness": 0,
         "logical_consistency": 0,
         "persuasive_impact": 0
-      },
+      }},
       "total": 0,
-      "analysis": {
+      "analysis": {{
         "strengths": ["..."],
         "weaknesses": ["..."],
         "feedback": "...",
         "growthPlan": ["..."],
         "lossFactors": ["..."]
-      }
-    }
-  }
-}`
+      }}
+    }}
+  }}
+}}`
 );
 
 const compactTranscript = (argumentsArray) => {
